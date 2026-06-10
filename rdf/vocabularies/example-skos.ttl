@@ -1,0 +1,22 @@
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix ex: <https://example.org/semantic-platform/example#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+ex:status-scheme
+    a sp:ConceptScheme, skos:ConceptScheme ;
+    dcterms:title "Example Status Vocabulary" ;
+    dcterms:description "Domain-neutral example lifecycle statuses for semantic assets." ;
+    skos:hasTopConcept ex:active, ex:draft .
+
+ex:active
+    a skos:Concept ;
+    skos:prefLabel "Active" ;
+    skos:inScheme ex:status-scheme ;
+    skos:topConceptOf ex:status-scheme .
+
+ex:draft
+    a skos:Concept ;
+    skos:prefLabel "Draft" ;
+    skos:inScheme ex:status-scheme ;
+    skos:topConceptOf ex:status-scheme .

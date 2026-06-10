@@ -1,0 +1,31 @@
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix ex: <https://example.org/semantic-platform/example#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:phase1-dataset
+    a sp:Dataset ;
+    dcterms:title "Phase 1 Example Dataset" ;
+    dcterms:description "Domain-neutral sample data used to validate the MVP platform." ;
+    prov:wasGeneratedBy ex:phase1-bootstrap .
+
+ex:core-graph
+    a sp:NamedGraph ;
+    sp:identifier "urn:semantic-platform:graph:data" ;
+    sp:name "Example data graph" ;
+    sp:status ex:active .
+
+ex:item-001
+    a sp:Entity ;
+    sp:identifier "item-001" ;
+    sp:name "Example entity" ;
+    sp:status ex:active ;
+    sp:belongsToDataset ex:phase1-dataset ;
+    sp:managedInGraph ex:core-graph ;
+    prov:wasGeneratedBy ex:phase1-bootstrap .
+
+ex:phase1-bootstrap
+    a prov:Activity ;
+    dcterms:title "Phase 1 bootstrap data generation" ;
+    prov:startedAtTime "2026-06-10T00:00:00Z"^^xsd:dateTime .

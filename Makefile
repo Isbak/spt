@@ -10,7 +10,7 @@ validate:
 	./scripts/validate.sh
 
 test:
-	$(PYTHON) -m pytest tests
+	$(PYTHON) -m pytest tests --cov=semantic_platform --cov=app --cov-report=term-missing --cov-fail-under=80
 
 query:
 	./scripts/query.sh

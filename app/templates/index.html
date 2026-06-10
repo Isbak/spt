@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Semantic Platform{% endblock %}
 {% block content %}
-<h1>Semantic Platform</h1>
-<p>UI implementation will be added in a future milestone.</p>
+<section>
+  <h2>Phase 1 MVP</h2>
+  <p>A domain-neutral Semantic Platform for RDF loading, SHACL validation, SPARQL querying, and Fuseki integration.</p>
+  <ul>
+    <li><a href="{{ url_for('graph.index') }}">View graph statistics</a></li>
+    <li><a href="{{ url_for('ontology.index') }}">View the core ontology</a></li>
+    <li><a href="{{ url_for('query.index') }}">Run a local SPARQL query</a></li>
+    <li><a href="{{ url_for('health.health_view') }}">Check Fuseki health</a></li>
+  </ul>
+</section>
 {% endblock %}

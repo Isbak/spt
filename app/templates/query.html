@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Query | Semantic Platform{% endblock %}
+{% block content %}
+<h2>SPARQL Query</h2>
+<form method="post">
+  <label for="query">Query</label>
+  <textarea id="query" name="query" rows="18">{{ query }}</textarea>
+  <button type="submit">Run query</button>
+</form>
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if rows is not none %}
+  <h3>Results</h3>
+  <table>
+    <thead>
+      <tr>{% for key in rows[0].keys() if rows %}<th>{{ key }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>{% for value in row.values() %}<td>{{ value }}</td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+{% endblock %}

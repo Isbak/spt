@@ -1,0 +1,73 @@
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<https://example.org/semantic-platform/core>
+    a owl:Ontology ;
+    dcterms:title "Semantic Platform Core Ontology" ;
+    dcterms:description "A domain-neutral core ontology for Phase 1 semantic platform assets." ;
+    dcterms:creator "Semantic Platform" ;
+    dcterms:license <https://opensource.org/licenses/MIT> ;
+    owl:versionInfo "1.0.0" .
+
+sp:SemanticAsset
+    a owl:Class ;
+    rdfs:label "Semantic asset" ;
+    rdfs:comment "A governed RDF, ontology, vocabulary, shape, query, or graph asset." .
+
+sp:Entity
+    a owl:Class ;
+    rdfs:label "Entity" ;
+    rdfs:comment "A domain-neutral resource represented in the knowledge graph." .
+
+sp:Dataset
+    a owl:Class ;
+    rdfs:subClassOf sp:SemanticAsset ;
+    rdfs:label "Dataset" .
+
+sp:NamedGraph
+    a owl:Class ;
+    rdfs:subClassOf sp:SemanticAsset ;
+    rdfs:label "Named graph" .
+
+sp:ConceptScheme
+    a owl:Class ;
+    rdfs:subClassOf skos:ConceptScheme, sp:SemanticAsset ;
+    rdfs:label "Concept scheme" .
+
+sp:identifier
+    a owl:DatatypeProperty ;
+    rdfs:label "identifier" ;
+    rdfs:domain sp:Entity ;
+    rdfs:range xsd:string .
+
+sp:name
+    a owl:DatatypeProperty ;
+    rdfs:label "name" ;
+    rdfs:range xsd:string .
+
+sp:status
+    a owl:ObjectProperty ;
+    rdfs:label "status" ;
+    rdfs:range skos:Concept .
+
+sp:belongsToDataset
+    a owl:ObjectProperty ;
+    rdfs:label "belongs to dataset" ;
+    rdfs:domain sp:Entity ;
+    rdfs:range sp:Dataset .
+
+sp:managedInGraph
+    a owl:ObjectProperty ;
+    rdfs:label "managed in graph" ;
+    rdfs:range sp:NamedGraph .
+
+sp:createdBy
+    a owl:ObjectProperty ;
+    rdfs:subPropertyOf prov:wasAttributedTo ;
+    rdfs:label "created by" .

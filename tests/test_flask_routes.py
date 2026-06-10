@@ -1,0 +1,29 @@
+from app.app import create_app
+
+
+class FakeStatus:
+    ok = True
+    status_code = 200
+    message = "OK"
+
+
+def test_flask_routes(monkeypatch):
+    monkeypatch.setattr("app.routes.health.fuseki_health", lambda: FakeStatus())
+    app = create_app()
+    client = app.test_client()
+
+    assert client.get("/").status_code == 200
+    health = client.get("/health")
+    assert health.status_code == 200
+    assert health.get_json()["fuseki"]["ok"] is True
+    assert client.get("/graphs").status_code == 200
+    assert client.get("/ontology").status_code == 200
+    assert client.get("/query").status_code == 200
+
+
+def test_query_route_executes_post(monkeypatch):
+    monkeypatch.setattr("app.routes.query.run_local_query", lambda query_text, settings: [{"metric": "entities", "value": "1"}])
+    app = create_app()
+    response = app.test_client().post("/query", data={"query": "SELECT * WHERE {}"})
+    assert response.status_code == 200
+    assert b"entities" in response.data

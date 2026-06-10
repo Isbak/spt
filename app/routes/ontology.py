@@ -1,11 +1,15 @@
-"""ontology route skeleton."""
+"""Ontology routes."""
 
-from flask import Blueprint, jsonify
+from __future__ import annotations
+
+from flask import Blueprint, render_template
+
+from semantic_platform.api import get_ontology_text
 
 ontology_bp = Blueprint("ontology", __name__, url_prefix="/ontology")
 
 
 @ontology_bp.get("")
 def index():
-    """Return a placeholder response until ontology UI/API behavior is implemented."""
-    return jsonify({"status": "not_implemented", "component": "ontology"}), 501
+    """Render the core ontology text."""
+    return render_template("ontology.html", ontology=get_ontology_text())
