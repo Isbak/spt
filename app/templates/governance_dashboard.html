@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Governance Dashboard{% endblock %}
+{% block content %}
+<h2>Governance Dashboard</h2>
+<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved</p>
+<section class="cards"><article>Ownership coverage: {{ data.metrics.ownership_coverage }}</article><article>Steward coverage: {{ data.metrics.steward_coverage }}</article><article>Completeness: {{ data.metrics.governance_completeness }}</article><article>Without owner: {{ data.metrics.assets_without_owner }}</article><article>Without steward: {{ data.metrics.assets_without_steward }}</article><article>Deprecated: {{ data.metrics.deprecated_assets }}</article></section>
+<table><tr><th>Asset</th><th>Owner</th><th>Steward</th><th>Classification</th><th>Approval status</th><th>Policy coverage</th></tr>{% for record in data.summary.graph_assets %}<tr><td>{{ record.label }}</td><td>{{ record.owner }}</td><td>{{ record.steward }}</td><td>{{ record.classification }}</td><td>Approved</td><td>Standard semantic asset policy</td></tr>{% endfor %}</table>
+{% endblock %}

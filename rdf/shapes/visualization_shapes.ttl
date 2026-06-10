@@ -1,0 +1,16 @@
+@prefix viz: <https://example.org/semantic-platform/visualization#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+viz:DashboardShape a sh:NodeShape ;
+    sh:targetClass viz:Dashboard ;
+    sh:property [ sh:path gov:hasOwner ; sh:minCount 1 ; sh:message "Dashboards must declare an owner." ] ;
+    sh:property [ sh:path gov:hasSteward ; sh:minCount 1 ; sh:message "Dashboards must declare a steward." ] ;
+    sh:property [ sh:path viz:version ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Dashboards must declare a version." ] ;
+    sh:property [ sh:path viz:status ; sh:minCount 1 ; sh:message "Dashboards must declare a status." ] ;
+    sh:property [ sh:path viz:route ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Dashboards must declare a route." ] .
+
+viz:WidgetShape a sh:NodeShape ;
+    sh:targetClass viz:Widget ;
+    sh:property [ sh:path <http://www.w3.org/2000/01/rdf-schema#label> ; sh:minCount 1 ; sh:message "Widgets must have labels." ] .

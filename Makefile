@@ -1,4 +1,4 @@
-.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage load-fuseki app verify docker-up docker-down clean lint
+.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search load-fuseki app verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -57,13 +57,34 @@ import-sql:
 lineage:
 	./scripts/lineage.sh
 
+graph:
+	./scripts/graph.sh
+
+ontology:
+	./scripts/ontology.sh
+
+governance-dashboard:
+	./scripts/governance-dashboard.sh
+
+provenance-dashboard:
+	./scripts/provenance-dashboard.sh
+
+reasoning-dashboard:
+	./scripts/reasoning-dashboard.sh
+
+analytics:
+	./scripts/analytics.sh
+
+search:
+	./scripts/search.sh
+
 load-fuseki:
 	./scripts/load-fuseki.sh
 
 app:
 	FLASK_APP=app.app:create_app $(PYTHON) -m flask run --host $${FLASK_HOST:-0.0.0.0} --port $${FLASK_PORT:-5000}
 
-verify: validate governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage test query
+verify: validate governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search test query
 
 lint:
 	$(PYTHON) -m ruff check src app tests

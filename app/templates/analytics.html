@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<h2>Graph Analytics</h2>
+<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved</p>
+<section class="cards">{% for name, value in metrics.items() %}<article><strong>{{ name|replace('_', ' ')|title }}</strong><br>{{ value }}</article>{% endfor %}</section>
+{% endblock %}

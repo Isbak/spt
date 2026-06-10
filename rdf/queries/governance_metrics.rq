@@ -1,0 +1,3 @@
+PREFIX gov: <https://example.org/semantic-platform/governance#>
+SELECT (COUNT(?asset) AS ?assetCount) (SUM(IF(BOUND(?owner), 1, 0)) AS ?ownedAssets) (SUM(IF(BOUND(?steward), 1, 0)) AS ?stewardedAssets)
+WHERE { ?asset a gov:GraphAsset . OPTIONAL { ?asset gov:hasOwner ?owner } OPTIONAL { ?asset gov:hasSteward ?steward } }

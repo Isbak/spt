@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Graph Explorer{% endblock %}
+{% block content %}
+<h2>Knowledge Graph Explorer</h2>
+<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved</p>
+<form method="get"><label>Filter <input name="q" value="{{ query }}" placeholder="label, URI, relationship"></label><button type="submit">Apply</button></form>
+<div id="graph-network" class="visualization-panel" data-nodes='{{ graph.nodes|tojson }}' data-edges='{{ graph.edges|tojson }}'>
+  <p>Nodes: {{ graph.node_count }} · Relationships: {{ graph.edge_count }}</p>
+</div>
+<table><thead><tr><th>Node</th><th>Type</th><th>Graph membership</th><th>Provenance</th></tr></thead><tbody>
+{% for node in graph.nodes %}<tr><td>{{ node.label }}<br><small>{{ node.id }}</small></td><td>{{ node.type }}</td><td>{{ node.group }}</td><td>{{ node.provenance }}</td></tr>{% endfor %}
+</tbody></table>
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script>
+const panel = document.getElementById('graph-network');
+const nodes = new vis.DataSet(JSON.parse(panel.dataset.nodes));
+const edges = new vis.DataSet(JSON.parse(panel.dataset.edges));
+new vis.Network(panel, {nodes, edges}, {interaction: {hover: true, navigationButtons: true, zoomView: true, dragView: true}, edges: {arrows: 'to', smooth: true}});
+</script>
+{% endblock %}

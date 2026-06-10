@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Reasoning Dashboard{% endblock %}
+{% block content %}
+<h2>Reasoning Dashboard</h2>
+<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: {{ data.engine_version }} · Status: Approved</p>
+<section class="cards"><article>Rules: {{ data.rules|length }}</article><article>Rule executions: {{ data.rule_execution_count }}</article><article>Inferences: {{ data.inference_volume }}</article><article>Explanation coverage: {{ data.explanation_coverage }}</article><article>Consistency: {{ data.consistency_conforms }}</article></section>
+<table><tr><th>Rule</th><th>Owner</th><th>Steward</th><th>Status</th></tr>{% for rule in data.rules %}<tr><td>{{ rule.label }}</td><td>{{ rule.owner }}</td><td>{{ rule.steward }}</td><td>{{ rule.status }}</td></tr>{% endfor %}</table>
+{% endblock %}

@@ -1,0 +1,3 @@
+PREFIX reason: <https://example.org/semantic-platform/reasoning#>
+SELECT (COUNT(DISTINCT ?inference) AS ?inferenceCount) (COUNT(DISTINCT ?explanation) AS ?explanationCount)
+WHERE { OPTIONAL { ?inference a reason:Inference } OPTIONAL { ?explanation a reason:Explanation } }

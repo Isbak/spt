@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Explanation Explorer{% endblock %}
+{% block content %}
+<h2>Explanation Explorer</h2>
+<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved</p>
+<table><tr><th>Assertion</th><th>Rule</th><th>Source facts</th><th>Confidence</th><th>Timestamp</th><th>Explanation</th></tr>{% for row in rows %}<tr><td>{{ row.assertion }}</td><td>{{ row.rule }}</td><td><ul>{% for fact in row.source_triples %}<li>{{ fact }}</li>{% endfor %}</ul></td><td>{{ row.confidence }}</td><td>{{ row.timestamp }}</td><td>{{ row.comment }}</td></tr>{% endfor %}</table>
+{% endblock %}

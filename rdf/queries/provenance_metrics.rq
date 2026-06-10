@@ -1,0 +1,3 @@
+PREFIX prov: <http://www.w3.org/ns/prov#>
+SELECT (COUNT(DISTINCT ?activity) AS ?activityCount) (COUNT(DISTINCT ?derivation) AS ?derivationCount)
+WHERE { OPTIONAL { ?activity a prov:Activity } OPTIONAL { ?derivation prov:wasDerivedFrom ?source } }
