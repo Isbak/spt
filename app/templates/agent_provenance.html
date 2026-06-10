@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Agent Provenance{% endblock %}
+{% block content %}<h2>Agent Provenance</h2><table><tr><th>Agent</th><th>Execution</th><th>Observation</th><th>Decision</th><th>Output</th></tr>{% for chain in chains %}<tr><td>{{ chain.agent }}</td><td>{{ chain.execution }}</td><td>{{ chain.observation }}</td><td>{{ chain.decision }}</td><td>{{ chain.output }}</td></tr>{% else %}<tr><td colspan="5">No runtime provenance recorded yet.</td></tr>{% endfor %}</table>{% endblock %}

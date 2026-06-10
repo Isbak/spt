@@ -1,0 +1,24 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix agent: <https://example.org/semantic-platform/agents#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+aggov: a owl:Ontology ;
+  rdfs:label "Semantic Platform agent governance ontology" ;
+  dcterms:description "Governance vocabulary requiring managed ownership, stewardship, versions, approval status, graph access, and tool access for agents." ;
+  owl:versionInfo "0.1.0" .
+
+aggov:AgentApprovalStatus a owl:Class ; rdfs:label "Agent approval status" .
+aggov:Draft a aggov:AgentApprovalStatus ; rdfs:label "Draft" .
+aggov:Testing a aggov:AgentApprovalStatus ; rdfs:label "Testing" .
+aggov:Approved a aggov:AgentApprovalStatus ; rdfs:label "Approved" .
+aggov:Deprecated a aggov:AgentApprovalStatus ; rdfs:label "Deprecated" .
+aggov:Retired a aggov:AgentApprovalStatus ; rdfs:label "Retired" .
+
+aggov:owner a owl:DatatypeProperty ; rdfs:domain agent:Agent ; rdfs:range xsd:string ; rdfs:label "owner" .
+aggov:steward a owl:DatatypeProperty ; rdfs:domain agent:Agent ; rdfs:range xsd:string ; rdfs:label "steward" .
+aggov:approvalStatus a owl:DatatypeProperty ; rdfs:domain agent:Agent ; rdfs:range xsd:string ; rdfs:label "approval status" .
+aggov:allowedGraphAccess a owl:DatatypeProperty ; rdfs:domain agent:Agent ; rdfs:range xsd:string ; rdfs:label "allowed graph access" .
+aggov:allowedTool a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentTool ; rdfs:label "allowed tool" .
