@@ -1,0 +1,13 @@
+PREFIX sp: <https://example.org/semantic-platform/core#>
+PREFIX gov: <https://example.org/semantic-platform/governance#>
+PREFIX map: <https://example.org/semantic-platform/mappings#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?graph ?identifier ?owner ?steward ?mapping WHERE {
+  ?graph a sp:NamedGraph ;
+         sp:identifier ?identifier ;
+         gov:hasOwner ?owner ;
+         gov:hasSteward ?steward .
+  FILTER(?identifier IN ("urn:graph:integration", "urn:graph:reference", "urn:graph:masterdata"))
+  OPTIONAL { ?mapping map:targetGraph ?graph }
+}
+ORDER BY ?identifier ?mapping

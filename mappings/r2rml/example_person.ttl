@@ -1,0 +1,32 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix map: <https://example.org/semantic-platform/mappings#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix ex: <https://example.org/resource/> .
+
+<https://example.org/mapping/person-r2rml>
+    a rr:TriplesMap, map:Mapping ;
+    rr:logicalTable [ rr:tableName "person" ] ;
+    rr:subjectMap [
+        rr:template "https://example.org/resource/person/{person_id}" ;
+        rr:class sp:Entity ;
+        rr:graph <urn:graph:masterdata>
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate sp:identifier ;
+        rr:objectMap [ rr:column "person_id" ; rr:datatype xsd:string ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate sp:name ;
+        rr:objectMap [ rr:template "{given_name} {family_name}" ; rr:datatype xsd:string ]
+    ] ;
+    rr:predicateObjectMap [
+        rr:predicate sp:belongsToDataset ;
+        rr:objectMap [ rr:constant <https://example.org/resource/dataset/people> ; rr:termType rr:IRI ]
+    ] ;
+    map:sourcedFrom <https://example.org/source-dataset/people> ;
+    map:targetGraph <urn:graph:masterdata> ;
+    map:version "1.0.0" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Source Catalog - Semantic Platform{% endblock %}
+{% block content %}
+<h2>Source Catalog</h2>
+<table>
+  <thead><tr><th>Dataset</th><th>Source System</th><th>Owner</th><th>Steward</th><th>Version</th></tr></thead>
+  <tbody>
+  {% for dataset in datasets %}
+    <tr><td>{{ dataset.label }}</td><td>{{ dataset.source_system }}</td><td>{{ dataset.owner }}</td><td>{{ dataset.steward }}</td><td>{{ dataset.version }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,14 @@
+PREFIX map: <https://example.org/semantic-platform/mappings#>
+PREFIX gov: <https://example.org/semantic-platform/governance#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?mapping ?label ?version ?owner ?steward ?source ?targetGraph ?status WHERE {
+  ?mapping a map:Mapping ;
+           map:version ?version ;
+           gov:hasOwner ?owner ;
+           gov:hasSteward ?steward ;
+           map:sourcedFrom ?source ;
+           map:targetGraph ?targetGraph .
+  OPTIONAL { ?mapping rdfs:label ?label }
+  OPTIONAL { ?mapping map:mappingStatus ?status }
+}
+ORDER BY ?mapping

@@ -1,0 +1,28 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix map: <https://example.org/semantic-platform/mappings#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+map:MappingShape
+    a sh:NodeShape ;
+    sh:targetClass map:Mapping ;
+    sh:property [ sh:path gov:hasOwner ; sh:minCount 1 ; sh:message "Mapping must have an owner." ] ;
+    sh:property [ sh:path gov:hasSteward ; sh:minCount 1 ; sh:message "Mapping must have a steward." ] ;
+    sh:property [ sh:path map:sourcedFrom ; sh:minCount 1 ; sh:message "Mapping must declare a source dataset." ] ;
+    sh:property [ sh:path map:targetGraph ; sh:minCount 1 ; sh:message "Mapping must declare a target graph." ] ;
+    sh:property [ sh:path map:version ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Mapping must have a version." ] .
+
+map:MappingExecutionShape
+    a sh:NodeShape ;
+    sh:targetClass map:MappingExecution ;
+    sh:property [ sh:path map:usesMapping ; sh:minCount 1 ; sh:message "Execution must reference its mapping." ] ;
+    sh:property [ sh:path map:sourcedFrom ; sh:minCount 1 ; sh:message "Execution must reference its source." ] ;
+    sh:property [ sh:path map:executedBy ; sh:minCount 1 ; sh:message "Execution must declare an executor." ] ;
+    sh:property [ sh:path map:generatedGraph ; sh:minCount 1 ; sh:message "Execution must declare the generated graph." ] ;
+    sh:property [ sh:path map:generatedEntity ; sh:minCount 1 ; sh:message "Execution must declare the generated entity." ] ;
+    sh:property [ sh:path map:sourceVersion ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Execution must capture source version." ] ;
+    sh:property [ sh:path map:mappingVersion ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Execution must capture mapping version." ] ;
+    sh:property [ sh:path map:targetGraphIri ; sh:minCount 1 ; sh:datatype xsd:anyURI ; sh:message "Execution must capture target graph IRI." ] ;
+    sh:property [ sh:path prov:startedAtTime ; sh:minCount 1 ; sh:datatype xsd:dateTime ; sh:message "Execution must have start time." ] ;
+    sh:property [ sh:path prov:endedAtTime ; sh:minCount 1 ; sh:datatype xsd:dateTime ; sh:message "Execution must have end time." ] .

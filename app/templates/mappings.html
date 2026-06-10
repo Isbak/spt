@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Mappings - Semantic Platform{% endblock %}
+{% block content %}
+<h2>Mappings</h2>
+<table>
+  <thead><tr><th>Mapping</th><th>Version</th><th>Owner</th><th>Steward</th><th>Source</th><th>Target Graph</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for mapping in mappings %}
+    <tr><td>{{ mapping.label }}</td><td>{{ mapping.version }}</td><td>{{ mapping.owner }}</td><td>{{ mapping.steward }}</td><td>{{ mapping.source }}</td><td>{{ mapping.target_graph }}</td><td>{{ mapping.status }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

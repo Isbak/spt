@@ -1,0 +1,13 @@
+PREFIX map: <https://example.org/semantic-platform/mappings#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?source ?execution ?mapping ?generated ?targetGraph ?started ?ended WHERE {
+  ?execution a map:MappingExecution ;
+             map:sourcedFrom ?source ;
+             map:usesMapping ?mapping ;
+             map:generatedEntity ?generated ;
+             map:generatedGraph ?targetGraph ;
+             prov:startedAtTime ?started ;
+             prov:endedAtTime ?ended .
+}
+ORDER BY ?execution
