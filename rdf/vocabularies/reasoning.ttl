@@ -1,0 +1,51 @@
+@prefix reason: <https://example.org/semantic-platform/reasoning#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/semantic-platform/reasoning>
+    a owl:Ontology ;
+    dcterms:title "Semantic Platform Reasoning Vocabulary" ;
+    dcterms:description "Domain-neutral vocabulary for inferences, rules, explanations, consistency checks, and inferred graph management." ;
+    dcterms:created "2026-06-10"^^xsd:date ;
+    dcterms:modified "2026-06-10"^^xsd:date ;
+    dcterms:creator "Semantic Platform" ;
+    dcterms:publisher "Semantic Platform" ;
+    owl:versionInfo "0.4.0" .
+
+reason:Inference a owl:Class ; rdfs:label "Inference" .
+reason:Rule a owl:Class ; rdfs:label "Rule" .
+reason:RuleSet a owl:Class ; rdfs:label "Rule set" .
+reason:ReasoningEngine a owl:Class ; rdfs:label "Reasoning engine" .
+reason:ReasoningEngineExecution a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Reasoning engine execution" .
+reason:InferredEntity a owl:Class ; rdfs:label "Inferred entity" .
+reason:InferredRelationship a owl:Class ; rdfs:label "Inferred relationship" .
+reason:ConsistencyCheck a owl:Class ; rdfs:label "Consistency check" .
+reason:Explanation a owl:Class ; rdfs:label "Explanation" .
+reason:RuleStatus a owl:Class ; rdfs:label "Rule status" .
+
+reason:inferredBy a owl:ObjectProperty ; rdfs:label "inferred by" ; rdfs:range reason:Inference .
+reason:inferredFrom a owl:ObjectProperty ; rdfs:label "inferred from" ; rdfs:range rdf:Statement .
+reason:usesRule a owl:ObjectProperty ; rdfs:label "uses rule" ; rdfs:range reason:Rule .
+reason:generatedAssertion a owl:ObjectProperty ; rdfs:label "generated assertion" ; rdfs:range rdf:Statement .
+reason:hasExplanation a owl:ObjectProperty ; rdfs:label "has explanation" ; rdfs:range reason:Explanation .
+reason:executedByEngine a owl:ObjectProperty ; rdfs:label "executed by engine" ; rdfs:range reason:ReasoningEngine .
+reason:belongsToRuleSet a owl:ObjectProperty ; rdfs:label "belongs to rule set" ; rdfs:range reason:RuleSet .
+reason:ruleOwner a owl:ObjectProperty ; rdfs:subPropertyOf gov:hasOwner ; rdfs:label "rule owner" .
+reason:ruleSteward a owl:ObjectProperty ; rdfs:subPropertyOf gov:hasSteward ; rdfs:label "rule steward" .
+reason:ruleStatus a owl:ObjectProperty ; rdfs:label "rule status" ; rdfs:range reason:RuleStatus .
+reason:hasConfidence a owl:DatatypeProperty ; rdfs:label "has confidence" ; rdfs:range xsd:decimal .
+reason:engineVersion a owl:DatatypeProperty ; rdfs:label "engine version" ; rdfs:range xsd:string .
+reason:generatedAt a owl:DatatypeProperty ; rdfs:label "generated at" ; rdfs:range xsd:dateTime .
+
+reason:Draft a reason:RuleStatus ; rdfs:label "Draft" .
+reason:Approved a reason:RuleStatus ; rdfs:label "Approved" .
+reason:Deprecated a reason:RuleStatus ; rdfs:label "Deprecated" .
+reason:Retired a reason:RuleStatus ; rdfs:label "Retired" .
+
+reason:enterpriseRuleSet a reason:RuleSet ; rdfs:label "Enterprise reasoning rule set" .
+reason:engine-lightweight-1 a reason:ReasoningEngine ; rdfs:label "Semantic Platform lightweight reasoner" ; reason:engineVersion "semantic-platform-lightweight-reasoner/0.4.0" .

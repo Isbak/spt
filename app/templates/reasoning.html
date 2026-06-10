@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Reasoning{% endblock %}
+{% block content %}
+<h2>Reasoning</h2>
+<p>Engine: {{ summary.engine_version }}</p>
+<p>Inferred triples: {{ summary.inferred_count }}</p>
+<p>Explanations: {{ summary.explanation_count }}</p>
+<p>Consistency conforms: {{ summary.consistency_conforms }}</p>
+<h3>Graphs</h3>
+<ul>{% for graph in summary.graphs %}<li>{{ graph }}</li>{% endfor %}</ul>
+<h3>Rules</h3>
+<table><thead><tr><th>Rule</th><th>Version</th><th>Status</th><th>Owner</th><th>Steward</th></tr></thead><tbody>
+{% for rule in summary.rules %}<tr><td>{{ rule.label }}</td><td>{{ rule.version }}</td><td>{{ rule.status }}</td><td>{{ rule.owner }}</td><td>{{ rule.steward }}</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}

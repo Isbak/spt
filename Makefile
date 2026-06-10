@@ -1,4 +1,4 @@
-.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning mappings source-catalog import-csv import-sql lineage load-fuseki app verify docker-up docker-down clean lint
+.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage load-fuseki app verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -10,7 +10,7 @@ validate:
 	./scripts/validate.sh
 
 test:
-	$(PYTHON) -m pytest tests --cov=semantic_platform --cov=app --cov-report=term-missing --cov-fail-under=85
+	$(PYTHON) -m pytest tests --cov=semantic_platform --cov=app --cov-report=term-missing --cov-fail-under=90
 
 query:
 	./scripts/query.sh
@@ -29,6 +29,18 @@ ontology-version:
 
 reasoning:
 	./scripts/reasoning.sh
+
+inference:
+	./scripts/inference.sh
+
+consistency:
+	./scripts/consistency.sh
+
+explanations:
+	./scripts/explanations.sh
+
+rules:
+	./scripts/rules.sh
 
 mappings:
 	./scripts/mappings.sh
@@ -51,7 +63,7 @@ load-fuseki:
 app:
 	FLASK_APP=app.app:create_app $(PYTHON) -m flask run --host $${FLASK_HOST:-0.0.0.0} --port $${FLASK_PORT:-5000}
 
-verify: validate governance provenance named-graphs ontology-version mappings source-catalog import-csv import-sql lineage test query
+verify: validate governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage test query
 
 lint:
 	$(PYTHON) -m ruff check src app tests

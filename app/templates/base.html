@@ -23,6 +23,11 @@
         <a href="{{ url_for('source_catalog.source_catalog_index') }}">Source Catalog</a>
         <a href="{{ url_for('integration.integration_index') }}">Integration</a>
         <a href="{{ url_for('mapping_lineage.mapping_lineage_index') }}">Mapping Lineage</a>
+        <a href="{{ url_for('reasoning.reasoning_index') }}">Reasoning</a>
+        <a href="{{ url_for('reasoning.inferences_index') }}">Inferences</a>
+        <a href="{{ url_for('reasoning.explanations_index') }}">Explanations</a>
+        <a href="{{ url_for('reasoning.consistency_index') }}">Consistency</a>
+        <a href="{{ url_for('reasoning.rules_index') }}">Rules</a>
       </nav>
     </header>
     <main>{% block content %}{% endblock %}</main>

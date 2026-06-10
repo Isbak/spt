@@ -9,6 +9,7 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 COPY app ./app
 COPY rdf ./rdf
+COPY scripts ./scripts
 
 RUN python -m pip install --no-cache-dir -e .
 

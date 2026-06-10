@@ -1,0 +1,63 @@
+@prefix reason: <https://example.org/semantic-platform/reasoning#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix ex: <https://example.org/semantic-platform/example#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ex:Person a owl:Class ; rdfs:label "Person" .
+ex:Organization a owl:Class ; rdfs:label "Organization" .
+ex:Dataset a owl:Class ; rdfs:label "Dataset" .
+ex:Employee a owl:Class ; rdfs:subClassOf ex:Person ; rdfs:label "Employee" .
+ex:DataProduct a owl:Class ; owl:equivalentClass ex:Dataset ; rdfs:label "Data product" .
+ex:employedBy a owl:ObjectProperty ; owl:inverseOf ex:employs ; rdfs:label "employed by" .
+ex:employs a owl:ObjectProperty ; rdfs:label "employs" .
+ex:owns a owl:ObjectProperty ; owl:inverseOf ex:ownedBy ; rdfs:label "owns" .
+ex:ownedBy a owl:ObjectProperty ; rdfs:label "owned by" .
+ex:contributesTo a owl:ObjectProperty ; rdfs:label "contributes to" .
+ex:memberOf a owl:ObjectProperty ; rdfs:subPropertyOf ex:associatedWith ; rdfs:label "member of" .
+ex:associatedWith a owl:ObjectProperty ; rdfs:label "associated with" .
+ex:connectedTo a owl:ObjectProperty, owl:SymmetricProperty ; rdfs:label "connected to" .
+ex:partOf a owl:ObjectProperty, owl:TransitiveProperty ; rdfs:label "part of" .
+ex:locatedIn a owl:ObjectProperty, owl:TransitiveProperty ; rdfs:label "located in" .
+
+reason:rule-rdfs-core
+    a reason:Rule ;
+    rdfs:label "RDFS core reasoning rule" ;
+    dcterms:description "Infers transitive subclasses, inherited rdf:types, and super-property assertions." ;
+    reason:belongsToRuleSet reason:enterpriseRuleSet ;
+    reason:ruleOwner gov:platformOwner ;
+    reason:ruleSteward gov:platformSteward ;
+    reason:ruleStatus reason:Approved ;
+    owl:versionInfo "1.0.0" .
+
+reason:rule-owl-compatible-patterns
+    a reason:Rule ;
+    rdfs:label "OWL-compatible enterprise patterns rule" ;
+    dcterms:description "Infers equivalent class/property, inverse, symmetric, and transitive property assertions without full OWL DL reasoning." ;
+    reason:belongsToRuleSet reason:enterpriseRuleSet ;
+    reason:ruleOwner gov:platformOwner ;
+    reason:ruleSteward gov:platformSteward ;
+    reason:ruleStatus reason:Approved ;
+    owl:versionInfo "1.0.0" .
+
+reason:rule-contributes-to-dataset
+    a reason:Rule ;
+    rdfs:label "Generic contribution inference" ;
+    dcterms:description "If a Person is employedBy an Organization and the Organization owns a Dataset, infer that the Person contributesTo the Dataset." ;
+    reason:belongsToRuleSet reason:enterpriseRuleSet ;
+    reason:ruleOwner gov:platformOwner ;
+    reason:ruleSteward gov:platformSteward ;
+    reason:ruleStatus reason:Approved ;
+    owl:versionInfo "1.0.0" .
+
+ex:sample-person a ex:Person ; ex:employedBy ex:sample-organization ; ex:memberOf ex:sample-organization .
+ex:sample-organization a ex:Organization ; ex:owns ex:sample-dataset .
+ex:sample-dataset a ex:Dataset .
+ex:node-a ex:connectedTo ex:node-b .
+ex:component-a ex:partOf ex:component-b .
+ex:component-b ex:partOf ex:component-c .
+ex:site-a ex:locatedIn ex:region-a .
+ex:region-a ex:locatedIn ex:country-a .

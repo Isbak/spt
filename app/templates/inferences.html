@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}Inferences{% endblock %}
+{% block content %}
+<h2>Inferred Assertions</h2>
+<table><thead><tr><th>Subject</th><th>Predicate</th><th>Object</th></tr></thead><tbody>
+{% for s, p, o in triples %}<tr><td>{{ s }}</td><td>{{ p }}</td><td>{{ o }}</td></tr>{% endfor %}
+</tbody></table>
+{% endblock %}
