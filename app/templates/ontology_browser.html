@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Ontology Browser{% endblock %}
+{% block content %}
+<h2>Ontology Browser</h2>
+<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: {{ data.version }} · Status: Approved</p>
+<section class="cards"><article>Classes: {{ data.statistics.class_count }}</article><article>Properties: {{ data.statistics.property_count }}</article><article>Hierarchy depth: {{ data.statistics.hierarchy_depth }}</article></section>
+{% for class in data.classes %}
+<section class="browser-card"><h3>{{ class.label }}</h3><p><small>{{ class.uri }}</small></p><h4>Properties</h4><ul>{% for property in class.properties %}<li>{{ property.label }} → {{ property.range }}</li>{% else %}<li>No domain-specific properties.</li>{% endfor %}</ul><h4>Instances</h4><ul>{% for instance in class.instances %}<li>{{ instance.label }}</li>{% else %}<li>No instances loaded.</li>{% endfor %}</ul></section>
+{% endfor %}
+<h3>All properties</h3><table><tr><th>Property</th><th>Domain</th><th>Range</th></tr>{% for property in data.properties %}<tr><td>{{ property.label }}</td><td>{{ property.domain }}</td><td>{{ property.range }}</td></tr>{% endfor %}</table>
+{% endblock %}

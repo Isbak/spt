@@ -25,7 +25,7 @@ def inferences_index():
     return render_template("inferences.html", triples=triples)
 
 
-@reasoning_bp.get("/explanations")
+@reasoning_bp.get("/legacy-explanations")
 def explanations_index():
     """Render generated inference explanations."""
     run = run_reasoning()

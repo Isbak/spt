@@ -1,0 +1,47 @@
+@prefix viz: <https://example.org/semantic-platform/visualization#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/semantic-platform/visualization>
+    a owl:Ontology ;
+    dcterms:title "Semantic Platform Visualization Vocabulary" ;
+    dcterms:description "Vocabulary for dashboards, widgets, charts, explorers, and navigation views." ;
+    dcterms:created "2026-06-10"^^xsd:date ;
+    dcterms:modified "2026-06-10"^^xsd:date ;
+    dcterms:creator "Semantic Platform" ;
+    dcterms:publisher "Semantic Platform" ;
+    owl:versionInfo "0.5.0" .
+
+viz:Dashboard a owl:Class ; rdfs:label "Dashboard" .
+viz:Widget a owl:Class ; rdfs:label "Widget" .
+viz:Chart a owl:Class ; rdfs:label "Chart" .
+viz:Explorer a owl:Class ; rdfs:label "Explorer" .
+viz:NavigationView a owl:Class ; rdfs:label "Navigation view" .
+
+viz:hasWidget a owl:ObjectProperty ; rdfs:label "has widget" ; rdfs:domain viz:Dashboard ; rdfs:range viz:Widget .
+viz:usesChart a owl:ObjectProperty ; rdfs:label "uses chart" ; rdfs:range viz:Chart .
+viz:route a owl:DatatypeProperty ; rdfs:label "route" ; rdfs:range xsd:string .
+viz:version a owl:DatatypeProperty ; rdfs:label "version" ; rdfs:range xsd:string .
+viz:status a owl:ObjectProperty ; rdfs:label "status" ; rdfs:range gov:ApprovalStatus .
+
+viz:graphExplorer a viz:Dashboard, viz:Explorer ; rdfs:label "Knowledge graph explorer" ; viz:route "/graph" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:graphNetworkWidget .
+viz:ontologyBrowser a viz:Dashboard, viz:Explorer ; rdfs:label "Ontology browser" ; viz:route "/ontology-browser" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:ontologyHierarchyWidget .
+viz:governanceDashboard a viz:Dashboard ; rdfs:label "Governance dashboard" ; viz:route "/governance-dashboard" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:governanceMetricsWidget .
+viz:provenanceExplorer a viz:Dashboard, viz:Explorer ; rdfs:label "Provenance explorer" ; viz:route "/provenance-explorer" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:lineageWidget .
+viz:reasoningDashboard a viz:Dashboard ; rdfs:label "Reasoning dashboard" ; viz:route "/reasoning-dashboard" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:inferenceMetricsWidget .
+viz:explanationExplorer a viz:Dashboard, viz:Explorer ; rdfs:label "Explanation explorer" ; viz:route "/explanations" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:sourceFactsWidget .
+viz:analyticsDashboard a viz:Dashboard ; rdfs:label "Analytics dashboard" ; viz:route "/analytics" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:analyticsMetricsWidget .
+viz:semanticSearch a viz:Dashboard, viz:NavigationView ; rdfs:label "Semantic search" ; viz:route "/search" ; viz:version "0.5.0" ; viz:status gov:approved ; gov:hasOwner gov:platformOwner ; gov:hasSteward gov:platformSteward ; gov:hasApprovalStatus gov:approved ; viz:hasWidget viz:searchResultsWidget .
+
+viz:graphNetworkWidget a viz:Widget, viz:Chart ; rdfs:label "Graph network widget" .
+viz:ontologyHierarchyWidget a viz:Widget ; rdfs:label "Ontology hierarchy widget" .
+viz:governanceMetricsWidget a viz:Widget, viz:Chart ; rdfs:label "Governance metrics widget" .
+viz:lineageWidget a viz:Widget, viz:Chart ; rdfs:label "Lineage widget" .
+viz:inferenceMetricsWidget a viz:Widget, viz:Chart ; rdfs:label "Inference metrics widget" .
+viz:sourceFactsWidget a viz:Widget ; rdfs:label "Source facts widget" .
+viz:analyticsMetricsWidget a viz:Widget, viz:Chart ; rdfs:label "Analytics metrics widget" .
+viz:searchResultsWidget a viz:Widget ; rdfs:label "Search results widget" .

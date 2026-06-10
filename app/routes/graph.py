@@ -6,12 +6,10 @@ from flask import Blueprint, render_template
 
 from semantic_platform.api import get_graph_stats
 
-# Register both plural and legacy singular paths for convenience.
 graph_bp = Blueprint("graph", __name__)
 
 
 @graph_bp.get("/graphs")
-@graph_bp.get("/graph")
 def index():
     """Render local RDF graph statistics."""
     return render_template("graphs.html", stats=get_graph_stats())

@@ -61,6 +61,8 @@ stages:
             displayName: Validate explanation generation
           - script: make rules
             displayName: Validate reasoning rules
+          - script: make graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search
+            displayName: Validate dashboard generation, visualization metadata, analytics, and search
 
   - stage: Test
     dependsOn: Validate
@@ -73,4 +75,4 @@ stages:
           - script: make setup
             displayName: Install Python dependencies
           - script: make verify
-            displayName: Run Phase 4 verification
+            displayName: Run Phase 5 verification

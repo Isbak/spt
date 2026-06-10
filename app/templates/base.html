@@ -12,11 +12,15 @@
       <nav>
         <a href="{{ url_for('index') }}">Home</a>
         <a href="{{ url_for('health.health_view') }}">Health</a>
-        <a href="{{ url_for('graph.index') }}">Graphs</a>
+        <a href="{{ url_for('visualization.graph_explorer') }}">Graph Explorer</a>
+        <a href="{{ url_for('graph.index') }}">Graph Stats</a>
         <a href="{{ url_for('ontology.index') }}">Ontology</a>
+        <a href="{{ url_for('visualization.ontology_browser') }}">Ontology Browser</a>
         <a href="{{ url_for('query.index') }}">Query</a>
         <a href="{{ url_for('governance.index') }}">Governance</a>
+        <a href="{{ url_for('visualization.governance_dashboard') }}">Governance Dashboard</a>
         <a href="{{ url_for('provenance.index') }}">Provenance</a>
+        <a href="{{ url_for('visualization.provenance_explorer') }}">Provenance Explorer</a>
         <a href="{{ url_for('named_graphs.index') }}">Named Graphs</a>
         <a href="{{ url_for('ontology_version.index') }}">Ontology Version</a>
         <a href="{{ url_for('mappings.index') }}">Mappings</a>
@@ -24,8 +28,11 @@
         <a href="{{ url_for('integration.integration_index') }}">Integration</a>
         <a href="{{ url_for('mapping_lineage.mapping_lineage_index') }}">Mapping Lineage</a>
         <a href="{{ url_for('reasoning.reasoning_index') }}">Reasoning</a>
+        <a href="{{ url_for('visualization.reasoning_dashboard') }}">Reasoning Dashboard</a>
         <a href="{{ url_for('reasoning.inferences_index') }}">Inferences</a>
-        <a href="{{ url_for('reasoning.explanations_index') }}">Explanations</a>
+        <a href="{{ url_for('visualization.explanations') }}">Explanations</a>
+        <a href="{{ url_for('visualization.analytics') }}">Analytics</a>
+        <a href="{{ url_for('visualization.search') }}">Search</a>
         <a href="{{ url_for('reasoning.consistency_index') }}">Consistency</a>
         <a href="{{ url_for('reasoning.rules_index') }}">Rules</a>
       </nav>

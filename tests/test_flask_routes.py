@@ -30,12 +30,22 @@ def test_flask_routes(monkeypatch):
     assert client.get("/reasoning").status_code == 200
     assert client.get("/inferences").status_code == 200
     assert client.get("/explanations").status_code == 200
+    assert client.get("/legacy-explanations").status_code == 200
+    assert client.get("/ontology-browser").status_code == 200
+    assert client.get("/governance-dashboard").status_code == 200
+    assert client.get("/provenance-explorer").status_code == 200
+    assert client.get("/reasoning-dashboard").status_code == 200
+    assert client.get("/analytics").status_code == 200
+    assert client.get("/search?q=dataset").status_code == 200
     assert client.get("/consistency").status_code == 200
     assert client.get("/rules").status_code == 200
 
 
 def test_query_route_executes_post(monkeypatch):
-    monkeypatch.setattr("app.routes.query.run_local_query", lambda query_text, settings: [{"metric": "entities", "value": "1"}])
+    monkeypatch.setattr(
+        "app.routes.query.run_local_query",
+        lambda query_text, settings: [{"metric": "entities", "value": "1"}],
+    )
     app = create_app()
     response = app.test_client().post("/query", data={"query": "SELECT * WHERE {}"})
     assert response.status_code == 200

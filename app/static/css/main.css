@@ -7,3 +7,11 @@ textarea { box-sizing: border-box; display: block; font-family: ui-monospace, mo
 button { margin-top: 0.75rem; }
 pre { background: #f7f7f7; overflow-x: auto; padding: 1rem; }
 .error { color: #a40000; }
+
+.cards { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); margin: 1rem 0; }
+.cards article, .browser-card, .visualization-panel { border: 1px solid #ddd; border-radius: 0.5rem; padding: 1rem; }
+.visualization-panel { min-height: 28rem; }
+.metadata { color: #555; font-size: 0.95rem; }
+small { color: #555; }
+input { padding: 0.35rem; min-width: 20rem; }
+@media (max-width: 720px) { body { margin: 1rem; } nav a { display: inline-block; margin-bottom: 0.5rem; } input { min-width: 12rem; width: 100%; } }
