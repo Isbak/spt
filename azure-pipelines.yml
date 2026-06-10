@@ -1,0 +1,69 @@
+trigger:
+  branches:
+    include:
+      - main
+      - work
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  pythonVersion: '3.12'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Install
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+          - script: make setup
+            displayName: Install Python dependencies
+
+  - stage: Validate
+    dependsOn: Build
+    jobs:
+      - job: SemanticValidation
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+          - script: make setup
+            displayName: Install Python dependencies
+          - script: make validate
+            displayName: RDF syntax and SHACL validation
+          - script: make query
+            displayName: SPARQL query checks
+
+  - stage: Test
+    dependsOn: Validate
+    jobs:
+      - job: UnitTests
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+          - script: make setup
+            displayName: Install Python dependencies
+          - script: make test
+            displayName: Unit tests
+          - script: python -m compileall src app
+            displayName: Flask smoke compile
+
+  - stage: Package
+    dependsOn: Test
+    jobs:
+      - job: DockerBuild
+        steps:
+          - script: docker compose config
+            displayName: Validate Docker Compose configuration
+
+  - stage: Deploy
+    dependsOn: Package
+    condition: succeeded()
+    jobs:
+      - job: DeploymentPlaceholder
+        steps:
+          - script: echo "Deployment target not configured for skeleton repository."
+            displayName: Deployment placeholder
