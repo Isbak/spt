@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Ontology Version - Semantic Platform{% endblock %}
+{% block content %}
+<h2>Ontology Version</h2>
+<p>Ontology declarations: {{ summary.ontology_count }}</p>
+<table>
+  <tr><th>Ontology</th><th>Version</th><th>Created</th><th>Modified</th><th>Creator</th><th>Publisher</th></tr>
+  {% for record in summary.ontologies %}
+  <tr><td>{{ record.ontology }}</td><td>{{ record.version }}</td><td>{{ record.created }}</td><td>{{ record.modified }}</td><td>{{ record.creator }}</td><td>{{ record.publisher }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,70 @@
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/semantic-platform/governance>
+    a owl:Ontology ;
+    dcterms:title "Semantic Platform Governance Vocabulary" ;
+    dcterms:description "Domain-neutral governance metadata vocabulary for semantic platform assets." ;
+    dcterms:created "2026-06-10"^^xsd:date ;
+    dcterms:modified "2026-06-10"^^xsd:date ;
+    dcterms:creator "Semantic Platform" ;
+    dcterms:publisher "Semantic Platform" ;
+    owl:versionInfo "0.2.0" .
+
+gov:DataOwner a owl:Class ; rdfs:label "Data owner" .
+gov:DataSteward a owl:Class ; rdfs:label "Data steward" .
+gov:Custodian a owl:Class ; rdfs:label "Custodian" .
+gov:Policy a owl:Class ; rdfs:label "Policy" .
+gov:Classification a owl:Class ; rdfs:label "Classification" .
+gov:RetentionRule a owl:Class ; rdfs:label "Retention rule" .
+gov:AccessRule a owl:Class ; rdfs:label "Access rule" .
+gov:ApprovalStatus a owl:Class ; rdfs:label "Approval status" .
+gov:Dataset a owl:Class ; rdfs:label "Dataset" .
+gov:GraphAsset a owl:Class ; rdfs:label "Graph asset" .
+gov:OntologyAsset a owl:Class ; rdfs:label "Ontology asset" .
+
+gov:LifecycleStatus a owl:Class ; rdfs:label "Lifecycle status" .
+gov:WritePattern a owl:Class ; rdfs:label "Allowed write pattern" .
+
+gov:hasOwner a owl:ObjectProperty ; rdfs:label "has owner" ; rdfs:range gov:DataOwner .
+gov:hasSteward a owl:ObjectProperty ; rdfs:label "has steward" ; rdfs:range gov:DataSteward .
+gov:hasCustodian a owl:ObjectProperty ; rdfs:label "has custodian" ; rdfs:range gov:Custodian .
+gov:hasClassification a owl:ObjectProperty ; rdfs:label "has classification" ; rdfs:range gov:Classification .
+gov:governedByPolicy a owl:ObjectProperty ; rdfs:label "governed by policy" ; rdfs:range gov:Policy .
+gov:hasRetentionRule a owl:ObjectProperty ; rdfs:label "has retention rule" ; rdfs:range gov:RetentionRule .
+gov:hasApprovalStatus a owl:ObjectProperty ; rdfs:label "has approval status" ; rdfs:range gov:ApprovalStatus .
+gov:appliesToGraph a owl:ObjectProperty ; rdfs:label "applies to graph" ; rdfs:range gov:GraphAsset .
+gov:appliesToDataset a owl:ObjectProperty ; rdfs:label "applies to dataset" ; rdfs:range gov:Dataset .
+gov:hasLifecycleStatus a owl:ObjectProperty ; rdfs:label "has lifecycle status" ; rdfs:range gov:LifecycleStatus .
+gov:hasAllowedWritePattern a owl:ObjectProperty ; rdfs:label "has allowed write pattern" ; rdfs:range gov:WritePattern .
+gov:intendedUse a owl:DatatypeProperty ; rdfs:label "intended use" ; rdfs:range xsd:string .
+
+gov:platformOwner a gov:DataOwner ; rdfs:label "Platform data owner" .
+gov:platformSteward a gov:DataSteward ; rdfs:label "Platform data steward" .
+gov:platformCustodian a gov:Custodian ; rdfs:label "Platform custodian" .
+gov:internalClassification a gov:Classification ; rdfs:label "Internal" .
+gov:standardPolicy a gov:Policy ; rdfs:label "Standard semantic asset policy" .
+gov:standardRetention a gov:RetentionRule ; rdfs:label "Standard retention rule" .
+gov:controlledAccess a gov:AccessRule ; rdfs:label "Controlled access" .
+gov:approved a gov:ApprovalStatus ; rdfs:label "Approved" .
+gov:draft a gov:LifecycleStatus ; rdfs:label "Draft" .
+gov:active a gov:LifecycleStatus ; rdfs:label "Active" .
+gov:appendOnly a gov:WritePattern ; rdfs:label "Append-only writes" .
+gov:controlledReplace a gov:WritePattern ; rdfs:label "Controlled replacement" .
+
+<https://example.org/semantic-platform/ontology/core-asset>
+    a gov:OntologyAsset ;
+    rdfs:label "Core ontology asset" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward ;
+    gov:hasCustodian gov:platformCustodian ;
+    gov:hasClassification gov:internalClassification ;
+    gov:governedByPolicy gov:standardPolicy ;
+    gov:hasRetentionRule gov:standardRetention ;
+    gov:hasApprovalStatus gov:approved ;
+    owl:versionInfo "0.2.0" .

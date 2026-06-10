@@ -1,0 +1,11 @@
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+SELECT ?ontology ?version ?created ?modified ?creator ?publisher WHERE {
+  ?ontology a owl:Ontology ;
+    owl:versionInfo ?version ;
+    dcterms:created ?created ;
+    dcterms:modified ?modified ;
+    dcterms:creator ?creator ;
+    dcterms:publisher ?publisher .
+}
+ORDER BY ?ontology

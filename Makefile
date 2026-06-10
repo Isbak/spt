@@ -1,4 +1,4 @@
-.PHONY: setup validate test query reasoning load-fuseki app verify docker-up docker-down clean lint
+.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning load-fuseki app verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -15,6 +15,18 @@ test:
 query:
 	./scripts/query.sh
 
+governance:
+	./scripts/governance.sh
+
+provenance:
+	./scripts/provenance.sh
+
+named-graphs:
+	./scripts/named-graphs.sh
+
+ontology-version:
+	./scripts/ontology-version.sh
+
 reasoning:
 	./scripts/reasoning.sh
 
@@ -24,7 +36,7 @@ load-fuseki:
 app:
 	FLASK_APP=app.app:create_app $(PYTHON) -m flask run --host $${FLASK_HOST:-0.0.0.0} --port $${FLASK_PORT:-5000}
 
-verify: validate test query
+verify: validate governance provenance named-graphs ontology-version test query
 
 lint:
 	$(PYTHON) -m ruff check src app tests

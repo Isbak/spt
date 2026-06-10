@@ -28,4 +28,10 @@ ex:item-001
 ex:phase1-bootstrap
     a prov:Activity ;
     dcterms:title "Phase 1 bootstrap data generation" ;
-    prov:startedAtTime "2026-06-10T00:00:00Z"^^xsd:dateTime .
+    prov:startedAtTime "2026-06-10T00:00:00Z"^^xsd:dateTime ;
+    prov:endedAtTime "2026-06-10T00:01:00Z"^^xsd:dateTime ;
+    prov:wasAssociatedWith ex:platform-agent .
+
+ex:platform-agent
+    a prov:Agent ;
+    dcterms:title "Platform agent" .

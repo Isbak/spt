@@ -1,0 +1,10 @@
+PREFIX gov: <https://example.org/semantic-platform/governance#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?asset ?label ?owner ?steward ?classification WHERE {
+  ?asset a gov:GraphAsset ;
+    rdfs:label ?label ;
+    gov:hasOwner/rdfs:label ?owner ;
+    gov:hasSteward/rdfs:label ?steward ;
+    gov:hasClassification/rdfs:label ?classification .
+}
+ORDER BY ?asset

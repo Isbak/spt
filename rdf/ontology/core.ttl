@@ -12,8 +12,11 @@
     dcterms:title "Semantic Platform Core Ontology" ;
     dcterms:description "A domain-neutral core ontology for Phase 1 semantic platform assets." ;
     dcterms:creator "Semantic Platform" ;
+    dcterms:publisher "Semantic Platform" ;
+    dcterms:created "2026-06-10"^^xsd:date ;
+    dcterms:modified "2026-06-10"^^xsd:date ;
     dcterms:license <https://opensource.org/licenses/MIT> ;
-    owl:versionInfo "1.0.0" .
+    owl:versionInfo "0.2.0" .
 
 sp:SemanticAsset
     a owl:Class ;

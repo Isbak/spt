@@ -46,12 +46,13 @@ def parse_file(graph: Graph, path: Path) -> None:
 
 
 def load_graph(paths: Iterable[Path] | None = None, settings: Settings | None = None) -> Graph:
-    """Load RDF from the supplied paths or all configured Phase 1 RDF asset directories."""
+    """Load RDF from supplied paths or configured local RDF asset directories."""
     settings = settings or load_settings()
     selected_paths = list(paths) if paths is not None else [
         settings.ontology_dir,
         settings.vocabularies_dir,
         settings.data_dir,
+        settings.graphs_dir,
     ]
     graph = Graph()
     for path in rdf_files(selected_paths):

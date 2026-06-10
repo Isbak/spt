@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Provenance - Semantic Platform{% endblock %}
+{% block content %}
+<h2>Provenance</h2>
+<table>
+  <tr><th>Entity</th><th>Activity</th><th>Agent</th><th>Started</th></tr>
+  {% for row in rows %}
+  <tr><td>{{ row.entityLabel or row.entity }}</td><td>{{ row.activityLabel or row.activity }}</td><td>{{ row.agent }}</td><td>{{ row.started }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

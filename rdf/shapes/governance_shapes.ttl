@@ -1,0 +1,15 @@
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ gov:GraphAssetShape
+    a sh:NodeShape ;
+    sh:targetClass gov:GraphAsset ;
+    sh:property [ sh:path gov:hasOwner ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path gov:hasSteward ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path gov:hasClassification ; sh:minCount 1 ; ] .
+
+gov:OntologyAssetShape
+    a sh:NodeShape ;
+    sh:targetClass gov:OntologyAsset ;
+    sh:property [ sh:path owl:versionInfo ; sh:minCount 1 ; ] .
