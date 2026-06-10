@@ -19,6 +19,10 @@ def test_flask_routes(monkeypatch):
     assert client.get("/graphs").status_code == 200
     assert client.get("/ontology").status_code == 200
     assert client.get("/query").status_code == 200
+    assert client.get("/governance").status_code == 200
+    assert client.get("/provenance").status_code == 200
+    assert client.get("/named-graphs").status_code == 200
+    assert client.get("/ontology-version").status_code == 200
 
 
 def test_query_route_executes_post(monkeypatch):

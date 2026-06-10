@@ -1,0 +1,12 @@
+PREFIX gov: <https://example.org/semantic-platform/governance#>
+PREFIX dcterms: <http://purl.org/dc/terms/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?graph ?label ?description ?lifecycle ?writePattern ?intendedUse WHERE {
+  ?graph a gov:GraphAsset ;
+    rdfs:label ?label ;
+    dcterms:description ?description ;
+    gov:hasLifecycleStatus/rdfs:label ?lifecycle ;
+    gov:hasAllowedWritePattern/rdfs:label ?writePattern ;
+    gov:intendedUse ?intendedUse .
+}
+ORDER BY ?graph

@@ -1,0 +1,13 @@
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+ gov:NamedGraphManifestShape
+    a sh:NodeShape ;
+    sh:targetClass gov:GraphAsset ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path dcterms:description ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path gov:hasLifecycleStatus ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path gov:intendedUse ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path gov:hasAllowedWritePattern ; sh:minCount 1 ; ] .

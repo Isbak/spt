@@ -6,6 +6,10 @@ from flask import Flask, render_template
 
 from app.routes.graph import graph_bp
 from app.routes.health import health_bp
+from app.routes.governance import governance_bp
+from app.routes.named_graphs import named_graphs_bp
+from app.routes.ontology_version import ontology_version_bp
+from app.routes.provenance import provenance_bp
 from app.routes.ontology import ontology_bp
 from app.routes.query import query_bp
 
@@ -17,6 +21,10 @@ def create_app() -> Flask:
     app.register_blueprint(graph_bp)
     app.register_blueprint(ontology_bp)
     app.register_blueprint(query_bp)
+    app.register_blueprint(governance_bp)
+    app.register_blueprint(provenance_bp)
+    app.register_blueprint(named_graphs_bp)
+    app.register_blueprint(ontology_version_bp)
 
     @app.get("/")
     def index():

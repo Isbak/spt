@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Named Graphs - Semantic Platform{% endblock %}
+{% block content %}
+<h2>Named Graphs</h2>
+<p>Known named graphs: {{ summary.named_graph_count }}</p>
+<table>
+  <tr><th>Graph</th><th>Status</th><th>Write Pattern</th><th>Intended Use</th></tr>
+  {% for record in summary.named_graphs %}
+  <tr><td>{{ record.label }}</td><td>{{ record.lifecycle_status }}</td><td>{{ record.allowed_write_pattern }}</td><td>{{ record.intended_use }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

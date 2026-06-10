@@ -1,0 +1,8 @@
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+prov:ActivityShape
+    a sh:NodeShape ;
+    sh:targetClass prov:Activity ;
+    sh:property [ sh:path prov:startedAtTime ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path prov:wasAssociatedWith ; sh:minCount 1 ; ] .

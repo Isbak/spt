@@ -1,0 +1,9 @@
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?entity ?entityLabel ?activity ?activityLabel ?agent ?started WHERE {
+  ?entity prov:wasGeneratedBy ?activity .
+  ?activity prov:startedAtTime ?started ; prov:wasAssociatedWith ?agent .
+  OPTIONAL { ?entity rdfs:label ?entityLabel }
+  OPTIONAL { ?activity rdfs:label ?activityLabel }
+}
+ORDER BY ?started
