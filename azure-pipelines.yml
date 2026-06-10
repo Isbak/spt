@@ -41,6 +41,16 @@ stages:
             displayName: Validate provenance traces
           - script: make named-graphs
             displayName: Validate named graph manifest
+          - script: make mappings
+            displayName: Validate mapping definitions
+          - script: make source-catalog
+            displayName: Validate semantic source catalog
+          - script: make import-csv
+            displayName: Validate CSV import workflow
+          - script: make import-sql
+            displayName: Validate SQL import workflow
+          - script: make lineage
+            displayName: Validate mapping lineage queries
 
   - stage: Test
     dependsOn: Validate
@@ -53,4 +63,4 @@ stages:
           - script: make setup
             displayName: Install Python dependencies
           - script: make verify
-            displayName: Run Phase 2 verification
+            displayName: Run Phase 3 verification

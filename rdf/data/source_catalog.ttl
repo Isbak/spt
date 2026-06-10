@@ -1,0 +1,139 @@
+@prefix map: <https://example.org/semantic-platform/mappings#> .
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<urn:graph:integration>
+    a sp:NamedGraph, gov:GraphAsset ;
+    sp:identifier "urn:graph:integration" ;
+    rdfs:label "Integration graph" ;
+    dcterms:title "Integration graph" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
+
+<urn:graph:reference>
+    a sp:NamedGraph, gov:GraphAsset ;
+    sp:identifier "urn:graph:reference" ;
+    rdfs:label "Reference graph" ;
+    dcterms:title "Reference graph" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
+
+<urn:graph:masterdata>
+    a sp:NamedGraph, gov:GraphAsset ;
+    sp:identifier "urn:graph:masterdata" ;
+    rdfs:label "Master data graph" ;
+    dcterms:title "Master data graph" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
+
+<https://example.org/source-system/sql-operational>
+    a map:SourceSystem ;
+    rdfs:label "Generic SQL operational source" ;
+    dcterms:description "Domain-neutral relational source used for integration testing." .
+
+<https://example.org/source-system/csv-files>
+    a map:SourceSystem ;
+    rdfs:label "Generic CSV file source" ;
+    dcterms:description "Domain-neutral CSV source files used for integration testing." .
+
+<https://example.org/source-dataset/people>
+    a map:SourceDataset ;
+    rdfs:label "People source dataset" ;
+    map:hasSourceSystem <https://example.org/source-system/csv-files> ;
+    map:sourceVersion "2026.06" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
+
+<https://example.org/source-dataset/organizations>
+    a map:SourceDataset ;
+    rdfs:label "Organizations source dataset" ;
+    map:hasSourceSystem <https://example.org/source-system/csv-files> ;
+    map:sourceVersion "2026.06" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
+
+<https://example.org/source-dataset/datasets>
+    a map:SourceDataset ;
+    rdfs:label "Datasets source dataset" ;
+    map:hasSourceSystem <https://example.org/source-system/sql-operational> ;
+    map:sourceVersion "2026.06" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
+
+<https://example.org/mapping/person-r2rml>
+    a map:Mapping, rr:TriplesMap ;
+    rdfs:label "Person R2RML mapping" ;
+    map:version "1.0.0" ;
+    map:mappingStatus "active" ;
+    map:sourcedFrom <https://example.org/source-dataset/people> ;
+    map:hasSourceSystem <https://example.org/source-system/csv-files> ;
+    map:mapsToClass <https://example.org/semantic-platform/core#Entity> ;
+    map:mapsToProperty <https://example.org/semantic-platform/core#name> ;
+    map:targetGraph <urn:graph:masterdata> ;
+    map:targetGraphIri "urn:graph:masterdata"^^xsd:anyURI ;
+    map:graphOwner gov:platformOwner ;
+    map:graphSteward gov:platformSteward ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward ;
+    map:lastExecutionTime "2026-06-10T00:30:00Z"^^xsd:dateTime .
+
+<https://example.org/mapping/organization-r2rml>
+    a map:Mapping, rr:TriplesMap ;
+    rdfs:label "Organization R2RML mapping" ;
+    map:version "1.0.0" ;
+    map:mappingStatus "active" ;
+    map:sourcedFrom <https://example.org/source-dataset/organizations> ;
+    map:hasSourceSystem <https://example.org/source-system/sql-operational> ;
+    map:mapsToClass <https://example.org/semantic-platform/core#Entity> ;
+    map:mapsToProperty <https://example.org/semantic-platform/core#name> ;
+    map:targetGraph <urn:graph:reference> ;
+    map:targetGraphIri "urn:graph:reference"^^xsd:anyURI ;
+    map:graphOwner gov:platformOwner ;
+    map:graphSteward gov:platformSteward ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward ;
+    map:lastExecutionTime "2026-06-10T00:35:00Z"^^xsd:dateTime .
+
+<https://example.org/mapping/dataset-r2rml>
+    a map:Mapping, rr:TriplesMap ;
+    rdfs:label "Dataset R2RML mapping" ;
+    map:version "1.0.0" ;
+    map:mappingStatus "active" ;
+    map:sourcedFrom <https://example.org/source-dataset/datasets> ;
+    map:hasSourceSystem <https://example.org/source-system/sql-operational> ;
+    map:mapsToClass <https://example.org/semantic-platform/core#Dataset> ;
+    map:mapsToProperty <https://example.org/semantic-platform/core#identifier> ;
+    map:targetGraph <urn:graph:integration> ;
+    map:targetGraphIri "urn:graph:integration"^^xsd:anyURI ;
+    map:graphOwner gov:platformOwner ;
+    map:graphSteward gov:platformSteward ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward ;
+    map:lastExecutionTime "2026-06-10T00:40:00Z"^^xsd:dateTime .
+
+<https://example.org/mapping-execution/person-20260610>
+    a map:MappingExecution ;
+    rdfs:label "Person mapping execution 2026-06-10" ;
+    map:usesMapping <https://example.org/mapping/person-r2rml> ;
+    map:sourcedFrom <https://example.org/source-dataset/people> ;
+    map:executedBy <https://example.org/semantic-platform/provenance#platformAgent> ;
+    map:generatedGraph <urn:graph:masterdata> ;
+    map:generatedEntity <https://example.org/generated-dataset/people-rdf> ;
+    map:sourceVersion "2026.06" ;
+    map:mappingVersion "1.0.0" ;
+    map:targetGraphIri "urn:graph:masterdata"^^xsd:anyURI ;
+    prov:startedAtTime "2026-06-10T00:30:00Z"^^xsd:dateTime ;
+    prov:endedAtTime "2026-06-10T00:30:05Z"^^xsd:dateTime ;
+    prov:wasAssociatedWith <https://example.org/semantic-platform/provenance#platformAgent> ;
+    prov:used <https://example.org/source-dataset/people> .
+
+<https://example.org/generated-dataset/people-rdf>
+    a prov:Entity, sp:Dataset ;
+    rdfs:label "Generated people RDF dataset" ;
+    prov:wasGeneratedBy <https://example.org/mapping-execution/person-20260610> ;
+    prov:wasDerivedFrom <https://example.org/source-dataset/people> .

@@ -1,0 +1,60 @@
+@prefix map: <https://example.org/semantic-platform/mappings#> .
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://example.org/semantic-platform/mappings>
+    a owl:Ontology ;
+    dcterms:title "Semantic Platform Mapping Vocabulary" ;
+    dcterms:description "Metadata vocabulary for R2RDF, R2RML, CSV, and SQL semantic mappings." ;
+    dcterms:created "2026-06-10"^^xsd:date ;
+    dcterms:modified "2026-06-10"^^xsd:date ;
+    dcterms:creator "Semantic Platform" ;
+    dcterms:publisher "Semantic Platform" ;
+    owl:versionInfo "0.3.0" .
+
+map:Mapping a owl:Class ; rdfs:subClassOf sp:SemanticAsset ; rdfs:label "Mapping" .
+map:SourceSystem a owl:Class ; rdfs:label "Source system" .
+map:SourceTable a owl:Class ; rdfs:label "Source table" .
+map:SourceColumn a owl:Class ; rdfs:label "Source column" .
+map:SourceView a owl:Class ; rdfs:label "Source view" .
+map:SourceFile a owl:Class ; rdfs:label "Source file" .
+map:SourceDataset a owl:Class ; rdfs:subClassOf prov:Entity, gov:Dataset ; rdfs:label "Source dataset" .
+map:TransformationRule a owl:Class ; rdfs:label "Transformation rule" .
+map:MappingExecution a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Mapping execution" .
+
+map:mapsToClass a owl:ObjectProperty ; rdfs:label "maps to class" ; rdfs:range rdfs:Class .
+map:mapsToProperty a owl:ObjectProperty ; rdfs:label "maps to property" ; rdfs:range rdf:Property .
+map:sourcedFrom a owl:ObjectProperty ; rdfs:label "sourced from" ; rdfs:range map:SourceDataset .
+map:transformsInto a owl:ObjectProperty ; rdfs:label "transforms into" ; rdfs:range prov:Entity .
+map:executedBy a owl:ObjectProperty ; rdfs:label "executed by" ; rdfs:range prov:Agent .
+map:generatedGraph a owl:ObjectProperty ; rdfs:label "generated graph" ; rdfs:range sp:NamedGraph .
+map:generatedEntity a owl:ObjectProperty ; rdfs:label "generated entity" ; rdfs:range prov:Entity .
+map:hasSourceSystem a owl:ObjectProperty ; rdfs:label "has source system" ; rdfs:range map:SourceSystem .
+map:hasSourceDataset a owl:ObjectProperty ; rdfs:label "has source dataset" ; rdfs:range map:SourceDataset .
+map:hasSourceTable a owl:ObjectProperty ; rdfs:label "has source table" ; rdfs:range map:SourceTable .
+map:hasSourceFile a owl:ObjectProperty ; rdfs:label "has source file" ; rdfs:range map:SourceFile .
+map:hasTransformationRule a owl:ObjectProperty ; rdfs:label "has transformation rule" ; rdfs:range map:TransformationRule .
+map:usesMapping a owl:ObjectProperty ; rdfs:label "uses mapping" ; rdfs:range map:Mapping .
+map:targetGraph a owl:ObjectProperty ; rdfs:label "target graph" ; rdfs:range sp:NamedGraph .
+map:graphOwner a owl:ObjectProperty ; rdfs:label "graph owner" ; rdfs:range gov:DataOwner .
+map:graphSteward a owl:ObjectProperty ; rdfs:label "graph steward" ; rdfs:range gov:DataSteward .
+
+map:version a owl:DatatypeProperty ; rdfs:label "version" ; rdfs:range xsd:string .
+map:sourceVersion a owl:DatatypeProperty ; rdfs:label "source version" ; rdfs:range xsd:string .
+map:mappingVersion a owl:DatatypeProperty ; rdfs:label "mapping version" ; rdfs:range xsd:string .
+map:mappingStatus a owl:DatatypeProperty ; rdfs:label "mapping status" ; rdfs:range xsd:string .
+map:targetGraphIri a owl:DatatypeProperty ; rdfs:label "target graph IRI" ; rdfs:range xsd:anyURI .
+map:logicalSource a owl:DatatypeProperty ; rdfs:label "logical source" ; rdfs:range xsd:string .
+map:lastExecutionTime a owl:DatatypeProperty ; rdfs:label "last execution time" ; rdfs:range xsd:dateTime .
+map:recordCount a owl:DatatypeProperty ; rdfs:label "record count" ; rdfs:range xsd:integer .
+
+map:r2rmlPattern a map:TransformationRule ; rdfs:label "R2RML direct logical-table mapping pattern" .
+map:csvPattern a map:TransformationRule ; rdfs:label "CSV row-to-entity mapping pattern" .
+map:sqlPattern a map:TransformationRule ; rdfs:label "SQL result-set-to-entity mapping pattern" .

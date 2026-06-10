@@ -1,0 +1,19 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix map: <https://example.org/semantic-platform/mappings#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+
+<https://example.org/mapping/dataset-r2rml>
+    a rr:TriplesMap, map:Mapping ;
+    rr:logicalTable [ rr:sqlQuery "SELECT dataset_id, dataset_name, version, status_code FROM dataset" ] ;
+    rr:subjectMap [ rr:template "https://example.org/resource/dataset/{dataset_id}" ; rr:class sp:Dataset ; rr:graph <urn:graph:integration> ] ;
+    rr:predicateObjectMap [ rr:predicate sp:identifier ; rr:objectMap [ rr:column "dataset_id" ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate dcterms:title ; rr:objectMap [ rr:column "dataset_name" ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate <http://www.w3.org/2002/07/owl#versionInfo> ; rr:objectMap [ rr:column "version" ; rr:datatype xsd:string ] ] ;
+    map:sourcedFrom <https://example.org/source-dataset/datasets> ;
+    map:targetGraph <urn:graph:integration> ;
+    map:version "1.0.0" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .
