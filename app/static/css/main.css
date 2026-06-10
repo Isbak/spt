@@ -1,1 +1,9 @@
-/* Semantic Platform UI styles will be added in a future milestone. */
+body { font-family: system-ui, sans-serif; margin: 2rem; line-height: 1.5; }
+header { border-bottom: 1px solid #ddd; margin-bottom: 1.5rem; padding-bottom: 1rem; }
+nav a { margin-right: 1rem; }
+table { border-collapse: collapse; margin-top: 1rem; }
+th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+textarea { box-sizing: border-box; display: block; font-family: ui-monospace, monospace; width: 100%; }
+button { margin-top: 0.75rem; }
+pre { background: #f7f7f7; overflow-x: auto; padding: 1rem; }
+.error { color: #a40000; }

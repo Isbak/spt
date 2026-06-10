@@ -1,9 +1,85 @@
-"""config module skeleton for the Semantic Platform.
+"""Environment-driven configuration for the Semantic Platform."""
 
-Business logic will be added in a future implementation milestone.
-"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import Path
+import os
 
 
-def not_implemented() -> None:
-    """Placeholder entry point for future config behavior."""
-    raise NotImplementedError("config behavior is not implemented in the skeleton.")
+@dataclass(frozen=True)
+class Settings:
+    """Runtime settings loaded from environment variables."""
+
+    project_root: Path
+    rdf_root: Path
+    ontology_dir: Path
+    vocabularies_dir: Path
+    data_dir: Path
+    shapes_dir: Path
+    queries_dir: Path
+    graphs_dir: Path
+    fuseki_base_url: str
+    fuseki_dataset: str
+    fuseki_username: str | None
+    fuseki_password: str | None
+    flask_host: str
+    flask_port: int
+    default_query_file: Path
+
+    @property
+    def fuseki_dataset_url(self) -> str:
+        """Return the configured Fuseki dataset URL."""
+        return f"{self.fuseki_base_url.rstrip('/')}/{self.fuseki_dataset.strip('/')}"
+
+    @property
+    def fuseki_query_url(self) -> str:
+        """Return the SPARQL query endpoint URL."""
+        return f"{self.fuseki_dataset_url}/query"
+
+    @property
+    def fuseki_update_url(self) -> str:
+        """Return the SPARQL update endpoint URL."""
+        return f"{self.fuseki_dataset_url}/update"
+
+    @property
+    def fuseki_data_url(self) -> str:
+        """Return the Graph Store Protocol endpoint URL."""
+        return f"{self.fuseki_dataset_url}/data"
+
+
+def _root_from_env() -> Path:
+    configured = os.getenv("SEMANTIC_PLATFORM_ROOT")
+    if configured:
+        return Path(configured).expanduser().resolve()
+    return Path(__file__).resolve().parents[2]
+
+
+def load_settings() -> Settings:
+    """Load settings from environment variables with repository-local defaults."""
+    root = _root_from_env()
+    rdf_root = Path(os.getenv("RDF_ROOT", root / "rdf")).expanduser().resolve()
+    queries_dir = Path(os.getenv("RDF_QUERIES_DIR", rdf_root / "queries")).expanduser().resolve()
+    default_query = Path(
+        os.getenv("DEFAULT_SPARQL_QUERY", queries_dir / "validation-summary.rq")
+    ).expanduser().resolve()
+
+    return Settings(
+        project_root=root,
+        rdf_root=rdf_root,
+        ontology_dir=Path(os.getenv("RDF_ONTOLOGY_DIR", rdf_root / "ontology")).expanduser().resolve(),
+        vocabularies_dir=Path(
+            os.getenv("RDF_VOCABULARIES_DIR", rdf_root / "vocabularies")
+        ).expanduser().resolve(),
+        data_dir=Path(os.getenv("RDF_DATA_DIR", rdf_root / "data")).expanduser().resolve(),
+        shapes_dir=Path(os.getenv("RDF_SHAPES_DIR", rdf_root / "shapes")).expanduser().resolve(),
+        queries_dir=queries_dir,
+        graphs_dir=Path(os.getenv("RDF_GRAPHS_DIR", rdf_root / "graphs")).expanduser().resolve(),
+        fuseki_base_url=os.getenv("FUSEKI_BASE_URL", "http://localhost:3030"),
+        fuseki_dataset=os.getenv("FUSEKI_DATASET", "semantic-platform"),
+        fuseki_username=os.getenv("FUSEKI_USERNAME") or None,
+        fuseki_password=os.getenv("FUSEKI_PASSWORD") or os.getenv("FUSEKI_ADMIN_PASSWORD") or None,
+        flask_host=os.getenv("FLASK_HOST", "0.0.0.0"),
+        flask_port=int(os.getenv("FLASK_PORT", "5000")),
+        default_query_file=default_query,
+    )

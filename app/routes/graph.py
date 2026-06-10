@@ -1,11 +1,17 @@
-"""graph route skeleton."""
+"""Graph routes."""
 
-from flask import Blueprint, jsonify
+from __future__ import annotations
 
-graph_bp = Blueprint("graph", __name__, url_prefix="/graph")
+from flask import Blueprint, render_template
+
+from semantic_platform.api import get_graph_stats
+
+# Register both plural and legacy singular paths for convenience.
+graph_bp = Blueprint("graph", __name__)
 
 
-@graph_bp.get("")
+@graph_bp.get("/graphs")
+@graph_bp.get("/graph")
 def index():
-    """Return a placeholder response until graph UI/API behavior is implemented."""
-    return jsonify({"status": "not_implemented", "component": "graph"}), 501
+    """Render local RDF graph statistics."""
+    return render_template("graphs.html", stats=get_graph_stats())

@@ -1,0 +1,17 @@
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+
+<urn:semantic-platform:graph:ontology>
+    a sp:NamedGraph ;
+    sp:identifier "urn:semantic-platform:graph:ontology" ;
+    dcterms:title "Ontology graph" .
+
+<urn:semantic-platform:graph:reference>
+    a sp:NamedGraph ;
+    sp:identifier "urn:semantic-platform:graph:reference" ;
+    dcterms:title "Reference vocabulary graph" .
+
+<urn:semantic-platform:graph:data>
+    a sp:NamedGraph ;
+    sp:identifier "urn:semantic-platform:graph:data" ;
+    dcterms:title "Example data graph" .

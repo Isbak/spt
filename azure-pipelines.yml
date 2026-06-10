@@ -20,6 +20,8 @@ stages:
               versionSpec: '$(pythonVersion)'
           - script: make setup
             displayName: Install Python dependencies
+          - script: docker compose config
+            displayName: Validate Docker Compose configuration
 
   - stage: Validate
     dependsOn: Build
@@ -33,8 +35,6 @@ stages:
             displayName: Install Python dependencies
           - script: make validate
             displayName: RDF syntax and SHACL validation
-          - script: make query
-            displayName: SPARQL query checks
 
   - stage: Test
     dependsOn: Validate
@@ -46,24 +46,5 @@ stages:
               versionSpec: '$(pythonVersion)'
           - script: make setup
             displayName: Install Python dependencies
-          - script: make test
-            displayName: Unit tests
-          - script: python -m compileall src app
-            displayName: Flask smoke compile
-
-  - stage: Package
-    dependsOn: Test
-    jobs:
-      - job: DockerBuild
-        steps:
-          - script: docker compose config
-            displayName: Validate Docker Compose configuration
-
-  - stage: Deploy
-    dependsOn: Package
-    condition: succeeded()
-    jobs:
-      - job: DeploymentPlaceholder
-        steps:
-          - script: echo "Deployment target not configured for skeleton repository."
-            displayName: Deployment placeholder
+          - script: make verify
+            displayName: Run Phase 1 verification

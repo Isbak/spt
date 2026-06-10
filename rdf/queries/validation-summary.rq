@@ -1,0 +1,20 @@
+PREFIX sp: <https://example.org/semantic-platform/core#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+
+SELECT ?metric ?value WHERE {
+  {
+    SELECT ("entities" AS ?metric) (COUNT(?entity) AS ?value)
+    WHERE { ?entity a sp:Entity . }
+  }
+  UNION
+  {
+    SELECT ("datasets" AS ?metric) (COUNT(?dataset) AS ?value)
+    WHERE { ?dataset a sp:Dataset . }
+  }
+  UNION
+  {
+    SELECT ("provenance_activities" AS ?metric) (COUNT(?activity) AS ?value)
+    WHERE { ?activity a prov:Activity . }
+  }
+}
+ORDER BY ?metric
