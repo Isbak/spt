@@ -27,6 +27,11 @@ def test_flask_routes(monkeypatch):
     assert client.get("/source-catalog").status_code == 200
     assert client.get("/integration").status_code == 200
     assert client.get("/mapping-lineage").status_code == 200
+    assert client.get("/reasoning").status_code == 200
+    assert client.get("/inferences").status_code == 200
+    assert client.get("/explanations").status_code == 200
+    assert client.get("/consistency").status_code == 200
+    assert client.get("/rules").status_code == 200
 
 
 def test_query_route_executes_post(monkeypatch):

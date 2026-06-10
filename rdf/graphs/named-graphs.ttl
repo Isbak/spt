@@ -15,3 +15,18 @@
     a sp:NamedGraph ;
     sp:identifier "urn:semantic-platform:graph:data" ;
     dcterms:title "Example data graph" .
+
+<urn:semantic-platform:graph:reasoning>
+    a sp:NamedGraph ;
+    sp:identifier "urn:graph:reasoning" ;
+    dcterms:title "Reasoning graph" .
+
+<urn:semantic-platform:graph:inferred>
+    a sp:NamedGraph ;
+    sp:identifier "urn:graph:inferred" ;
+    dcterms:title "Inferred graph" .
+
+<urn:semantic-platform:graph:validation>
+    a sp:NamedGraph ;
+    sp:identifier "urn:graph:validation" ;
+    dcterms:title "Validation graph" .

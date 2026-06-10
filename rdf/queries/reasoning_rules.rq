@@ -1,0 +1,15 @@
+PREFIX reason: <https://example.org/semantic-platform/reasoning#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+SELECT ?rule ?label ?version ?owner ?steward ?status ?ruleSet
+WHERE {
+  ?rule a reason:Rule ;
+    rdfs:label ?label ;
+    owl:versionInfo ?version ;
+    reason:ruleOwner ?owner ;
+    reason:ruleSteward ?steward ;
+    reason:ruleStatus ?status ;
+    reason:belongsToRuleSet ?ruleSet .
+}
+ORDER BY ?rule

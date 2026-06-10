@@ -1,0 +1,12 @@
+PREFIX reason: <https://example.org/semantic-platform/reasoning#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?inference ?explanation ?comment ?rule ?source
+WHERE {
+  ?inference a reason:Inference ;
+    reason:hasExplanation ?explanation ;
+    reason:usesRule ?rule .
+  ?explanation rdfs:comment ?comment .
+  OPTIONAL { ?inference reason:inferredFrom ?source . }
+}
+ORDER BY ?inference ?source

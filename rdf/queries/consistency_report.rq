@@ -1,0 +1,13 @@
+PREFIX reason: <https://example.org/semantic-platform/reasoning#>
+PREFIX sh: <http://www.w3.org/ns/shacl#>
+
+SELECT ?report ?focusNode ?severity ?message ?check
+WHERE {
+  ?report a reason:ConsistencyCheck ;
+    sh:result ?result .
+  ?result sh:focusNode ?focusNode ;
+    sh:resultSeverity ?severity ;
+    sh:resultMessage ?message ;
+    sh:sourceConstraintComponent ?check .
+}
+ORDER BY ?severity ?focusNode

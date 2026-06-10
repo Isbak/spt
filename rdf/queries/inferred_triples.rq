@@ -1,0 +1,13 @@
+PREFIX reason: <https://example.org/semantic-platform/reasoning#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?subject ?predicate ?object ?inference ?rule
+WHERE {
+  ?inference a reason:Inference ;
+    reason:generatedAssertion ?assertion ;
+    reason:usesRule ?rule .
+  ?assertion rdf:subject ?subject ;
+    rdf:predicate ?predicate ;
+    rdf:object ?object .
+}
+ORDER BY ?subject ?predicate ?object

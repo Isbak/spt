@@ -35,7 +35,15 @@ R2RDF Integration Layer
         |
         v
 Knowledge Graph
-(Ontology, Semantics, Context, Provenance, Governance, Reasoning)
+(Ontology, Semantics, Context, Provenance, Governance)
+        |
+        v
+Semantic Reasoning Layer
+(RDFS, OWL-compatible patterns, governed rules, explanations)
+        |
+        v
+Inferred Knowledge Graph
+(urn:graph:inferred, urn:graph:reasoning, urn:graph:validation)
         |
         v
 Fuseki / SPARQL
@@ -95,9 +103,13 @@ output/
 ```bash
 make setup
 make validate
+make reasoning
+make inference
+make consistency
+make explanations
+make rules
 make test
 make query
-make reasoning
 make load-fuseki
 make app
 make verify
@@ -110,6 +122,11 @@ make clean
 
 ```bash
 make validate
+make reasoning
+make inference
+make consistency
+make explanations
+make rules
 make test
 make query
 ```
@@ -129,5 +146,7 @@ The repository is ready when:
 - RDF validates against SHACL
 - SPARQL validation query returns results
 - R2RML mappings are present and documented
-- Azure DevOps pipeline runs validation and tests
+- RDFS, OWL-compatible, and governed rule-based reasoning generate traceable inferred assertions
+- Reasoning explanations, PROV-O execution records, and consistency reports are available
+- Azure DevOps pipeline runs validation, reasoning checks, and tests
 

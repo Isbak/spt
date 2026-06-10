@@ -41,3 +41,16 @@ It separates:
 - Modular
 - Testable
 - Agent-ready
+
+
+## Phase 4 Semantic Reasoning Layer
+
+Phase 4 evolves the repository into a knowledge discovery platform by inserting a reasoning layer between the authored knowledge graph and Fuseki consumption. Inferred assertions are isolated from authoritative ontology and data assets by graph strategy:
+
+| Graph | Purpose |
+|---|---|
+| `urn:graph:reasoning` | Reasoning execution metadata, inference explanations and PROV-O records. |
+| `urn:graph:inferred` | Generated inferred triples. |
+| `urn:graph:validation` | Semantic consistency and validation results. |
+
+The lightweight reasoner supports practical enterprise patterns: RDFS subclass/type/subproperty inference, equivalent class/property expansion, inverse property materialization, transitive and symmetric property inference, and governed generic rules. Deprecated and retired rules are excluded from execution. Every inference records source facts, rule usage, confidence, timestamp and engine version for trusted consumption.

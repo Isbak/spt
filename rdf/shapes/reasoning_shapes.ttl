@@ -1,0 +1,33 @@
+@prefix reason: <https://example.org/semantic-platform/reasoning#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+reason:RuleShape
+    a sh:NodeShape ;
+    sh:targetClass reason:Rule ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path reason:belongsToRuleSet ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path reason:ruleOwner ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path reason:ruleSteward ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path reason:ruleStatus ; sh:minCount 1 ; sh:class reason:RuleStatus ; ] ;
+    sh:property [ sh:path owl:versionInfo ; sh:minCount 1 ; ] .
+
+reason:InferenceShape
+    a sh:NodeShape ;
+    sh:targetClass reason:Inference ;
+    sh:property [ sh:path reason:usesRule ; sh:minCount 1 ; sh:class reason:Rule ; ] ;
+    sh:property [ sh:path reason:generatedAssertion ; sh:minCount 1 ; ] ;
+    sh:property [ sh:path reason:hasExplanation ; sh:minCount 1 ; sh:class reason:Explanation ; ] ;
+    sh:property [ sh:path reason:executedByEngine ; sh:minCount 1 ; sh:class reason:ReasoningEngine ; ] .
+
+reason:ExplanationShape
+    a sh:NodeShape ;
+    sh:targetClass reason:Explanation ;
+    sh:property [ sh:path rdfs:comment ; sh:minCount 1 ; ] .
+
+reason:RuleSetShape
+    a sh:NodeShape ;
+    sh:targetClass reason:RuleSet ;
+    sh:property [ sh:path rdfs:label ; sh:minCount 1 ; ] .

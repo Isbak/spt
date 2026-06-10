@@ -51,6 +51,16 @@ stages:
             displayName: Validate SQL import workflow
           - script: make lineage
             displayName: Validate mapping lineage queries
+          - script: make reasoning
+            displayName: Validate reasoning execution
+          - script: make inference
+            displayName: Validate inferred graph generation
+          - script: make consistency
+            displayName: Validate consistency report
+          - script: make explanations
+            displayName: Validate explanation generation
+          - script: make rules
+            displayName: Validate reasoning rules
 
   - stage: Test
     dependsOn: Validate
@@ -63,4 +73,4 @@ stages:
           - script: make setup
             displayName: Install Python dependencies
           - script: make verify
-            displayName: Run Phase 3 verification
+            displayName: Run Phase 4 verification
