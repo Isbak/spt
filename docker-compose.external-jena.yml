@@ -1,0 +1,23 @@
+# Compose overlay for using an already-installed Apache Jena/Fuseki instance.
+# Usage:
+#   FUSEKI_BASE_URL=http://host.docker.internal:3030 docker compose -f docker-compose.external-jena.yml up -d
+services:
+  web:
+    build: .
+    container_name: semantic-platform-web-external-jena
+    env_file:
+      - .env.example
+    environment:
+      FUSEKI_BASE_URL: ${FUSEKI_BASE_URL:-http://host.docker.internal:3030}
+      FUSEKI_DATASET: ${FUSEKI_DATASET:-semantic-platform}
+      FUSEKI_QUERY_ENDPOINT: ${FUSEKI_QUERY_ENDPOINT:-http://host.docker.internal:3030/semantic-platform/query}
+      FUSEKI_UPDATE_ENDPOINT: ${FUSEKI_UPDATE_ENDPOINT:-http://host.docker.internal:3030/semantic-platform/update}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
