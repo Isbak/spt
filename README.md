@@ -150,3 +150,24 @@ The repository is ready when:
 - Reasoning explanations, PROV-O execution records, and consistency reports are available
 - Azure DevOps pipeline runs validation, reasoning checks, and tests
 
+
+## Phase 6: Agent-Ready Semantic Platform
+
+The platform includes a governed Agent Integration Layer. Agents are represented as RDF
+resources, registered in `rdf/data/agent_registry.ttl`, validated by SHACL, and exposed
+through agent APIs and UI pages. The implementation is domain-neutral and does not include
+LLM-specific integrations, autonomous orchestration, multi-agent delegation, or autonomous
+workflow execution.
+
+Agent validation and smoke checks are available through:
+
+```bash
+make agents
+make agent-registry
+make agent-memory
+make agent-provenance
+make agent-observability
+```
+
+`make verify` includes the Phase 6 agent checks in addition to RDF syntax, SHACL,
+governance, provenance, reasoning, integration, visualization, and test validation.

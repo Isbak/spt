@@ -1,0 +1,15 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix agent: <https://example.org/semantic-platform/agents#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+agent:AgentGovernanceShape a sh:NodeShape ;
+  sh:targetClass agent:Agent ;
+  sh:property [ sh:path aggov:owner ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Agents must have an owner." ] ;
+  sh:property [ sh:path aggov:steward ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Agents must have a steward." ] ;
+  sh:property [ sh:path owl:versionInfo ; sh:minCount 1 ; sh:message "Agents must declare a version." ] ;
+  sh:property [ sh:path aggov:approvalStatus ; sh:minCount 1 ; sh:in ( "Draft" "Testing" "Approved" "Deprecated" "Retired" ) ; sh:message "Agents must have a supported approval status." ] ;
+  sh:property [ sh:path agent:hasCapability ; sh:minCount 1 ; sh:class agent:AgentCapability ; sh:message "Agents must define at least one capability." ] ;
+  sh:property [ sh:path aggov:allowedGraphAccess ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Agents must have graph access assignments." ] ;
+  sh:property [ sh:path aggov:allowedTool ; sh:minCount 1 ; sh:class agent:AgentTool ; sh:message "Agents must have governed tool assignments." ] .

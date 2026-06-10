@@ -1,4 +1,4 @@
-.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search load-fuseki app verify docker-up docker-down clean lint
+.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -78,13 +78,28 @@ analytics:
 search:
 	./scripts/search.sh
 
+agents:
+	./scripts/agents.sh
+
+agent-registry:
+	./scripts/agent-registry.sh
+
+agent-memory:
+	./scripts/agent-memory.sh
+
+agent-provenance:
+	./scripts/agent-provenance.sh
+
+agent-observability:
+	./scripts/agent-observability.sh
+
 load-fuseki:
 	./scripts/load-fuseki.sh
 
 app:
 	FLASK_APP=app.app:create_app $(PYTHON) -m flask run --host $${FLASK_HOST:-0.0.0.0} --port $${FLASK_PORT:-5000}
 
-verify: validate governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search test query
+verify: validate governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability test query
 
 lint:
 	$(PYTHON) -m ruff check src app tests

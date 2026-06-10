@@ -35,6 +35,12 @@
         <a href="{{ url_for('visualization.search') }}">Search</a>
         <a href="{{ url_for('reasoning.consistency_index') }}">Consistency</a>
         <a href="{{ url_for('reasoning.rules_index') }}">Rules</a>
+        <a href="{{ url_for('agents.agents_home') }}">Agents</a>
+        <a href="{{ url_for('agents.agent_registry_view') }}">Agent Registry</a>
+        <a href="{{ url_for('agents.agent_governance_view') }}">Agent Governance</a>
+        <a href="{{ url_for('agents.agent_memory_view') }}">Agent Memory</a>
+        <a href="{{ url_for('agents.agent_observations_view') }}">Agent Observations</a>
+        <a href="{{ url_for('agents.agent_provenance_view') }}">Agent Provenance</a>
       </nav>
     </header>
     <main>{% block content %}{% endblock %}</main>

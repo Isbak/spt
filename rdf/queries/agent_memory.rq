@@ -1,0 +1,6 @@
+PREFIX agent: <https://example.org/semantic-platform/agents#>
+SELECT ?agent ?memory ?type ?content WHERE {
+  ?agent agent:hasMemory ?memory .
+  ?memory agent:memoryType ?type ; agent:memoryContent ?content .
+}
+ORDER BY ?agent ?memory

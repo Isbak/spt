@@ -1,0 +1,7 @@
+PREFIX agent: <https://example.org/semantic-platform/agents#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+SELECT ?agent ?execution ?observation ?decision ?output WHERE {
+  ?agent agent:performedExecution ?execution ; agent:proposedDecision ?decision ; agent:generatedOutput ?output .
+  ?execution agent:hasObservation ?observation ; prov:wasAssociatedWith ?agent .
+}
+ORDER BY ?execution

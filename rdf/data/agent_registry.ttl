@@ -1,0 +1,28 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix agent: <https://example.org/semantic-platform/agents#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+agent:semantic-context-agent a agent:Agent ;
+  rdfs:label "Semantic Context Agent" ;
+  dcterms:description "Generic governed agent for semantic context retrieval, explainability, and read-only knowledge graph interaction." ;
+  owl:versionInfo "0.1.0" ;
+  aggov:owner "Semantic Platform Core Team" ;
+  aggov:steward "Semantic Platform Steward" ;
+  aggov:approvalStatus "Approved" ;
+  aggov:allowedGraphAccess "ontology", "reference", "governance", "provenance", "reasoning", "sandbox", "integration" ;
+  aggov:allowedTool agent:graph-query, agent:semantic-search, agent:provenance-lookup, agent:governance-lookup, agent:graph-analytics ;
+  agent:hasCapability agent:semantic-context-retrieval, agent:governed-search, agent:provenance-explanation, agent:governance-inspection ;
+  agent:usesTool agent:graph-query, agent:semantic-search, agent:provenance-lookup, agent:governance-lookup, agent:graph-analytics .
+
+agent:semantic-context-retrieval a agent:AgentCapability ; rdfs:label "Semantic context retrieval" .
+agent:governed-search a agent:AgentCapability ; rdfs:label "Governed semantic search" .
+agent:provenance-explanation a agent:AgentCapability ; rdfs:label "Provenance explanation" .
+agent:governance-inspection a agent:AgentCapability ; rdfs:label "Governance inspection" .
+
+agent:graph-query a agent:AgentTool ; rdfs:label "Graph Query Tool" .
+agent:semantic-search a agent:AgentTool ; rdfs:label "Search Tool" .
+agent:provenance-lookup a agent:AgentTool ; rdfs:label "Provenance Tool" .
+agent:governance-lookup a agent:AgentTool ; rdfs:label "Governance Tool" .
+agent:graph-analytics a agent:AgentTool ; rdfs:label "Analytics Tool" .

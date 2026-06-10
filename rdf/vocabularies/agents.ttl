@@ -1,0 +1,50 @@
+@prefix agent: <https://example.org/semantic-platform/agents#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+agent: a owl:Ontology ;
+  rdfs:label "Semantic Platform agent ontology" ;
+  dcterms:description "Domain-neutral vocabulary for governed agents, tools, memory, planning, observations, decisions, executions, and outputs." ;
+  owl:versionInfo "0.1.0" .
+
+agent:Agent a owl:Class ; rdfs:subClassOf prov:Agent ; rdfs:label "Agent" .
+agent:AgentRole a owl:Class ; rdfs:label "Agent role" .
+agent:AgentCapability a owl:Class ; rdfs:label "Agent capability" .
+agent:AgentTool a owl:Class ; rdfs:label "Agent tool" .
+agent:AgentMemory a owl:Class ; rdfs:label "Agent memory" .
+agent:WorkingMemory a owl:Class ; rdfs:subClassOf agent:AgentMemory ; rdfs:label "Working memory" .
+agent:SessionMemory a owl:Class ; rdfs:subClassOf agent:AgentMemory ; rdfs:label "Session memory" .
+agent:SemanticMemory a owl:Class ; rdfs:subClassOf agent:AgentMemory ; rdfs:label "Semantic memory" .
+agent:ObservationMemory a owl:Class ; rdfs:subClassOf agent:AgentMemory ; rdfs:label "Observation memory" .
+agent:AgentExecution a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Agent execution" .
+agent:AgentObservation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent observation" .
+agent:AgentPlan a owl:Class ; rdfs:label "Agent plan" .
+agent:AgentDecision a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent decision" .
+agent:AgentOutput a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent output" .
+
+agent:hasCapability a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentCapability ; rdfs:label "has capability" .
+agent:usesTool a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentTool ; rdfs:label "uses tool" .
+agent:usedTool a owl:ObjectProperty ; rdfs:domain agent:AgentExecution ; rdfs:range agent:AgentTool ; rdfs:label "used tool" .
+agent:generatedOutput a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentOutput ; rdfs:label "generated output" .
+agent:performedExecution a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentExecution ; rdfs:label "performed execution" .
+agent:hasObservation a owl:ObjectProperty ; rdfs:range agent:AgentObservation ; rdfs:label "has observation" .
+agent:hasMemory a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentMemory ; rdfs:label "has memory" .
+agent:proposedDecision a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentDecision ; rdfs:label "proposed decision" .
+agent:executedPlan a owl:ObjectProperty ; rdfs:domain agent:Agent ; rdfs:range agent:AgentPlan ; rdfs:label "executed plan" .
+agent:accessedGraph a owl:DatatypeProperty ; rdfs:domain agent:AgentExecution ; rdfs:range xsd:string ; rdfs:label "accessed graph" .
+agent:agentVersion a owl:DatatypeProperty ; rdfs:domain agent:AgentExecution ; rdfs:range xsd:string ; rdfs:label "agent version" .
+agent:initiatingUser a owl:DatatypeProperty ; rdfs:domain agent:AgentExecution ; rdfs:range xsd:string ; rdfs:label "initiating user" .
+agent:memoryContent a owl:DatatypeProperty ; rdfs:domain agent:AgentMemory ; rdfs:range xsd:string ; rdfs:label "memory content" .
+agent:memoryType a owl:DatatypeProperty ; rdfs:domain agent:AgentMemory ; rdfs:range xsd:string ; rdfs:label "memory type" .
+agent:sessionId a owl:DatatypeProperty ; rdfs:domain agent:AgentMemory ; rdfs:range xsd:string ; rdfs:label "session id" .
+agent:observationType a owl:DatatypeProperty ; rdfs:domain agent:AgentObservation ; rdfs:range xsd:string ; rdfs:label "observation type" .
+agent:observationMessage a owl:DatatypeProperty ; rdfs:domain agent:AgentObservation ; rdfs:range xsd:string ; rdfs:label "observation message" .
+agent:observedAt a owl:DatatypeProperty ; rdfs:domain agent:AgentObservation ; rdfs:range xsd:dateTime ; rdfs:label "observed at" .
+agent:graphScope a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "graph scope" .
+agent:hasTask a owl:DatatypeProperty ; rdfs:domain agent:AgentPlan ; rdfs:range xsd:string ; rdfs:label "has task" .
+agent:hasAction a owl:DatatypeProperty ; rdfs:domain agent:AgentPlan ; rdfs:range xsd:string ; rdfs:label "has action" .
+agent:outputText a owl:DatatypeProperty ; rdfs:domain agent:AgentOutput ; rdfs:range xsd:string ; rdfs:label "output text" .

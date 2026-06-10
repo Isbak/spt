@@ -1,0 +1,7 @@
+PREFIX aggov: <https://example.org/semantic-platform/agent-governance#>
+PREFIX agent: <https://example.org/semantic-platform/agents#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?agent ?label ?owner ?steward ?graph ?tool WHERE {
+  ?agent a agent:Agent ; rdfs:label ?label ; aggov:owner ?owner ; aggov:steward ?steward ; aggov:allowedGraphAccess ?graph ; aggov:allowedTool ?tool .
+}
+ORDER BY ?label ?graph ?tool
