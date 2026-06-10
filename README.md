@@ -90,6 +90,16 @@ output/
 7. Generate tests
 8. Ensure `make verify` passes
 
+
+## Runtime Options
+
+The skeleton supports two local runtime scenarios:
+
+1. Docker-managed Fuseki and Flask with `make docker-up`.
+2. An installed Apache Jena/Fuseki instance with `make jena-check`, `make fuseki-local`, or `make docker-up-external-jena`.
+
+The external-Jena path is useful when Apache Jena is already installed on the host or provided by another environment. See `docker/fuseki/LOCAL_JENA.md` for setup details.
+
 ## Required Make Targets
 
 ```bash
@@ -102,7 +112,10 @@ make load-fuseki
 make app
 make verify
 make docker-up
+make docker-up-external-jena
 make docker-down
+make jena-check
+make fuseki-local
 make clean
 ```
 
