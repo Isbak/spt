@@ -1,0 +1,2 @@
+# spt
+Semantic platform template 
