@@ -22,11 +22,12 @@ Add a domain-neutral `materialize` module that drives existing R2RML execution g
     via an optional SQLAlchemy dependency).
 - Generate RDF with PROV-O provenance, write one Turtle file per mapping to `output/`, and
   upload each into its `map:targetGraph` named graph (best-effort; skipped when Fuseki is down).
-- Surface it through `api.py`, a `make install-base` target added to the single-source
-  `ci-validate` list, the `load-fuseki` flow, and an `/install-base` Flask view.
+- Surface it through `api.py`, a `make materialize` target added to the single-source
+  `ci-validate` list, the `load-fuseki` flow, and a `/materialization` Flask view.
 
 ## Consequences
 Adding an integration source is configuration plus assets, not code. Materialization stays
 local-first and CI-safe (no Fuseki required), while becoming queryable in the UI once Fuseki
-is running. Core modules remain domain-neutral; `install-base` assets are illustrative only.
+is running. Core modules and shipped assets remain domain-neutral; no example integration
+domain (such as an "install base") is baked into the repository.
 The live data-platform path for non-SQLite engines requires installing a database driver.

@@ -6,10 +6,8 @@ This folder contains domain-neutral R2RML examples for the Semantic Integration 
 * `example_organization.ttl` demonstrates template-based URI generation and status IRI generation.
 * `example_dataset.ttl` demonstrates a SQL query logical table and datatype mappings for dataset metadata.
 
-* `install-base.r2rml` demonstrates the **drop-in materialization** workflow: a `.r2rml`
-  file (the `.r2rml` and `.ttl` extensions are both discovered) that is executed against
-  the configured relational source and materialized into the `urn:graph:install-base`
-  named graph.
+Mapping files are discovered by both the `.ttl` and `.r2rml` extensions, so a drop-in
+`.r2rml` file does not need to be renamed.
 
 The examples follow the W3C R2RML vocabulary (`rr:TriplesMap`, `rr:logicalTable`, `rr:subjectMap`, `rr:predicateObjectMap`, and `rr:objectMap`) while adding Semantic Platform metadata for ownership, version, source dataset, and target graph.
 
@@ -27,6 +25,6 @@ To add an integration source without writing any code:
      into `mappings/sql/`. No external services required.
    * **Live data platform**: set `SOURCE_DATABASE_URL` to your database; the mapping's
      `rr:logicalTable` query runs against it directly.
-4. Run `make install-base` to materialize RDF into `output/` (and push to Fuseki when it
+4. Run `make materialize` to materialize RDF into `output/` (and push to Fuseki when it
    is reachable), or `make load-fuseki` once Fuseki is up to serve it in the UI under
-   **Install Base**. `make install-base` is part of `ci-validate`, so it runs in CI too.
+   **Materialization**. `make materialize` is part of `ci-validate`, so it runs in CI too.

@@ -1,4 +1,4 @@
-.PHONY: setup validate test query domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql install-base lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration load-fuseki app ci-validate verify docker-up docker-down clean lint
+.PHONY: setup validate test query domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql materialize lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration load-fuseki app ci-validate verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -106,8 +106,8 @@ import-csv:
 import-sql:
 	./scripts/import-sql.sh
 
-install-base:
-	./scripts/install-base.sh
+materialize:
+	./scripts/materialize.sh
 
 lineage:
 	./scripts/lineage.sh
@@ -175,7 +175,7 @@ app:
 # Canonical list of semantic validation checks. This is the single source of
 # truth shared by `make verify` and every CI system (Azure DevOps and GitHub
 # Actions) so the pipelines cannot drift. To add a check, edit this list only.
-ci-validate: validate domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql install-base lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration
+ci-validate: validate domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql materialize lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration
 
 verify: ci-validate test query
 

@@ -1,8 +1,9 @@
-"""Install-base materialization UI route.
+"""Source materialization UI route.
 
-Surfaces drop-in R2RML materialization: it runs every mapping against the
-configured relational source and shows the resulting record/triple counts and
-target named graphs, plus whether Fuseki is reachable for serving them.
+Surfaces drop-in R2RML materialization: it runs every mapping in
+``mappings/r2rml/`` against the configured relational source and shows the
+resulting record/triple counts and target named graphs, plus whether Fuseki is
+reachable for serving them.
 """
 
 from __future__ import annotations
@@ -15,11 +16,11 @@ from semantic_platform.api import (
     materialize_sources,
 )
 
-install_base_bp = Blueprint("install_base", __name__, url_prefix="/install-base")
+materialization_bp = Blueprint("materialization", __name__, url_prefix="/materialization")
 
 
-@install_base_bp.get("")
-def install_base_index():
+@materialization_bp.get("")
+def materialization_index():
     """Materialize configured mappings and render the results.
 
     When Apache Jena/Fuseki is available, also read back the live triple count
@@ -30,7 +31,7 @@ def install_base_index():
     fuseki = fuseki_health()
     counts = fuseki_graph_triple_counts([result.target_graph for result in results]) if fuseki.ok else {}
     return render_template(
-        "install_base.html",
+        "materialization.html",
         results=results,
         fuseki=fuseki,
         fuseki_counts=counts,

@@ -1,4 +1,4 @@
-"""Tests for drop-in R2RML materialization (install-base use case)."""
+"""Tests for generic drop-in R2RML source materialization."""
 
 from __future__ import annotations
 
@@ -26,20 +26,27 @@ from semantic_platform.materialize import (
 )
 from semantic_platform.r2rdf import RR, load_r2rml_mapping, logical_table_sql, mapping_files
 
+# A pre-existing, domain-neutral example mapping used to exercise the generic
+# materialization path (queries the `dataset` table from mappings/sql/).
+EXAMPLE_MAPPING = "mappings/r2rml/example_dataset.ttl"
+
 
 def _settings_with_output(tmp_path):
     return dataclasses.replace(load_settings(), output_dir=tmp_path / "output")
 
 
-def test_r2rml_extension_is_discovered():
-    names = {path.name for path in mapping_files()}
-    assert "install-base.r2rml" in names
+def test_r2rml_and_ttl_extensions_are_discovered(tmp_path):
+    (tmp_path / "a.ttl").write_text("", encoding="utf-8")
+    (tmp_path / "b.r2rml").write_text("", encoding="utf-8")
+    settings = dataclasses.replace(load_settings(), r2rml_dir=tmp_path)
+    names = {path.name for path in mapping_files(settings)}
+    assert names == {"a.ttl", "b.r2rml"}
 
 
 def test_logical_table_sql_supports_query_and_table():
-    graph = load_r2rml_mapping("mappings/r2rml/install-base.r2rml")
+    graph = load_r2rml_mapping(EXAMPLE_MAPPING)
     triples_map = next(graph.subjects(RDF.type, RR.TriplesMap))
-    assert "FROM install_base" in logical_table_sql(graph, triples_map)
+    assert "FROM dataset" in logical_table_sql(graph, triples_map)
 
     table_graph = Graph()
     table_graph.parse(
@@ -99,18 +106,18 @@ def test_materialize_mapping_writes_output(tmp_path):
     settings = _settings_with_output(tmp_path)
     source = resolve_row_source(settings)
     try:
-        result = materialize_mapping("mappings/r2rml/install-base.r2rml", source, settings)
+        result = materialize_mapping(EXAMPLE_MAPPING, source, settings)
     finally:
         source.close()
-    assert result.record_count == 3
+    assert result.record_count == 2
     assert result.triple_count > 0
-    assert result.target_graph == "urn:graph:install-base"
+    assert result.target_graph == "urn:graph:integration"
     assert result.output_path.exists()
 
     materialized = Graph()
     materialized.parse(result.output_path, format="turtle")
     assert (
-        URIRef("https://example.org/resource/install-base/IB-001"),
+        URIRef("https://example.org/resource/dataset/DS-001"),
         None,
         None,
     ) in materialized
@@ -120,8 +127,9 @@ def test_materialize_mappings_covers_all_files(tmp_path):
     settings = _settings_with_output(tmp_path)
     results = materialize_mappings(settings)
     by_name = {result.mapping_path.name: result for result in results}
-    assert "install-base.r2rml" in by_name
-    assert by_name["install-base.r2rml"].record_count == 3
+    assert "example_dataset.ttl" in by_name
+    assert by_name["example_dataset.ttl"].record_count == 2
+    assert all(result.triple_count > 0 for result in results)
 
 
 def test_materialize_mapping_rejects_invalid_mapping(tmp_path):
@@ -161,15 +169,15 @@ class _FakeClient:
 
 
 def test_fuseki_graph_triple_counts_reads_back_when_available():
-    client = _FakeClient(ok=True, count=37)
-    counts = fuseki_graph_triple_counts(["urn:graph:install-base"], client=client)
-    assert counts == {"urn:graph:install-base": 37}
+    client = _FakeClient(ok=True, count=26)
+    counts = fuseki_graph_triple_counts(["urn:graph:integration"], client=client)
+    assert counts == {"urn:graph:integration": 26}
     assert client.queries  # a COUNT query was issued per graph
 
 
 def test_fuseki_graph_triple_counts_empty_when_unavailable():
     client = _FakeClient(ok=False)
-    assert fuseki_graph_triple_counts(["urn:graph:install-base"], client=client) == {}
+    assert fuseki_graph_triple_counts(["urn:graph:integration"], client=client) == {}
 
 
 def test_push_to_fuseki_loads_when_available(tmp_path):
@@ -194,17 +202,16 @@ def test_api_materialize_and_load(tmp_path, monkeypatch):
     monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "out"))
     monkeypatch.setenv("FUSEKI_BASE_URL", "http://localhost:65535")
     results = materialize_sources()
-    assert any(r.mapping_path.name == "install-base.r2rml" for r in results)
+    assert any(r.mapping_path.name == "example_dataset.ttl" for r in results)
     loads = load_sources_into_fuseki()
     # Fuseki is unreachable in tests, so loads are skipped, not failed.
     assert loads and not any(load.loaded for load in loads)
 
 
-def test_install_base_route(tmp_path, monkeypatch):
+def test_materialization_route(tmp_path, monkeypatch):
     monkeypatch.setenv("OUTPUT_DIR", str(tmp_path / "out"))
     monkeypatch.setenv("FUSEKI_BASE_URL", "http://localhost:65535")
     client = create_app().test_client()
-    response = client.get("/install-base")
+    response = client.get("/materialization")
     assert response.status_code == 200
-    assert b"Install Base Materialization" in response.data
-    assert b"install-base" in response.data
+    assert b"Source Materialization" in response.data
