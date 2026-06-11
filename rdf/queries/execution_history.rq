@@ -1,0 +1,6 @@
+PREFIX exec: <https://example.org/semantic-platform/execution#>
+SELECT ?execution ?action ?time ?outcome ?status WHERE {
+  ?execution a exec:ExecutionTask ; exec:executedAction ?action ; exec:executionTime ?time ; exec:producedOutcome ?outcome .
+  ?outcome exec:outcomeStatus ?status .
+}
+ORDER BY DESC(?time)

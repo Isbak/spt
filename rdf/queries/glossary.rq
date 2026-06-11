@@ -1,0 +1,10 @@
+PREFIX fabric: <https://example.org/semantic-platform/knowledge-fabric#>
+PREFIX contract: <https://example.org/semantic-platform/contracts#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?asset ?label WHERE {
+  VALUES ?type { fabric:KnowledgeDomain fabric:KnowledgeProduct fabric:SemanticContract contract:SemanticContract skos:Concept fabric:Federation fabric:SemanticDependency }
+  ?asset a ?type .
+  OPTIONAL { ?asset rdfs:label|skos:prefLabel ?label }
+}
+ORDER BY ?asset

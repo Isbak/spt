@@ -1,4 +1,4 @@
-# ADR-0011: Drop-in Source Materialization
+# ADR-0012: Drop-in Source Materialization
 
 ## Status
 Accepted

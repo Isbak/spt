@@ -1,0 +1,37 @@
+@prefix exec: <https://example.org/semantic-platform/execution#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+exec:ExecutionActionShape a sh:NodeShape ;
+    sh:targetClass exec:ExecutionAction ;
+    sh:property [ sh:path exec:actionType ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+    sh:property [ sh:path exec:executesAgainst ; sh:minCount 1 ; sh:class exec:ExecutionTarget ] ;
+    sh:property [ sh:path exec:riskLevel ; sh:minCount 1 ; sh:in ( "Low" "Medium" "High" "Critical" ) ] ;
+    sh:property [ sh:path exec:registryStatus ; sh:minCount 1 ; sh:in ( "Draft" "Testing" "Approved" "Restricted" "Retired" ) ] ;
+    sh:property [ sh:path exec:rollbackSupported ; sh:minCount 1 ; sh:datatype xsd:boolean ] .
+
+exec:ApprovalShape a sh:NodeShape ;
+    sh:targetClass exec:Approval ;
+    sh:property [ sh:path exec:approvesAction ; sh:minCount 1 ; sh:class exec:ExecutionAction ] ;
+    sh:property [ sh:path exec:approvalStatus ; sh:minCount 1 ; sh:in ( "Requested" "Approved" "Rejected" ) ] .
+
+exec:ExecutionTaskShape a sh:NodeShape ;
+    sh:targetClass exec:ExecutionTask ;
+    sh:property [ sh:path exec:executedAction ; sh:minCount 1 ; sh:class exec:ExecutionAction ] ;
+    sh:property [ sh:path exec:executesAgainst ; sh:minCount 1 ; sh:class exec:ExecutionTarget ] ;
+    sh:property [ sh:path exec:producedOutcome ; sh:minCount 1 ; sh:class exec:ExecutionOutcome ] ;
+    sh:property [ sh:path exec:governedBy ; sh:minCount 1 ; sh:class exec:ExecutionPolicy ] .
+
+exec:RollbackPlanShape a sh:NodeShape ;
+    sh:targetClass exec:RollbackPlan ;
+    sh:property [ sh:path exec:rollbackSupported ; sh:minCount 1 ; sh:datatype xsd:boolean ] ;
+    sh:property [ sh:path exec:rollbackDescription ; sh:minCount 1 ] .
+
+exec:ExecutionOutcomeShape a sh:NodeShape ;
+    sh:targetClass exec:ExecutionOutcome ;
+    sh:property [ sh:path exec:outcomeStatus ; sh:minCount 1 ] .
+
+exec:VerificationShape a sh:NodeShape ;
+    sh:targetClass exec:VerificationActivity ;
+    sh:property [ sh:path exec:verifiesOutcome ; sh:minCount 1 ; sh:class exec:ExecutionOutcome ] ;
+    sh:property [ sh:path exec:verificationPassed ; sh:minCount 1 ; sh:datatype xsd:boolean ] .

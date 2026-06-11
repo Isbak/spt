@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from rdflib import Graph, Namespace, URIRef
-from rdflib.namespace import OWL, RDF, RDFS
+from rdflib.namespace import OWL, RDF, RDFS, SKOS
 
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.governance import graph_assets, load_governance_metadata
@@ -188,4 +188,68 @@ def orchestration_metrics(graph: Graph | None = None, settings: Settings | None 
         "goal_completion": round(sum(progresses) / len(progresses), 4) if progresses else 0.0,
         "workflow_coverage": round(active_workflows / workflow_count, 4) if workflow_count else 0.0,
         "approval_bottlenecks": approval_count,
+    }
+
+
+def collaboration_metrics(graph: Graph | None = None, settings: Settings | None = None) -> dict[str, int | float]:
+    """Calculate Phase 9 multi-agent collaboration metrics."""
+    settings = settings or load_settings()
+    graph = graph or load_graph(settings=settings)
+    ma = Namespace("https://example.org/semantic-platform/multi-agent#")
+    team_count = len(set(graph.subjects(RDF.type, ma.AgentTeam)))
+    delegation_count = len(set(graph.subjects(RDF.type, ma.AgentDelegation)))
+    active_conversations = len(set(graph.subjects(RDF.type, ma.AgentConversation)))
+    negotiation_count = len(set(graph.subjects(RDF.type, ma.AgentNegotiation)))
+    consensuses = set(graph.subjects(RDF.type, ma.AgentConsensus))
+    conflicts = set(graph.subjects(RDF.type, ma.AgentConflict))
+    approved_consensus = sum(1 for item in consensuses if str(graph.value(item, ma.consensusApproved, default="false")) == "true")
+    unresolved_conflicts = sum(1 for item in conflicts if str(graph.value(item, ma.conflictStatus, default="Detected")) != "Resolved")
+    tasks = set(graph.subjects(RDF.type, ma.AgentTask))
+    completed_tasks = sum(1 for task in tasks if str(graph.value(task, ma.outcome, default="")) == "Completed")
+    participating_agents = set(graph.objects(None, ma.delegatesTo)) | set(graph.objects(None, ma.agreedWith)) | set(graph.objects(None, ma.disagreedWith))
+    return {
+        "team_count": team_count,
+        "delegation_count": delegation_count,
+        "active_conversations": active_conversations,
+        "negotiation_count": negotiation_count,
+        "consensus_count": len(consensuses),
+        "consensus_rate": round(approved_consensus / len(consensuses), 4) if consensuses else 0.0,
+        "conflict_count": len(conflicts),
+        "conflict_rate": round(unresolved_conflicts / max(delegation_count + negotiation_count + len(consensuses), 1), 4),
+        "task_completion": round(completed_tasks / len(tasks), 4) if tasks else 0.0,
+        "delegation_efficiency": round(delegation_count / max(team_count, 1), 4),
+        "collaboration_participation": len(participating_agents),
+    }
+
+
+def fabric_metrics(graph: Graph | None = None, settings: Settings | None = None) -> dict[str, int | float]:
+    """Calculate Phase 10 Enterprise Knowledge Fabric metrics."""
+    settings = settings or load_settings()
+    graph = graph or load_graph(settings=settings)
+    fabric = Namespace("https://example.org/semantic-platform/knowledge-fabric#")
+    contract = Namespace("https://example.org/semantic-platform/contracts#")
+    domain_count = len(set(graph.subjects(RDF.type, fabric.KnowledgeDomain)))
+    products = set(graph.subjects(RDF.type, fabric.KnowledgeProduct))
+    contracts = set(graph.subjects(RDF.type, contract.SemanticContract)) | set(graph.subjects(RDF.type, fabric.SemanticContract))
+    compatible = sum(
+        1
+        for item in contracts
+        if str(graph.value(item, contract.compatibility, default="")) in {"Compatible", "BackwardCompatible", "ForwardCompatible"}
+    )
+    federations = set(graph.subjects(RDF.type, fabric.Federation))
+    federated_graphs = set(graph.objects(None, fabric.federatesWith))
+    dependencies = len(list(graph.triples((None, fabric.dependsOn, None))))
+    consumers = len(set(graph.objects(None, fabric.consumes)))
+    mappings = set(graph.subjects(RDF.type, fabric.SemanticDependency)) | set(graph.subjects(SKOS.exactMatch, None))
+    interoperability_score = round(((len(mappings) > 0) + (compatible / len(contracts) if contracts else 1.0)) / 2, 4)
+    return {
+        "domain_count": domain_count,
+        "product_count": len(products),
+        "product_usage": consumers,
+        "product_dependencies": dependencies,
+        "contract_count": len(contracts),
+        "compatibility_coverage": round(compatible / len(contracts), 4) if contracts else 1.0,
+        "federation_count": len(federations),
+        "federated_graphs": len(federated_graphs),
+        "interoperability_score": interoperability_score,
     }

@@ -206,3 +206,36 @@ event, approval, execution-plan, API, UI, and unit-test checks while preserving 
 agent constraints: agents may receive tasks, propose plans, and contribute observations,
 but may not autonomously execute workflows, bypass approval gates, or modify governance
 assets.
+
+
+## Phase 9: Collaborative Multi-Agent Platform
+
+The platform now includes a governed Multi-Agent Collaboration Layer. Agent teams,
+delegations, conversations, shared semantic memory, negotiations, consensus decisions,
+conflicts, accountability records, and explainable collaboration traces are represented as
+RDF resources with PROV-O evidence and governance metadata.
+
+Phase 9 APIs and dashboards:
+
+- `GET /api/agent-teams` and `/agent-teams`
+- `GET /api/delegations` and `/delegations`
+- `GET /api/conversations` and `/conversations`
+- `GET /api/negotiations` and `/negotiations`
+- `GET /api/consensus` and `/consensus`
+- `GET /api/conflicts` and `/conflicts`
+- `/collaboration-dashboard`
+
+Phase 9 validation and smoke checks are available through:
+
+```bash
+make agent-teams
+make delegations
+make negotiations
+make consensus
+make conflicts
+make collaboration
+```
+
+`make verify` includes the Phase 9 collaboration checks while preserving the platform
+constraint that agents remain governed, attributable, observable, provenance-aware and
+non-self-modifying.

@@ -8,6 +8,8 @@ from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import RDF
 
 from semantic_platform.orchestration.common import ORCH, add_activity, add_label, bind, new_uri
+from semantic_platform.execution.actions import ExecutionActionRecord
+from semantic_platform.execution.policies import ExecutionPolicyDecision, ExecutionPolicyEngine
 
 
 @dataclass(frozen=True)
@@ -50,3 +52,12 @@ class PolicyEvaluator:
         reason = "Policies found; execution may be planned only." if allowed else "Workflow has no policy reference."
         add_activity(self.graph, ORCH.PolicyEvaluated, reason, used=[workflow_uri, *[URIRef(str(p)) for p in policies]])
         return PolicyDecision(allowed, tuple(approvals), tuple(constraints), reason)
+    def evaluate_execution(
+        self,
+        action: ExecutionActionRecord,
+        target_type: str,
+        policy: str | URIRef | None = None,
+    ) -> ExecutionPolicyDecision:
+        """Evaluate execution-specific constraints, approvals, risk, targets, and action types."""
+        return ExecutionPolicyEngine(self.graph).evaluate(action, target_type, policy)
+

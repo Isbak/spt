@@ -1,0 +1,5 @@
+PREFIX exec: <https://example.org/semantic-platform/execution#>
+SELECT ?execution ?outcome ?status ?message WHERE {
+  ?execution exec:producedOutcome ?outcome .
+  ?outcome exec:outcomeStatus ?status ; exec:outcomeMessage ?message .
+}

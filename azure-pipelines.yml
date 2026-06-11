@@ -40,7 +40,7 @@ stages:
           - script: make setup
             displayName: Install Python dependencies
           - script: make ci-validate
-            displayName: Run all semantic validation checks
+            displayName: Run semantic validation checks, including contracts, federation, glossary, governance, interoperability, provenance, execution checks, and tests
 
   - stage: Test
     dependsOn: Validate
