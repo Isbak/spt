@@ -1,0 +1,33 @@
+@prefix adv: <https://example.org/semantic-platform/advisory#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+adv: a owl:Ontology ;
+  rdfs:label "Semantic Platform advisory ontology" ;
+  dcterms:description "Domain-neutral vocabulary for governed, non-executing advisory and optimization: objectives, weighted criteria, scored recommendations, and their explanations. Recommendations are advisory only and require human approval before any execution." ;
+  owl:versionInfo "0.1.0" .
+
+adv:Advisory a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Advisory" .
+adv:Criterion a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Criterion" .
+adv:Recommendation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Recommendation" .
+adv:AdvisoryPolicy a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Advisory policy" .
+adv:AdvisoryActivity a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Advisory activity" .
+
+adv:objective a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "objective" .
+adv:hasCriterion a owl:ObjectProperty ; rdfs:domain adv:Advisory ; rdfs:range adv:Criterion ; rdfs:label "has criterion" .
+adv:recommends a owl:ObjectProperty ; rdfs:label "recommends" .
+adv:criterionWeight a owl:DatatypeProperty ; rdfs:domain adv:Criterion ; rdfs:range xsd:decimal ; rdfs:label "criterion weight" .
+adv:criterionDirection a owl:DatatypeProperty ; rdfs:domain adv:Criterion ; rdfs:range xsd:string ; rdfs:label "criterion direction" .
+adv:score a owl:DatatypeProperty ; rdfs:domain adv:Recommendation ; rdfs:range xsd:decimal ; rdfs:label "score" .
+adv:rationale a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "rationale" .
+adv:candidateCount a owl:DatatypeProperty ; rdfs:range xsd:integer ; rdfs:label "candidate count" .
+adv:advisoryOnly a owl:DatatypeProperty ; rdfs:range xsd:boolean ; rdfs:label "advisory only" .
+adv:executionConstraint a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "execution constraint" .
+
+adv:defaultAdvisoryPolicy a adv:AdvisoryPolicy ;
+  rdfs:label "Default advisory-only policy" ;
+  adv:advisoryOnly true ;
+  adv:executionConstraint "Advisory only; recommendations require human approval before any business action." .

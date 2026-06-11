@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from flask import Flask, render_template
 
+from app.routes.advisory import advisory_bp
 from app.routes.agents import agents_bp
 from app.routes.graph import graph_bp
 from app.routes.health import health_bp
@@ -42,6 +43,7 @@ def create_app() -> Flask:
     app.register_blueprint(reasoning_bp)
     app.register_blueprint(visualization_bp)
     app.register_blueprint(agents_bp)
+    app.register_blueprint(advisory_bp)
     app.register_blueprint(orchestration_bp)
     app.register_blueprint(execution_bp)
     app.register_blueprint(multi_agent_bp)

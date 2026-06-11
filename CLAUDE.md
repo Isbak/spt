@@ -145,6 +145,21 @@ the agent layer it is **non-autonomous**: it represents and validates coordinati
 `rdf/data/orchestration_registry.ttl`, `workflow_templates.ttl`) but performs **no autonomous
 execution**.
 
+### Advisory / optimization (ADR-0014)
+
+`src/semantic_platform/advisory.py` is a **generic, domain-neutral** decision-support
+capability that lets planner/dispatcher-style agents "talk to data," analyse, optimise, and
+find patterns by composing existing layers (assist/search, analytics, inference). Given an
+objective, candidates pulled from any governed graph, and weighted `Criterion`s, `recommend()`
+returns an explainable, PROV-recorded **`AdvisoryResult` that is advisory only** (`ready` is
+always `False`) — consistent with the non-autonomy guarantee. It is surfaced as the governed
+`advisory` agent tool, `api.advise`, the `advisory` Flask blueprint (`/advisory`,
+`POST /api/advisory` → 403 on permission denial), and the `advisory` Make target. The example
+`field-service-planner`/`field-service-dispatcher` agents in `rdf/data/agent_registry.ttl` are
+**illustrative only** (like the sample instance data); core code carries no domain assumptions.
+Carrying out an approved recommendation stays the job of the approval-gated
+`execution/executor.py:GovernedExecutor`, invoked by a human.
+
 ## Conventions & workflow
 
 - Python **3.12+**, ruff line length **100**, `from __future__ import annotations` everywhere,

@@ -371,3 +371,27 @@ make collaboration
 `make verify` includes the Phase 9 collaboration checks while preserving the platform
 constraint that agents remain governed, attributable, observable, provenance-aware and
 non-self-modifying.
+
+## Governed Advisory / Optimization (ADR-0014)
+
+A generic, domain-neutral decision-support capability lets planner/dispatcher-style agents
+talk to data, analyse, optimise, and find patterns. Given an objective, candidates pulled from
+any governed graph, and weighted criteria, the platform returns an explainable, PROV-recorded
+recommendation that is **advisory only** — it ranks and explains, but never autonomously
+executes; carrying out an approved recommendation stays a human-gated, governed action.
+
+Advisory APIs and dashboard:
+
+- `GET /advisory`
+- `POST /api/advisory` (objective + criteria → ranked recommendation; `403` on permission
+  denial when an `agent_id` lacks read access)
+
+Validation and smoke checks:
+
+```bash
+make advisory
+```
+
+The example `field-service-planner` and `field-service-dispatcher` agents are illustrative
+only; the capability is domain-neutral and carries no domain assumptions in core code.
+`make verify` includes the advisory check.

@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from semantic_platform.advisory import (
+    AdvisoryResult,
+    Criterion,
+    candidates_from_graph,
+    recommend,
+)
 from semantic_platform.agents.assist import ExplanationResult, generate_explanation
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
@@ -79,6 +85,22 @@ def explain_with_agent(
 ) -> ExplanationResult:
     """Governed read-only LLM assist: have an agent explain data it may read."""
     return generate_explanation(agent_id, scope, question, settings=settings or load_settings())
+
+
+def advise(
+    objective: str,
+    candidate_type: str,
+    criteria: list[Criterion],
+    settings: Settings | None = None,
+) -> AdvisoryResult:
+    """Generic governed advisory: rank candidates of a type against weighted criteria.
+
+    Pulls candidate resources of ``candidate_type`` from the local graph and returns an
+    explainable, non-executing recommendation (``AdvisoryResult.ready`` is always ``False``).
+    """
+    settings = settings or load_settings()
+    candidates = candidates_from_graph(candidate_type, criteria, settings=settings)
+    return recommend(objective, candidates, criteria, settings=settings)
 
 
 def fuseki_graph_triple_counts(
