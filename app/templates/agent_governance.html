@@ -1,3 +1,20 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Agent Governance{% endblock %}
-{% block content %}<h2>Agent Governance</h2><p>Managed agents: {{ report.managed_agents }}. Approved agents: {{ report.approved_agents }}.</p><ul>{% for error in report.errors %}<li>{{ error }}</li>{% else %}<li>All agents are governed.</li>{% endfor %}</ul><table><tr><th>Agent</th><th>Owner</th><th>Steward</th><th>Graphs</th><th>Tools</th></tr>{% for agent in agents %}<tr><td>{{ agent.label }}</td><td>{{ agent.owner }}</td><td>{{ agent.steward }}</td><td>{{ agent.allowed_graphs|join(', ') }}</td><td>{{ agent.allowed_tools|join(', ') }}</td></tr>{% endfor %}</table>{% endblock %}
+{% block content %}
+{{ page_header("Agent Governance") }}
+<p>Managed agents: {{ report.managed_agents }}. Approved agents: {{ report.approved_agents }}.</p>
+<ul>{% for error in report.errors %}<li>{{ error }}</li>{% else %}<li>All agents are governed.</li>{% endfor %}</ul>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Agent</th><th>Owner</th><th>Steward</th><th>Graphs</th><th>Tools</th></tr></thead>
+    <tbody>
+      {% for agent in agents %}
+      <tr><td>{{ agent.label }}</td><td>{{ agent.owner }}</td><td>{{ agent.steward }}</td><td>{{ agent.allowed_graphs|join(', ') }}</td><td>{{ agent.allowed_tools|join(', ') }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

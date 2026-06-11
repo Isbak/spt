@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block title %}Glossary{% endblock %}{% block content %}<h2>Enterprise Glossary</h2><table><tr><th>Term</th><th>Definition</th><th>Synonyms</th><th>Owner</th><th>Lifecycle</th></tr>{% for t in terms %}<tr><td>{{ t.pref_label }}</td><td>{{ t.definition }}</td><td>{{ t.synonyms|join(', ') }}</td><td>{{ t.owner }}</td><td>{{ t.lifecycle_state }}</td></tr>{% endfor %}</table>{% endblock %}
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Glossary{% endblock %}
+{% block content %}
+{{ page_header("Enterprise Glossary") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Term</th><th>Definition</th><th>Synonyms</th><th>Owner</th><th>Lifecycle</th></tr></thead>
+    <tbody>
+      {% for t in terms %}
+      <tr><td>{{ t.pref_label }}</td><td>{{ t.definition }}</td><td>{{ t.synonyms|join(', ') }}</td><td>{{ t.owner }}</td><td>{{ t.lifecycle_state }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block title %}Federation{% endblock %}{% block content %}<h2>Federation</h2><table><tr><th>Federation</th><th>Domains</th><th>Products</th><th>Graphs</th><th>Ontologies</th></tr>{% for f in federations %}<tr><td>{{ f.label }}</td><td>{{ f.domains|join(', ') }}</td><td>{{ f.products|join(', ') }}</td><td>{{ f.graphs|join(', ') }}</td><td>{{ f.ontologies|join(', ') }}</td></tr>{% endfor %}</table>{% endblock %}
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Federation{% endblock %}
+{% block content %}
+{{ page_header("Federation") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Federation</th><th>Domains</th><th>Products</th><th>Graphs</th><th>Ontologies</th></tr></thead>
+    <tbody>
+      {% for f in federations %}
+      <tr><td>{{ f.label }}</td><td>{{ f.domains|join(', ') }}</td><td>{{ f.products|join(', ') }}</td><td>{{ f.graphs|join(', ') }}</td><td>{{ f.ontologies|join(', ') }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

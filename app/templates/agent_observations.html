@@ -1,3 +1,19 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Agent Observations{% endblock %}
-{% block content %}<h2>Agent Observations</h2><pre>{{ metrics }}</pre><table><tr><th>Agent</th><th>Type</th><th>Message</th><th>Scope</th></tr>{% for event in events %}<tr><td>{{ event.agent_id }}</td><td>{{ event.event_type.value }}</td><td>{{ event.message }}</td><td>{{ event.scope }}</td></tr>{% else %}<tr><td colspan="4">No observations recorded yet.</td></tr>{% endfor %}</table>{% endblock %}
+{% block content %}
+{{ page_header("Agent Observations") }}
+<pre>{{ metrics }}</pre>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Agent</th><th>Type</th><th>Message</th><th>Scope</th></tr></thead>
+    <tbody>
+      {% for event in events %}
+      <tr><td>{{ event.agent_id }}</td><td>{{ event.event_type.value }}</td><td>{{ event.message }}</td><td>{{ event.scope }}</td></tr>
+      {% else %}
+      <tr><td colspan="4"><span class="empty">No observations recorded yet.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

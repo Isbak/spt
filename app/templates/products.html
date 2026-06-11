@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block title %}Knowledge Products{% endblock %}{% block content %}<h2>Knowledge Products</h2><table><tr><th>Product</th><th>Version</th><th>Owner</th><th>Lifecycle</th><th>Consumers</th><th>Dependencies</th><th>Contracts</th></tr>{% for p in products %}<tr><td>{{ p.label }}</td><td>{{ p.version }}</td><td>{{ p.owner }}</td><td>{{ p.lifecycle_state }}</td><td>{{ p.consumers|join(', ') }}</td><td>{{ p.dependencies|join(', ') }}</td><td>{{ p.contracts|join(', ') }}</td></tr>{% endfor %}</table>{% endblock %}
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Knowledge Products{% endblock %}
+{% block content %}
+{{ page_header("Knowledge Products") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Product</th><th>Version</th><th>Owner</th><th>Lifecycle</th><th>Consumers</th><th>Dependencies</th><th>Contracts</th></tr></thead>
+    <tbody>
+      {% for p in products %}
+      <tr><td>{{ p.label }}</td><td>{{ p.version }}</td><td>{{ p.owner }}</td><td>{{ p.lifecycle_state }}</td><td>{{ p.consumers|join(', ') }}</td><td>{{ p.dependencies|join(', ') }}</td><td>{{ p.contracts|join(', ') }}</td></tr>
+      {% else %}
+      <tr><td colspan="7"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
