@@ -4,6 +4,124 @@ Enterprise-ready bootstrap repository for a generic semantic platform.
 
 This repository is intended as a **single source of truth** for generating the actual implementation with Codex or another code-generation agent.
 
+## Getting Started
+
+### Prerequisites
+
+- **Python 3.12+** (required — `make setup` will fail on older versions).
+- **git**.
+- **Docker + Docker Compose** — *optional*. Only needed for the Fuseki triple store, the Flask
+  container, and the optional local LLM. Setup, validation, and tests do **not** need Docker.
+
+### Quick start (self-contained — no Docker)
+
+The platform is local-first: everything below runs in-process against the bundled RDF assets.
+
+```bash
+git clone <your-fork-url> && cd spt
+python3 --version            # must be 3.12+
+python3 -m venv .venv
+source .venv/bin/activate     # Windows: .venv\Scripts\activate
+make setup                    # install the package + dev tools
+make verify                   # RDF + SHACL validation, tests, and query gate — your green check
+make app                      # run the Flask UI at http://localhost:5000
+```
+
+> **Ubuntu note:** the Makefile calls `python`. Activating the venv makes `python` resolve to your
+> 3.12 interpreter. Without a venv, run `make setup PYTHON=python3` (requires `python3` ≥ 3.12; on a
+> fresh Ubuntu install `python3.12` and `python3.12-venv` first).
+
+Configuration is env-driven with repo-local defaults, so **no `.env` is required** for the
+self-contained setup. Copy `.env.example` to `.env` only when you want to change ports or enable
+external services.
+
+### Common make targets
+
+| Command | What it does |
+|---|---|
+| `make setup` | install the package + dev dependencies (run first) |
+| `make verify` | the full gate: validation + tests + query |
+| `make test` | pytest with the 90% coverage gate |
+| `make validate` | RDF syntax + SHACL validation of everything in `rdf/` |
+| `make materialize` | run R2RML mappings → RDF (self-contained SQLite source by default) |
+| `make app` | run the Flask UI locally |
+| `make lint` | ruff lint of `src app tests` |
+| `make clean` | remove caches, coverage, and build artifacts |
+
+### Optional: serving + external services (Docker)
+
+```bash
+make docker-up                              # Fuseki triple store + Flask UI
+make load-fuseki                            # load the RDF assets / materialized graphs into Fuseki
+make docker-up-llm                          # + a free local Ollama LLM (compose profile: llm)
+docker compose --profile integration up -d  # + Postgres (an external relational-source demo)
+```
+
+`make docker-up` auto-detects Docker Compose **v2** (`docker compose`) or **v1**
+(`docker-compose`) — override with `make docker-up DOCKER_COMPOSE='docker compose'`.
+
+Docker troubleshooting:
+- `permission denied … /var/run/docker.sock` → your user isn't in the docker group:
+  `sudo usermod -aG docker $USER`, then log out/in (or `newgrp docker`).
+- `unknown shorthand flag: 'd' in -d` → Compose v2 isn't installed. Install it
+  (`sudo apt-get install -y docker-compose-v2`) or use v1 (`docker-compose up -d`).
+- **snap-installed Docker** is finicky (no `docker` group, no Compose v2 by default). The
+  smoothest path on Ubuntu is the distro packages: `sudo snap remove docker &&
+  sudo apt-get install -y docker.io docker-compose-v2`.
+
+Every capability is **self-contained by default and externally pluggable per service** — the data
+warehouse via `SOURCE_DATABASE_URL`, Jena via `FUSEKI_BASE_URL`, and the agent LLM via
+`LLM_PROVIDER`. These toggles are independent and composable (e.g. self-contained LLM + external
+Jena). See [docs/integration/EXTERNAL_INTEGRATION.md](docs/integration/EXTERNAL_INTEGRATION.md).
+
+### Getting started with data, Jena, and the LLM
+
+Each of the three services works out of the box (self-contained) and can be pointed at an
+external system by setting one env var. None requires the others.
+
+**1. Data — source materialization** (relational → RDF via R2RML)
+
+```bash
+# Self-contained (default): mappings/sql/*.sql → in-memory SQLite → RDF in output/
+make materialize
+
+# Bring your own: drop a .ttl in rdf/data/ (auto-loaded + SHACL-validated) and/or an
+# R2RML mapping (.r2rml or .ttl) in mappings/r2rml/ with a *.sql source, then:
+make materialize
+
+# External warehouse (e.g. Snowflake/Postgres): install the driver, then
+SOURCE_DATABASE_URL='postgresql+psycopg://user:pass@host:5432/db' make materialize
+```
+
+**2. Jena / Fuseki — serving + SPARQL**
+
+```bash
+make docker-up        # start the bundled Fuseki (triple store) + Flask
+make load-fuseki      # load the RDF assets + materialized graphs into Fuseki
+# Fuseki UI: http://localhost:3030 · platform UI: /integration and /materialization
+
+# External Jena: point at a remote server instead of the bundled one
+FUSEKI_BASE_URL='https://jena.example.org:3030' make load-fuseki
+```
+
+**3. LLM — governed, read-only agent assist** (an agent explains data it may read)
+
+```bash
+make app   # then, with the default free OFFLINE model (no key, no network):
+curl 'http://localhost:5000/api/agents/semantic-context-agent/explain?scope=reference&question=summarize'
+
+# Real local LLM (free): start the bundled Ollama service and pull a model
+make docker-up-llm
+docker exec semantic-platform-ollama ollama pull llama3.2
+LLM_PROVIDER=ollama make app
+
+# External cloud LLM:
+LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=... LLM_MODEL=claude-opus-4-8 make app   # pip install anthropic
+```
+
+The agent only ever explains data it is **already permitted to read**; the call returns 403 for a
+scope the agent may not access.
+
 ## Purpose
 
 Build a reusable semantic platform based on:
