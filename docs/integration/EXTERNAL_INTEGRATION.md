@@ -105,31 +105,32 @@ Because the simulators sit exactly where the real services connect
 configuration change, not a code change**. The simulated test gives deterministic,
 offline coverage of the same calls a real run makes.
 
-### Writing a real-service integration test (opt-in)
+### Live tests run on the option you choose
 
-To verify against a genuine Snowflake + Jena, gate a test on an env flag and the
-real settings so it is skipped by default and never runs in normal CI:
+`tests/test_external_integration_live.py` verifies the **real** services, and each
+test **follows the chosen option** — no special flag. Because the two toggles are
+independent, only the configured/reachable services are exercised:
 
-```python
-import os
-import pytest
-from semantic_platform.api import load_sources_into_fuseki, fuseki_graph_triple_counts
+| Test | Runs when… |
+|------|-----------|
+| `test_live_warehouse_materializes` | `SOURCE_DATABASE_URL` points at a DB that backs the example mappings (e.g. the seeded postgres) |
+| `test_live_jena_round_trip` | a real Fuseki/Jena is reachable (`make docker-up`, or `FUSEKI_BASE_URL` at a remote server) |
 
-@pytest.mark.skipif(os.getenv("RUN_EXTERNAL_E2E") != "1",
-                    reason="Set RUN_EXTERNAL_E2E=1 with SOURCE_DATABASE_URL + FUSEKI_* configured.")
-def test_real_external_round_trip():
-    loads = load_sources_into_fuseki()           # warehouse -> RDF -> external Jena
-    assert loads and all(load.loaded for load in loads)
-    graphs = [load.target_graph for load in loads]
-    served = fuseki_graph_triple_counts(graphs)  # read back from external Jena
-    assert all(count > 0 for count in served.values())
-```
-
-Run it explicitly once the external `.env` is in place:
+Each test probes its service at collection time and **skips cleanly** when it isn't
+present, so hermetic CI (which has neither) stays green while a configured run is
+tested against the genuine service. Examples:
 
 ```bash
-RUN_EXTERNAL_E2E=1 python -m pytest tests -k real_external_round_trip
+# Self-contained warehouse + external Jena → only the Jena test runs:
+make docker-up && make load-fuseki
+python -m pytest tests/test_external_integration_live.py
+
+# External warehouse (seeded postgres) → the warehouse test runs:
+docker compose --profile integration up -d
+SOURCE_DATABASE_URL=postgresql+psycopg://semantic:semantic@localhost:5432/semantic_platform \
+    python -m pytest tests/test_external_integration_live.py
 ```
 
-This keeps the default suite hermetic (simulators only) while making a real
-end-to-end check a one-command, credentials-gated opt-in.
+The simulated `test_end_to_end_external.py` still gives deterministic, offline
+coverage of the same code paths in every CI run; these live tests add real-service
+verification whenever you've selected one.
