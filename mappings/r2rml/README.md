@@ -28,3 +28,7 @@ To add an integration source without writing any code:
 4. Run `make materialize` to materialize RDF into `output/` (and push to Fuseki when it
    is reachable), or `make load-fuseki` once Fuseki is up to serve it in the UI under
    **Materialization**. `make materialize` is part of `ci-validate`, so it runs in CI too.
+
+For materializing from an external data warehouse (e.g. Snowflake) and serving into an
+external Apache Jena, see
+[docs/integration/EXTERNAL_INTEGRATION.md](../../docs/integration/EXTERNAL_INTEGRATION.md).

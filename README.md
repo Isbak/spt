@@ -66,6 +66,7 @@ docs/
   agents/
   roadmap/
   devops/
+  integration/
 
 rdf/
   ontology/
@@ -150,6 +151,19 @@ The repository is ready when:
 - Reasoning explanations, PROV-O execution records, and consistency reports are available
 - Azure DevOps pipeline runs validation, reasoning checks, and tests
 
+
+## External Integration
+
+Source materialization runs **self-contained by default** (in-memory SQLite from
+`mappings/sql/*.sql`, optional local Fuseki). It can also materialize from an
+**external data warehouse** (e.g. Snowflake) and serve into an **external Apache
+Jena/Fuseki** — opt-in via the commented `SOURCE_DATABASE_URL` / `FUSEKI_*`
+variables in `.env.example`.
+
+See **[docs/integration/EXTERNAL_INTEGRATION.md](docs/integration/EXTERNAL_INTEGRATION.md)**
+for setup, configuration, and how the test simulators
+(`tests/test_end_to_end_external.py`) map onto — and are replaced by — real
+services.
 
 ## Phase 6: Agent-Ready Semantic Platform
 
