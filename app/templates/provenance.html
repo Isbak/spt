@@ -1,11 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Provenance - Semantic Platform{% endblock %}
 {% block content %}
-<h2>Provenance</h2>
-<table>
-  <tr><th>Entity</th><th>Activity</th><th>Agent</th><th>Started</th></tr>
-  {% for row in rows %}
-  <tr><td>{{ row.entityLabel or row.entity }}</td><td>{{ row.activityLabel or row.activity }}</td><td>{{ row.agent }}</td><td>{{ row.started }}</td></tr>
-  {% endfor %}
-</table>
+{{ page_header("Provenance") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Entity</th><th>Activity</th><th>Agent</th><th>Started</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><td>{{ row.entityLabel or row.entity }}</td><td>{{ row.activityLabel or row.activity }}</td><td>{{ row.agent }}</td><td>{{ row.started }}</td></tr>
+      {% else %}
+      <tr><td colspan="4"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

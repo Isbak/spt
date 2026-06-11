@@ -1,13 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Integration - Semantic Platform{% endblock %}
 {% block content %}
-<h2>Integration Graph Assignments</h2>
-<table>
-  <thead><tr><th>Graph</th><th>Identifier</th><th>Owner</th><th>Steward</th><th>Mapping</th></tr></thead>
-  <tbody>
-  {% for row in rows %}
-    <tr><td>{{ row.graph }}</td><td>{{ row.identifier }}</td><td>{{ row.owner }}</td><td>{{ row.steward }}</td><td>{{ row.mapping }}</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+{{ page_header("Integration Graph Assignments") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Graph</th><th>Identifier</th><th>Owner</th><th>Steward</th><th>Mapping</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><td>{{ row.graph }}</td><td>{{ row.identifier }}</td><td>{{ row.owner }}</td><td>{{ row.steward }}</td><td>{{ row.mapping }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

@@ -1,8 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Explanations{% endblock %}
 {% block content %}
-<h2>Explanations</h2>
-<table><thead><tr><th>Explanation</th><th>Comment</th></tr></thead><tbody>
-{% for row in rows %}<tr><td>{{ row.resource }}</td><td>{{ row.comment }}</td></tr>{% endfor %}
-</tbody></table>
+{{ page_header("Explanations") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Explanation</th><th>Comment</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><td>{{ row.resource }}</td><td>{{ row.comment }}</td></tr>
+      {% else %}
+      <tr><td colspan="2"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
