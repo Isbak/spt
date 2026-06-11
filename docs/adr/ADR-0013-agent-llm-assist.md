@@ -31,6 +31,20 @@ Add a **governed, opt-in, read-only LLM assist**:
 - Surfaced through `api.explain_with_agent` and a `GET /api/agents/<id>/explain` route that
   returns 403 on permission denial.
 
+## Testing
+
+LLM output is non-deterministic, so tests assert robust properties and governance
+invariants rather than exact text, at two levels:
+
+- **In CI (deterministic):** the `local` provider is a real, self-contained, deterministic
+  model, so a prompt test runs every build — it checks the permitted facts flow into the
+  answer and that the governance invariants (permission enforced, PROV attributed to the agent)
+  hold.
+- **Opt-in (real LLM):** `tests/test_agent_llm_assist_ollama.py` drives a genuine local model
+  via the bundled Ollama service. A multi-GB model can't run in hermetic CI, so it is gated on
+  `RUN_OLLAMA_E2E=1` and skipped by default (the same pattern as the real-Fuseki test). It
+  asserts the model produced a non-trivial answer and that the same governance invariants hold.
+
 ## Consequences
 Agents can produce explanations while every governance property holds: permission-checked,
 read-only, provenance-recorded, non-autonomous. The platform stays self-contained by default

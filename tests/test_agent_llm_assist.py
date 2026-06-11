@@ -62,6 +62,9 @@ def test_generate_explanation_is_governed_and_records_provenance():
     assert result.provider == "local"
     assert result.fact_count > 0
     assert result.text
+    # Real self-contained (deterministic) model: the permitted facts flow into the
+    # answer — IRIs from the reference scope appear in the explanation text.
+    assert "http" in result.text
 
     prov = result.provenance
     activity = URIRef(result.explanation_iri)
