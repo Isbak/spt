@@ -96,7 +96,10 @@ def test_injected_external_model_is_used_and_recorded():
     assert (URIRef(result.explanation_iri), ASSIST.usedProvider, None) in result.provenance
 
 
-# --- Simulated external Ollama over real HTTP (no real model) -----------------
+# --- Bundled local Ollama provider — HTTP contract test -----------------------
+# The real self-contained option is the `ollama` docker-compose service. CI can't
+# run a multi-GB model, so (exactly as the Fuseki tests use a stand-in HTTP server)
+# this exercises OllamaModel's real HTTP request/response contract in-process.
 
 
 class _FakeOllamaHandler(BaseHTTPRequestHandler):
@@ -113,7 +116,7 @@ class _FakeOllamaHandler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
 
-def test_ollama_provider_round_trip_against_simulated_server():
+def test_ollama_provider_round_trip_against_local_server():
     server = HTTPServer(("127.0.0.1", 0), _FakeOllamaHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()

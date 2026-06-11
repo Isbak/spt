@@ -1,4 +1,4 @@
-.PHONY: setup validate test query domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql materialize lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration load-fuseki app ci-validate verify docker-up docker-down clean lint
+.PHONY: setup validate test query domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql materialize lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration load-fuseki app ci-validate verify docker-up docker-up-llm docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -184,6 +184,9 @@ lint:
 
 docker-up:
 	docker compose up -d
+
+docker-up-llm:
+	docker compose --profile llm up -d
 
 docker-down:
 	docker compose down

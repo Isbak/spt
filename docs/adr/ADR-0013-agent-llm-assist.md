@@ -20,10 +20,14 @@ Add a **governed, opt-in, read-only LLM assist**:
   the model used.
 - The model only turns a prompt into text. It **never** selects tools, drives plans, or writes
   to the knowledge graph, so the non-autonomy guarantee (and its enforcing test) is preserved.
-- `agents/llm.py` makes the model **pluggable**. The default is a **free, offline, deterministic
-  local model** (no API key, no network). External providers — Anthropic (official SDK,
-  `claude-opus-4-8`), OpenAI, and the free local Ollama server — are opt-in via
-  `LLM_PROVIDER`/`LLM_MODEL` and import their SDK lazily.
+- `agents/llm.py` makes the model **pluggable**, in two tiers:
+  - **Self-contained** (no API key, no third-party cloud): `local` — a free, offline,
+    deterministic model (the default, runs in CI); and `ollama` — a **real** local LLM served by
+    a bundled Ollama container (`docker compose --profile llm up` / `make docker-up-llm`), the LLM
+    counterpart to the bundled Fuseki triple store.
+  - **External**: Anthropic (official SDK, `claude-opus-4-8`) and OpenAI — third-party cloud APIs
+    requiring credentials.
+  - All are selected via `LLM_PROVIDER`/`LLM_MODEL` and import their SDK lazily.
 - Surfaced through `api.explain_with_agent` and a `GET /api/agents/<id>/explain` route that
   returns 403 on permission denial.
 

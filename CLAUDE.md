@@ -128,9 +128,11 @@ A **governed, opt-in, read-only LLM assist** (`agents/assist.py` + `agents/llm.p
 lets a human ask an agent to explain or summarize data it is **already permitted to read**: the
 read permission is enforced, only in-scope facts are passed to the model, the model only produces
 text (it never selects tools, drives plans, or writes), and the explanation is PROV-recorded and
-attributed to the agent. The provider is pluggable; the **default is a free, offline deterministic
-model** (no API key, no network), with optional external providers (Anthropic, OpenAI, Ollama) via
-`LLM_PROVIDER`/`LLM_MODEL`. This preserves the non-autonomy and governance guarantees.
+attributed to the agent. The provider is pluggable in two tiers: **self-contained** — `local` (a
+free, offline deterministic model; the default, no API key/network) and `ollama` (a real local LLM
+served by the bundled `docker compose --profile llm` container, like the bundled Fuseki) — and
+**external** — Anthropic/OpenAI cloud APIs — selected via `LLM_PROVIDER`/`LLM_MODEL`. This preserves
+the non-autonomy and governance guarantees.
 
 ### Orchestration (Phase 7)
 

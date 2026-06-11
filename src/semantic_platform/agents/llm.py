@@ -1,10 +1,17 @@
 """Pluggable language models for the governed agent assist.
 
-The default provider is a free, offline, deterministic **local** model that needs
-no API key and makes no network calls — keeping the platform self-contained. The
-external providers (``anthropic``, ``openai``, and the free local ``ollama``
-server) are opt-in via ``LLM_PROVIDER`` / ``LLM_MODEL`` and import their SDK lazily
-so the dependency is only required when actually selected.
+Two **self-contained** providers need no API key and no third-party cloud:
+
+* ``local`` (default) — a free, offline, deterministic model. No process, no
+  network; runs anywhere, including CI.
+* ``ollama`` — a real local LLM served by the bundled Ollama container
+  (``docker compose --profile llm up``), the LLM counterpart to the bundled
+  Fuseki triple store. Free and self-hosted; talks plain HTTP.
+
+The **external** providers — ``anthropic`` and ``openai`` — call third-party cloud
+APIs and require credentials. All providers are selected via ``LLM_PROVIDER`` /
+``LLM_MODEL`` and import their SDK lazily, so a provider's dependency is only
+needed when it is actually used.
 
 These models only ever turn a prompt into text. They never choose tools, write to
 the knowledge graph, or drive agent plans — that boundary is enforced by the
@@ -111,7 +118,11 @@ class OpenAIModel:
 
 
 class OllamaModel:
-    """Free external provider backed by a local Ollama server over HTTP."""
+    """Self-contained provider backed by the bundled local Ollama server over HTTP.
+
+    Free and self-hosted (no API key, no cloud) — the LLM analogue of the bundled
+    Fuseki service. Defaults to the ``ollama`` compose service / ``localhost:11434``.
+    """
 
     provider = "ollama"
 
