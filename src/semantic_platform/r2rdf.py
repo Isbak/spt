@@ -61,11 +61,30 @@ def mapping_files(settings: Settings | None = None) -> list[Path]:
     return sorted(paths)
 
 
+def quote_table_name(table_name: str) -> str:
+    """Delimit an ``rr:tableName`` value into a valid SQL table reference.
+
+    A bare ``rr:tableName`` is interpolated straight into ``SELECT * FROM ...``,
+    so any name that is not a simple unquoted identifier — a schema-qualified
+    name (``app.person``), or a name containing spaces, hyphens, or a reserved
+    word — produces a SQL syntax error (e.g. ``near ".": syntax error``). Per the
+    SQL standard each dot-separated component is wrapped in double quotes (with
+    embedded quotes doubled) so these names round-trip safely. Values the mapping
+    author has already delimited (a leading ``"``, ``[``, or backtick) or
+    expressed as a sub-select (a leading ``(``) are passed through unchanged.
+    """
+    stripped = table_name.strip()
+    if not stripped or stripped[0] in "\"[(`":
+        return stripped
+    return ".".join('"' + part.replace('"', '""') + '"' for part in stripped.split("."))
+
+
 def logical_table_sql(mapping_graph: Graph, triples_map: URIRef) -> str:
     """Return the SQL query for a mapping's ``rr:logicalTable``.
 
     Supports both ``rr:sqlQuery`` (verbatim) and ``rr:tableName`` (expanded to
-    ``SELECT * FROM <table>``). Raises ``ValueError`` when neither is present.
+    ``SELECT * FROM <table>``, with the table name delimited via
+    :func:`quote_table_name`). Raises ``ValueError`` when neither is present.
     """
     logical_table = next(mapping_graph.objects(triples_map, RR.logicalTable), None)
     if logical_table is None:
@@ -75,7 +94,7 @@ def logical_table_sql(mapping_graph: Graph, triples_map: URIRef) -> str:
         return str(sql_query)
     table_name = next(mapping_graph.objects(logical_table, RR.tableName), None)
     if table_name is not None:
-        return f"SELECT * FROM {table_name}"
+        return f"SELECT * FROM {quote_table_name(str(table_name))}"
     raise ValueError(f"{triples_map} rr:logicalTable needs rr:sqlQuery or rr:tableName.")
 
 

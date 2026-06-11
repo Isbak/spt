@@ -57,7 +57,41 @@ def test_logical_table_sql_supports_query_and_table():
         format="turtle",
     )
     tm = next(table_graph.subjects(RDF.type, RR.TriplesMap))
-    assert logical_table_sql(table_graph, tm) == "SELECT * FROM widgets"
+    assert logical_table_sql(table_graph, tm) == 'SELECT * FROM "widgets"'
+
+
+def test_logical_table_sql_delimits_qualified_and_special_table_names():
+    """Schema-qualified or non-bare table names must not break SQL syntax.
+
+    A bare ``SELECT * FROM <name>`` crashes with ``near ".": syntax error`` (or
+    similar) when the name is schema-qualified or contains spaces/hyphens; the
+    name has to be delimited.
+    """
+    cases = {
+        "app.person": 'SELECT * FROM "app"."person"',
+        "people-v2": 'SELECT * FROM "people-v2"',
+        "Order Details": 'SELECT * FROM "Order Details"',
+        '"already"."quoted"': 'SELECT * FROM "already"."quoted"',
+        "(SELECT 1)": "SELECT * FROM (SELECT 1)",
+    }
+    for table_name, expected in cases.items():
+        graph = Graph()
+        graph.parse(
+            data=f"""
+            @prefix rr: <http://www.w3.org/ns/r2rml#> .
+            <urn:m> a rr:TriplesMap ; rr:logicalTable [ rr:tableName {table_name!r} ] .
+            """,
+            format="turtle",
+        )
+        tm = next(graph.subjects(RDF.type, RR.TriplesMap))
+        assert logical_table_sql(graph, tm) == expected
+
+    # The delimited form executes cleanly against SQLite instead of raising.
+    source = SqliteRowSource.from_sql_files([])
+    source._connection.executescript(
+        'CREATE TABLE "people-v2" (id TEXT); INSERT INTO "people-v2" VALUES (\'p1\');'
+    )
+    assert source.fetch('SELECT * FROM "people-v2"') == [{"id": "p1"}]
 
 
 def test_logical_table_sql_requires_source():
