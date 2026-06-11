@@ -10,7 +10,11 @@ from rdflib import Graph, URIRef
 from rdflib.namespace import RDF
 
 from app.app import create_app
-from semantic_platform.api import load_sources_into_fuseki, materialize_sources
+from semantic_platform.api import (
+    fuseki_graph_triple_counts,
+    load_sources_into_fuseki,
+    materialize_sources,
+)
 from semantic_platform.config import load_settings
 from semantic_platform.fuseki import FusekiStatus
 from semantic_platform.materialize import (
@@ -139,15 +143,33 @@ def test_materialize_mapping_rejects_invalid_mapping(tmp_path):
 
 
 class _FakeClient:
-    def __init__(self, ok: bool) -> None:
+    def __init__(self, ok: bool, count: int = 0) -> None:
         self._ok = ok
+        self._count = count
         self.uploads: list[tuple[str, str]] = []
+        self.queries: list[str] = []
 
     def health_check(self) -> FusekiStatus:
         return FusekiStatus(self._ok, 200 if self._ok else None, "ok" if self._ok else "down")
 
     def upload_graph(self, file_path, graph_uri) -> None:
         self.uploads.append((str(file_path), graph_uri))
+
+    def execute_query(self, query_text: str) -> dict:
+        self.queries.append(query_text)
+        return {"results": {"bindings": [{"count": {"value": str(self._count)}}]}}
+
+
+def test_fuseki_graph_triple_counts_reads_back_when_available():
+    client = _FakeClient(ok=True, count=37)
+    counts = fuseki_graph_triple_counts(["urn:graph:install-base"], client=client)
+    assert counts == {"urn:graph:install-base": 37}
+    assert client.queries  # a COUNT query was issued per graph
+
+
+def test_fuseki_graph_triple_counts_empty_when_unavailable():
+    client = _FakeClient(ok=False)
+    assert fuseki_graph_triple_counts(["urn:graph:install-base"], client=client) == {}
 
 
 def test_push_to_fuseki_loads_when_available(tmp_path):

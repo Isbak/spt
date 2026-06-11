@@ -9,7 +9,7 @@
   {% if fuseki.ok %}<strong>available</strong>{% else %}<strong>unavailable</strong> ({{ fuseki.message }}){% endif %}.
 </p>
 <table>
-  <thead><tr><th>Mapping</th><th>Mapping IRI</th><th>Records</th><th>Triples</th><th>Target Graph</th><th>Output</th></tr></thead>
+  <thead><tr><th>Mapping</th><th>Mapping IRI</th><th>Records</th><th>Triples</th><th>Target Graph</th><th>In Fuseki</th><th>Output</th></tr></thead>
   <tbody>
   {% for result in results %}
     <tr>
@@ -18,6 +18,7 @@
       <td>{{ result.record_count }}</td>
       <td>{{ result.triple_count }}</td>
       <td>{{ result.target_graph }}</td>
+      <td>{% if fuseki.ok %}{{ fuseki_counts.get(result.target_graph, 0) }}{% else %}&mdash;{% endif %}</td>
       <td>{{ result.output_path.name }}</td>
     </tr>
   {% endfor %}

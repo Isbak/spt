@@ -71,3 +71,28 @@ def load_sources_into_fuseki(settings: Settings | None = None) -> list[FusekiLoa
     """Materialize mappings and push the resulting graphs into Fuseki."""
     settings = settings or load_settings()
     return push_to_fuseki(materialize_mappings(settings=settings), settings=settings)
+
+
+def fuseki_graph_triple_counts(
+    graphs: list[str],
+    settings: Settings | None = None,
+    client: FusekiClient | None = None,
+) -> dict[str, int]:
+    """Return live triple counts for named graphs served by Fuseki.
+
+    Used to confirm that materialized data is actually queryable from an
+    available Apache Jena instance. Returns an empty mapping when Fuseki is
+    unreachable so callers can degrade gracefully.
+    """
+    settings = settings or load_settings()
+    client = client or FusekiClient(settings=settings)
+    if not client.health_check().ok:
+        return {}
+    counts: dict[str, int] = {}
+    for graph_uri in graphs:
+        response = client.execute_query(
+            f"SELECT (COUNT(*) AS ?count) WHERE {{ GRAPH <{graph_uri}> {{ ?s ?p ?o }} }}"
+        )
+        bindings = response.get("results", {}).get("bindings", [])
+        counts[graph_uri] = int(bindings[0]["count"]["value"]) if bindings else 0
+    return counts
