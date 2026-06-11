@@ -26,3 +26,37 @@ agent:semantic-search a agent:AgentTool ; rdfs:label "Search Tool" .
 agent:provenance-lookup a agent:AgentTool ; rdfs:label "Provenance Tool" .
 agent:governance-lookup a agent:AgentTool ; rdfs:label "Governance Tool" .
 agent:graph-analytics a agent:AgentTool ; rdfs:label "Analytics Tool" .
+agent:advisory a agent:AgentTool ; rdfs:label "Advisory Tool" .
+
+# Illustrative example agents that compose the platform's generic capabilities: talk to data
+# (search), analyse (analytics), optimise and find patterns (advisory). Supplier selection is
+# the example here; the same capabilities apply to other decision-support cases such as a field
+# service planner and dispatcher. These are domain-neutral examples — like the people/
+# organization sample data — and recommend and explain only; they never autonomously execute.
+agent:sourcing-planner a agent:Agent ;
+  rdfs:label "Sourcing Planner (example)" ;
+  dcterms:description "Example governed planner agent that reads supplier data, analyses it, and produces explainable, non-executing recommendations against weighted criteria." ;
+  owl:versionInfo "0.1.0" ;
+  aggov:owner "Semantic Platform Core Team" ;
+  aggov:steward "Semantic Platform Steward" ;
+  aggov:approvalStatus "Approved" ;
+  aggov:allowedGraphAccess "ontology", "reference", "provenance", "reasoning" ;
+  aggov:allowedTool agent:graph-query, agent:semantic-search, agent:graph-analytics, agent:advisory ;
+  agent:hasCapability agent:data-conversation, agent:pattern-analysis, agent:optimization-advisory ;
+  agent:usesTool agent:graph-query, agent:semantic-search, agent:graph-analytics, agent:advisory .
+
+agent:sourcing-advisor a agent:Agent ;
+  rdfs:label "Sourcing Advisor (example)" ;
+  dcterms:description "Example governed advisor agent that ranks candidate suppliers and explains its recommendation for human approval; it never autonomously executes a sourcing decision." ;
+  owl:versionInfo "0.1.0" ;
+  aggov:owner "Semantic Platform Core Team" ;
+  aggov:steward "Semantic Platform Steward" ;
+  aggov:approvalStatus "Approved" ;
+  aggov:allowedGraphAccess "ontology", "reference", "provenance", "reasoning" ;
+  aggov:allowedTool agent:graph-query, agent:semantic-search, agent:graph-analytics, agent:advisory ;
+  agent:hasCapability agent:data-conversation, agent:pattern-analysis, agent:optimization-advisory ;
+  agent:usesTool agent:graph-query, agent:semantic-search, agent:graph-analytics, agent:advisory .
+
+agent:data-conversation a agent:AgentCapability ; rdfs:label "Talk to data" .
+agent:pattern-analysis a agent:AgentCapability ; rdfs:label "Pattern analysis" .
+agent:optimization-advisory a agent:AgentCapability ; rdfs:label "Optimization advisory" .

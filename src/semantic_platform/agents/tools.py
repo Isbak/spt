@@ -11,6 +11,7 @@ from rdflib import Graph
 from semantic_platform.agents.observations import AgentObservationLog, ObservationType
 from semantic_platform.agents.registry import AgentRecord
 from semantic_platform.agents.safety import require_safe_action
+from semantic_platform.advisory import Criterion, candidates_from_graph, recommend
 from semantic_platform.analytics import analytics_summary
 from semantic_platform.governance import graph_assets
 from semantic_platform.provenance import provenance_chain
@@ -59,6 +60,7 @@ class AgentToolRegistry:
         self.register(AgentTool("provenance-lookup", "Provenance Tool", "provenance", self.provenance_lookup))
         self.register(AgentTool("governance-lookup", "Governance Tool", "governance", self.governance_lookup))
         self.register(AgentTool("graph-analytics", "Analytics Tool", "reasoning", self.graph_analytics))
+        self.register(AgentTool("advisory", "Advisory Tool", "reference", self.advisory))
 
     def graph_query(self, query_text: str) -> list[dict[str, Any]]:
         """Run SPARQL against the configured local graph."""
@@ -79,3 +81,22 @@ class AgentToolRegistry:
     def graph_analytics(self) -> dict[str, int | float]:
         """Return graph analytics metrics."""
         return analytics_summary(graph=self.graph).__dict__
+
+    def advisory(
+        self, objective: str, candidate_type: str, criteria: list[dict[str, Any]]
+    ) -> dict[str, Any]:
+        """Rank candidates of a type against weighted criteria (governed, non-executing).
+
+        ``criteria`` is a list of ``{"name", "weight", "direction"}`` dicts. The result is an
+        explainable recommendation only; it never executes a business action.
+        """
+        parsed = [
+            Criterion(
+                name=item["name"],
+                weight=float(item.get("weight", 1.0)),
+                direction=item.get("direction", "maximize"),
+            )
+            for item in criteria
+        ]
+        candidates = candidates_from_graph(candidate_type, parsed, graph=self.graph)
+        return recommend(objective, candidates, parsed).as_dict()

@@ -1,0 +1,22 @@
+@prefix adv: <https://example.org/semantic-platform/advisory#> .
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+adv:AdvisoryShape a sh:NodeShape ;
+  sh:targetClass adv:Advisory ;
+  sh:property [ sh:path adv:objective ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Advisories must declare an objective." ] ;
+  sh:property [ sh:path aggov:owner ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Advisories must have an owner." ] ;
+  sh:property [ sh:path aggov:steward ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Advisories must have a steward." ] ;
+  sh:property [ sh:path adv:hasCriterion ; sh:minCount 1 ; sh:class adv:Criterion ; sh:message "Advisories must declare at least one criterion." ] ;
+  sh:property [ sh:path adv:recommends ; sh:minCount 1 ; sh:class adv:Recommendation ; sh:message "Advisories must reference at least one recommendation." ] .
+
+adv:CriterionShape a sh:NodeShape ;
+  sh:targetClass adv:Criterion ;
+  sh:property [ sh:path adv:criterionWeight ; sh:minCount 1 ; sh:datatype xsd:decimal ; sh:message "Criteria must declare a weight." ] ;
+  sh:property [ sh:path adv:criterionDirection ; sh:minCount 1 ; sh:in ( "maximize" "minimize" ) ; sh:message "Criteria must declare a maximize or minimize direction." ] .
+
+adv:RecommendationShape a sh:NodeShape ;
+  sh:targetClass adv:Recommendation ;
+  sh:property [ sh:path adv:score ; sh:minCount 1 ; sh:datatype xsd:decimal ; sh:message "Recommendations must carry a score." ] ;
+  sh:property [ sh:path adv:rationale ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Recommendations must include a rationale." ] .
