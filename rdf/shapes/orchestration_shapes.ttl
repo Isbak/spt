@@ -1,0 +1,50 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix orch: <https://example.org/semantic-platform/orchestration#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+orch:GoalShape a sh:NodeShape ;
+  sh:targetClass orch:Goal ;
+  sh:property [ sh:path orch:status ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Goals require a status." ] .
+
+orch:WorkflowShape a sh:NodeShape ;
+  sh:targetClass orch:Workflow ;
+  sh:property [ sh:path aggov:owner ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Workflows must have an owner." ] ;
+  sh:property [ sh:path aggov:steward ; sh:minCount 1 ; sh:datatype xsd:string ; sh:minLength 1 ; sh:message "Workflows must have a steward." ] ;
+  sh:property [ sh:path owl:versionInfo ; sh:minCount 1 ; sh:message "Workflows must declare a version." ] ;
+  sh:property [ sh:path aggov:approvalStatus ; sh:minCount 1 ; sh:in ( "Draft" "Testing" "Approved" "Deprecated" "Retired" ) ; sh:message "Workflows must have a governed approval status." ] ;
+  sh:property [ sh:path orch:lifecycleState ; sh:minCount 1 ; sh:in ( "Draft" "Ready" "Running" "Paused" "Completed" "Cancelled" ) ; sh:message "Workflows must have a supported lifecycle state." ] ;
+  sh:property [ sh:path orch:governedByPolicy ; sh:minCount 1 ; sh:class orch:OrchestrationPolicy ; sh:message "Workflows must be policy-aware." ] ;
+  sh:property [ sh:path orch:decomposesInto ; sh:minCount 1 ; sh:class orch:Task ; sh:message "Workflows must decompose into tasks." ] .
+
+orch:TaskShape a sh:NodeShape ;
+  sh:targetClass orch:Task ;
+  sh:property [ sh:path orch:dependsOn ; sh:class orch:Task ; sh:message "Dependencies must point to tasks." ] ;
+  sh:property [ sh:path orch:contributesToGoal ; sh:class orch:Goal ; sh:message "Task goal mappings must point to goals." ] .
+
+orch:PolicyShape a sh:NodeShape ;
+  sh:targetClass orch:OrchestrationPolicy ;
+  sh:property [ sh:path orch:executionConstraint ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Policies must state execution constraints." ] .
+
+orch:ApprovalShape a sh:NodeShape ;
+  sh:targetClass orch:ApprovalGate ;
+  sh:property [ sh:path orch:approvalSubject ; sh:minCount 1 ; sh:message "Approval gates must reference a subject." ] ;
+  sh:property [ sh:path orch:approvalStatus ; sh:minCount 1 ; sh:in ( "Requested" "Review" "Approved" "Rejected" "Escalated" ) ; sh:message "Approval gates require a supported approval status." ] .
+
+orch:ExecutionPlanShape a sh:NodeShape ;
+  sh:targetClass orch:ExecutionPlan ;
+  sh:property [ sh:path orch:hasPlannedTask ; sh:minCount 1 ; sh:class orch:Task ; sh:message "Execution plans must include planned tasks." ] ;
+  sh:property [ sh:path orch:planVersion ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Execution plans require a version." ] ;
+  sh:property [ sh:path orch:executionReady ; sh:minCount 1 ; sh:datatype xsd:boolean ; sh:message "Execution plans must declare readiness." ] ;
+  sh:property [ sh:path orch:contributesToGoal ; sh:minCount 1 ; sh:class orch:Goal ; sh:message "Execution plans must contribute to a goal." ] .
+
+orch:EventShape a sh:NodeShape ;
+  sh:targetClass orch:Event ;
+  sh:property [ sh:path orch:eventType ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Events require a type." ] ;
+  sh:property [ sh:path orch:eventSource ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Events require a source." ] .
+
+orch:ExplanationShape a sh:NodeShape ;
+  sh:targetClass orch:OrchestrationExplanation ;
+  sh:property [ sh:path orch:explanationText ; sh:minCount 1 ; sh:datatype xsd:string ; sh:message "Explanations require rationale text." ] ;
+  sh:property [ sh:path orch:explainsRecommendation ; sh:minCount 1 ; sh:message "Explanations must reference a recommendation." ] .

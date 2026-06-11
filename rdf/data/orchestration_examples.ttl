@@ -1,0 +1,77 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix orch: <https://example.org/semantic-platform/orchestration#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+orch:coordination-readiness-goal a orch:Goal ;
+  rdfs:label "Coordinate semantic work under human governance" ;
+  orch:status "Active" ;
+  orch:progress 0.50 ;
+  orch:hasObjective orch:readiness-objective ;
+  orch:hasTask orch:multi-step-intake, orch:multi-step-analysis .
+
+orch:readiness-objective a orch:Objective ;
+  rdfs:label "Produce an explainable, approval-gated coordination recommendation" ;
+  orch:contributesToGoal orch:coordination-readiness-goal .
+
+orch:sample-execution-plan a orch:ExecutionPlan ;
+  rdfs:label "Sample human-reviewed execution plan" ;
+  orch:contributesToGoal orch:coordination-readiness-goal ;
+  orch:hasPlannedTask orch:multi-step-intake, orch:multi-step-analysis, orch:multi-step-review ;
+  orch:planVersion "1.0.0" ;
+  orch:executionReady false ;
+  orch:explanationText "Tasks are ordered by dependency and remain non-executable until approval is granted." ;
+  prov:wasGeneratedBy orch:sample-planning-activity .
+
+orch:sample-event a orch:Event ;
+  rdfs:label "Graph Updated" ;
+  orch:eventType "Graph Updated" ;
+  orch:eventSource "semantic-platform" ;
+  orch:eventMessage "Knowledge graph assets were updated and may trigger planning review." ;
+  orch:occurredAt "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:wasGeneratedBy orch:sample-event-activity .
+
+orch:sample-approval-gate a orch:ApprovalGate ;
+  rdfs:label "Sample planning approval gate" ;
+  orch:approvalSubject orch:sample-execution-plan ;
+  orch:approvalStatus "Requested" ;
+  orch:requestedBy "orchestration-planner" ;
+  orch:reviewedBy "human-steward" ;
+  orch:requestedAt "2026-06-11T00:00:00Z"^^xsd:dateTime .
+orch:sample-execution-plan orch:requiresApproval orch:sample-approval-gate .
+
+orch:sample-coordination-recommendation a orch:CoordinationRecommendation ;
+  rdfs:label "Assign review to human steward" ;
+  orch:assignedTo "human-steward" ;
+  orch:participantType "Human" ;
+  orch:rationale "Approval policy requires human review before any business action." .
+
+orch:sample-orchestration-explanation a orch:OrchestrationExplanation ;
+  rdfs:label "Sample orchestration rationale" ;
+  orch:explainsRecommendation orch:sample-coordination-recommendation ;
+  orch:explanationText "Goal: coordinate semantic work. Inputs: workflow template and graph update event. Dependencies: intake before analysis before review. Policies applied: default human-controlled policy. Approvals required: sample planning approval gate." ;
+  prov:wasGeneratedBy orch:sample-explanation-activity .
+
+orch:sample-planning-activity a prov:Activity, orch:ExecutionPlanGenerated ;
+  rdfs:label "Sample execution planning activity" ;
+  prov:startedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:endedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:wasAssociatedWith orch:orchestration-planner-agent ;
+  prov:used orch:coordination-readiness-goal, orch:multi-step-workflow, orch:defaultOrchestrationPolicy .
+
+orch:sample-event-activity a prov:Activity, orch:EventRecorded ;
+  rdfs:label "Sample event recording activity" ;
+  prov:startedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:endedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:wasAssociatedWith orch:orchestration-planner-agent .
+
+orch:sample-explanation-activity a prov:Activity, orch:ExplanationRecorded ;
+  rdfs:label "Sample explanation recording activity" ;
+  prov:startedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:endedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime ;
+  prov:wasAssociatedWith orch:orchestration-planner-agent ;
+  prov:used orch:sample-coordination-recommendation, orch:defaultOrchestrationPolicy, orch:sample-approval-gate .
+
+orch:orchestration-planner-agent a prov:Agent ;
+  rdfs:label "Semantic orchestration planner" .

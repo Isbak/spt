@@ -33,8 +33,13 @@ stages:
               versionSpec: '$(pythonVersion)'
           - script: make setup
             displayName: Install Python dependencies
-          - script: make validate
-            displayName: RDF syntax and SHACL validation
+          - script: |
+              make validate
+              make orchestration
+              make execution-plans
+              make approvals
+              make events
+            displayName: RDF syntax, SHACL, and orchestration metadata validation
           - script: make governance
             displayName: Validate governance metadata
           - script: make provenance
@@ -77,4 +82,4 @@ stages:
           - script: make setup
             displayName: Install Python dependencies
           - script: make verify
-            displayName: Run Phase 6 verification
+            displayName: Run Phase 7 verification

@@ -159,3 +159,33 @@ def analytics_summary(
         inferred_triples=run.inferred_count,
         inference_ratio=round(run.inferred_count / len(graph), 6) if len(graph) else 0.0,
     )
+
+def orchestration_metrics(graph: Graph | None = None, settings: Settings | None = None) -> dict[str, int | float]:
+    """Calculate Phase 7 orchestration and goal metrics."""
+    settings = settings or load_settings()
+    graph = graph or load_graph(settings=settings)
+    orch = Namespace("https://example.org/semantic-platform/orchestration#")
+    workflow_count = len(set(graph.subjects(RDF.type, orch.Workflow)))
+    active_workflows = sum(
+        1
+        for workflow in set(graph.subjects(RDF.type, orch.Workflow))
+        if str(graph.value(workflow, orch.lifecycleState, default="")) in {"Ready", "Running"}
+    )
+    dependency_count = len(list(graph.triples((None, orch.dependsOn, None))))
+    approval_count = len(set(graph.subjects(RDF.type, orch.ApprovalGate)))
+    event_count = len(set(graph.subjects(RDF.type, orch.Event)))
+    execution_plan_count = len(set(graph.subjects(RDF.type, orch.ExecutionPlan)))
+    goals = set(graph.subjects(RDF.type, orch.Goal))
+    progresses = [float(graph.value(goal, orch.progress, default=0) or 0) for goal in goals]
+    return {
+        "workflow_count": workflow_count,
+        "active_workflows": active_workflows,
+        "dependency_count": dependency_count,
+        "approval_count": approval_count,
+        "event_count": event_count,
+        "execution_plan_count": execution_plan_count,
+        "goal_count": len(goals),
+        "goal_completion": round(sum(progresses) / len(progresses), 4) if progresses else 0.0,
+        "workflow_coverage": round(active_workflows / workflow_count, 4) if workflow_count else 0.0,
+        "approval_bottlenecks": approval_count,
+    }

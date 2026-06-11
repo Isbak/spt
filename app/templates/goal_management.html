@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Goal Management{% endblock %}{% block content %}<h2>Goal Management</h2><p>Objectives, status, and progress for semantic coordination goals.</p><ul>{% for goal in goals %}<li>{{ goal.label }} — progress {{ goal.progress }}</li>{% endfor %}</ul>{% endblock %}

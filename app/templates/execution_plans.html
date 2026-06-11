@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Execution Plans{% endblock %}{% block content %}<h2>Execution Plans</h2><p>Explainable plans show ordering only; autonomous execution is disabled.</p><ul>{% for plan in plans %}<li>{{ plan.uri }} — {{ plan.explanation }}<ol>{% for task in plan.tasks %}<li>{{ task }}</li>{% endfor %}</ol></li>{% endfor %}</ul>{% endblock %}

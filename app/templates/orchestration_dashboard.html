@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Orchestration Dashboard{% endblock %}{% block content %}<h2>Orchestration Dashboard</h2><pre>{{ metrics }}</pre><h3>Workflows</h3><ul>{% for workflow in workflows %}<li>{{ workflow.label }} — {{ workflow.lifecycle_state }}</li>{% endfor %}</ul>{% endblock %}
