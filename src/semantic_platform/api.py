@@ -12,6 +12,12 @@ from semantic_platform.advisory import (
 )
 from semantic_platform.agents.assist import ExplanationResult, generate_explanation
 from semantic_platform.config import Settings, load_settings
+from semantic_platform.domain_models import (
+    DomainModel,
+    ImportResult,
+    import_domain_files,
+    list_domain_models,
+)
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
 from semantic_platform.graph import GraphStats, graph_stats, load_graph
 from semantic_platform.materialize import (
@@ -21,6 +27,7 @@ from semantic_platform.materialize import (
     push_to_fuseki,
 )
 from semantic_platform.query import execute_query, read_query, result_rows
+from semantic_platform.shapes import ShapeRecord, list_shapes
 from semantic_platform.validate import ShaclValidationReport, SyntaxValidationResult, run_validation
 
 
@@ -36,6 +43,29 @@ def get_ontology_text(settings: Settings | None = None) -> str:
     for path in sorted(settings.ontology_dir.glob("*.ttl")):
         chunks.append(f"# {path.name}\n{path.read_text(encoding='utf-8')}")
     return "\n\n".join(chunks)
+
+
+def get_domain_models(settings: Settings | None = None) -> list[DomainModel]:
+    """Return domain models grouping ontology, shapes, and mappings by namespace."""
+    return list_domain_models(settings=settings or load_settings())
+
+
+def list_shape_records(settings: Settings | None = None) -> list[ShapeRecord]:
+    """Return discovered SHACL shapes for the Shapes UI page."""
+    return list_shapes(settings=settings or load_settings())
+
+
+def import_domain(
+    *,
+    ontology: tuple[str, bytes | str] | None = None,
+    shape: tuple[str, bytes | str] | None = None,
+    mapping: tuple[str, bytes | str] | None = None,
+    settings: Settings | None = None,
+) -> ImportResult:
+    """Validate and write a dropped-in domain bundle (ontology, shape, mapping)."""
+    return import_domain_files(
+        ontology=ontology, shape=shape, mapping=mapping, settings=settings or load_settings()
+    )
 
 
 def run_local_query(query_text: str | None = None, settings: Settings | None = None) -> list[dict[str, Any]]:

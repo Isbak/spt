@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Shapes - Semantic Platform{% endblock %}
+{% block content %}
+{{ page_header("SHACL Shapes", subtitle="Validation shapes discovered in the shapes directory.") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Shape</th><th>Kind</th><th>Target Class</th><th>Constraints</th><th>File</th></tr></thead>
+    <tbody>
+      {% for shape in shapes %}
+      <tr><td>{{ shape.label }}</td><td>{{ shape.kind }}</td><td>{{ shape.target_class }}</td><td>{{ shape.path_count }}</td><td>{{ shape.file }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
