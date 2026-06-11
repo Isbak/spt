@@ -2,7 +2,7 @@
 set -euo pipefail
 
 python - <<'PY'
-from semantic_platform.api import upload_default_graphs
+from semantic_platform.api import load_sources_into_fuseki, upload_default_graphs
 from semantic_platform.fuseki import FusekiClient
 
 client = FusekiClient()
@@ -13,4 +13,7 @@ if not client.dataset_exists():
     raise SystemExit("Configured Fuseki dataset does not exist")
 upload_default_graphs()
 print("Loaded default named graphs into Fuseki")
+for load in load_sources_into_fuseki():
+    state = "loaded" if load.loaded else "skipped"
+    print(f"Materialized source {state}: {load.target_graph} ({load.message})")
 PY

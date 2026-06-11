@@ -19,6 +19,11 @@ class Settings:
     shapes_dir: Path
     queries_dir: Path
     graphs_dir: Path
+    r2rml_dir: Path
+    sql_dir: Path
+    output_dir: Path
+    source_database_url: str | None
+    source_sql_files: tuple[Path, ...]
     fuseki_base_url: str
     fuseki_dataset: str
     fuseki_username: str | None
@@ -63,6 +68,13 @@ def load_settings() -> Settings:
     default_query = Path(
         os.getenv("DEFAULT_SPARQL_QUERY", queries_dir / "validation-summary.rq")
     ).expanduser().resolve()
+    sql_dir = Path(os.getenv("MAPPINGS_SQL_DIR", root / "mappings" / "sql")).expanduser().resolve()
+    configured_sql = os.getenv("MATERIALIZE_SQL_FILES", "")
+    source_sql_files = tuple(
+        Path(item.strip()).expanduser().resolve()
+        for item in configured_sql.replace(":", ",").split(",")
+        if item.strip()
+    )
 
     return Settings(
         project_root=root,
@@ -75,6 +87,11 @@ def load_settings() -> Settings:
         shapes_dir=Path(os.getenv("RDF_SHAPES_DIR", rdf_root / "shapes")).expanduser().resolve(),
         queries_dir=queries_dir,
         graphs_dir=Path(os.getenv("RDF_GRAPHS_DIR", rdf_root / "graphs")).expanduser().resolve(),
+        r2rml_dir=Path(os.getenv("MAPPINGS_R2RML_DIR", root / "mappings" / "r2rml")).expanduser().resolve(),
+        sql_dir=sql_dir,
+        output_dir=Path(os.getenv("OUTPUT_DIR", root / "output")).expanduser().resolve(),
+        source_database_url=os.getenv("SOURCE_DATABASE_URL") or None,
+        source_sql_files=source_sql_files,
         fuseki_base_url=os.getenv("FUSEKI_BASE_URL", "http://localhost:3030"),
         fuseki_dataset=os.getenv("FUSEKI_DATASET", "semantic-platform"),
         fuseki_username=os.getenv("FUSEKI_USERNAME") or None,

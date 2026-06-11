@@ -1,0 +1,28 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sp: <https://example.org/semantic-platform/core#> .
+@prefix ib: <https://example.org/semantic-platform/install-base#> .
+@prefix map: <https://example.org/semantic-platform/mappings#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+
+# Example drop-in R2RML mapping. Dropping this file (with a .r2rml or .ttl
+# extension) into mappings/r2rml/ is enough for `make install-base` to discover
+# it, run rr:sqlQuery against the configured source, and materialize RDF into
+# the urn:graph:install-base named graph.
+<https://example.org/mapping/install-base-r2rml>
+    a rr:TriplesMap, map:Mapping ;
+    rdfs:label "Install base R2RML mapping" ;
+    rr:logicalTable [ rr:sqlQuery "SELECT item_id, item_name, product, location, status FROM install_base" ] ;
+    rr:subjectMap [ rr:template "https://example.org/resource/install-base/{item_id}" ; rr:class ib:InstallBaseItem ; rr:graph <urn:graph:install-base> ] ;
+    rr:predicateObjectMap [ rr:predicate sp:identifier ; rr:objectMap [ rr:column "item_id" ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate rdfs:label ; rr:objectMap [ rr:column "item_name" ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate ib:product ; rr:objectMap [ rr:column "product" ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate ib:location ; rr:objectMap [ rr:column "location" ; rr:datatype xsd:string ] ] ;
+    rr:predicateObjectMap [ rr:predicate ib:status ; rr:objectMap [ rr:column "status" ; rr:datatype xsd:string ] ] ;
+    map:sourcedFrom <https://example.org/source-dataset/install-base> ;
+    map:targetGraph <urn:graph:install-base> ;
+    map:version "1.0.0" ;
+    map:mappingStatus "active" ;
+    gov:hasOwner gov:platformOwner ;
+    gov:hasSteward gov:platformSteward .

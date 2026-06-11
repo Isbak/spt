@@ -34,8 +34,8 @@ make clean        # remove caches, coverage, build artifacts
 It is defined as `ci-validate test query`, where `ci-validate` is the **single source of truth**
 for the semantic check sequence (`validate goals workflows events approvals orchestration
 execution-plans governance provenance named-graphs ontology-version reasoning inference
-consistency explanations rules mappings source-catalog import-csv import-sql lineage graph
-ontology *-dashboard analytics search agents agent-*`).
+consistency explanations rules mappings source-catalog import-csv import-sql install-base
+lineage graph ontology *-dashboard analytics search agents agent-*`).
 
 **CI runs on two systems — Azure DevOps (`azure-pipelines.yml`) and GitHub Actions
 (`.github/workflows/ci.yml`) — and they must not drift.** Both are thin wrappers with identical

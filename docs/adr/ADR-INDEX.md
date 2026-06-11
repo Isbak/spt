@@ -12,3 +12,4 @@
 | ADR-0008 | Agent integration |
 | ADR-0009 | Azure DevOps |
 | ADR-0010 | Docker strategy |
+| ADR-0011 | Drop-in source materialization |

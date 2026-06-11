@@ -7,6 +7,12 @@ from typing import Any
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
 from semantic_platform.graph import GraphStats, graph_stats, load_graph
+from semantic_platform.materialize import (
+    FusekiLoadResult,
+    MaterializationResult,
+    materialize_mappings,
+    push_to_fuseki,
+)
 from semantic_platform.query import execute_query, read_query, result_rows
 from semantic_platform.validate import ShaclValidationReport, SyntaxValidationResult, run_validation
 
@@ -54,3 +60,14 @@ def upload_default_graphs(settings: Settings | None = None) -> None:
     for path, graph_uri in graph_map.items():
         if path.exists():
             client.upload_graph(path, graph_uri)
+
+
+def materialize_sources(settings: Settings | None = None) -> list[MaterializationResult]:
+    """Materialize all R2RML mappings against the configured relational source."""
+    return materialize_mappings(settings=settings or load_settings())
+
+
+def load_sources_into_fuseki(settings: Settings | None = None) -> list[FusekiLoadResult]:
+    """Materialize mappings and push the resulting graphs into Fuseki."""
+    settings = settings or load_settings()
+    return push_to_fuseki(materialize_mappings(settings=settings), settings=settings)
