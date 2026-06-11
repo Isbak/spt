@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Ontology | Semantic Platform{% endblock %}
 {% block content %}
-<h2>Core Ontology</h2>
+{{ page_header("Core Ontology") }}
 <pre>{{ ontology }}</pre>
 {% endblock %}

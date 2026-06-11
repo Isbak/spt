@@ -1,8 +1,32 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header, metric_cards, badge %}
 {% block title %}Governance Dashboard{% endblock %}
 {% block content %}
-<h2>Governance Dashboard</h2>
-<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved</p>
-<section class="cards"><article>Ownership coverage: {{ data.metrics.ownership_coverage }}</article><article>Steward coverage: {{ data.metrics.steward_coverage }}</article><article>Completeness: {{ data.metrics.governance_completeness }}</article><article>Without owner: {{ data.metrics.assets_without_owner }}</article><article>Without steward: {{ data.metrics.assets_without_steward }}</article><article>Deprecated: {{ data.metrics.deprecated_assets }}</article></section>
-<table><tr><th>Asset</th><th>Owner</th><th>Steward</th><th>Classification</th><th>Approval status</th><th>Policy coverage</th></tr>{% for record in data.summary.graph_assets %}<tr><td>{{ record.label }}</td><td>{{ record.owner }}</td><td>{{ record.steward }}</td><td>{{ record.classification }}</td><td>Approved</td><td>Standard semantic asset policy</td></tr>{% endfor %}</table>
+{{ page_header("Governance Dashboard",
+   meta="Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved") }}
+{{ metric_cards([
+  ("Ownership coverage", data.metrics.ownership_coverage),
+  ("Steward coverage", data.metrics.steward_coverage),
+  ("Completeness", data.metrics.governance_completeness),
+  ("Without owner", data.metrics.assets_without_owner),
+  ("Without steward", data.metrics.assets_without_steward),
+  ("Deprecated", data.metrics.deprecated_assets),
+]) }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Asset</th><th>Owner</th><th>Steward</th><th>Classification</th><th>Approval status</th><th>Policy coverage</th></tr></thead>
+    <tbody>
+      {% for record in data.summary.graph_assets %}
+      <tr>
+        <td>{{ record.label }}</td>
+        <td>{{ record.owner }}</td>
+        <td>{{ record.steward }}</td>
+        <td>{{ record.classification }}</td>
+        <td>{{ badge("Approved", "success") }}</td>
+        <td>Standard semantic asset policy</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

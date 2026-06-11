@@ -1,9 +1,19 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Consistency{% endblock %}
 {% block content %}
-<h2>Consistency</h2>
+{{ page_header("Consistency") }}
 <p>Conforms: {{ report.conforms }}</p>
-<table><thead><tr><th>Severity</th><th>Focus Node</th><th>Message</th><th>Check</th></tr></thead><tbody>
-{% for issue in report.issues %}<tr><td>{{ issue.severity }}</td><td>{{ issue.focus_node }}</td><td>{{ issue.message }}</td><td>{{ issue.check }}</td></tr>{% endfor %}
-</tbody></table>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Severity</th><th>Focus Node</th><th>Message</th><th>Check</th></tr></thead>
+    <tbody>
+      {% for issue in report.issues %}
+      <tr><td>{{ issue.severity }}</td><td>{{ issue.focus_node }}</td><td>{{ issue.message }}</td><td>{{ issue.check }}</td></tr>
+      {% else %}
+      <tr><td colspan="4"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

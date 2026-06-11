@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block title %}Knowledge Domains{% endblock %}{% block content %}<h2>Knowledge Domains</h2><table><tr><th>Domain</th><th>Owner</th><th>Steward</th><th>Products</th><th>Responsibilities</th></tr>{% for d in domains %}<tr><td>{{ d.label }}</td><td>{{ d.owner }}</td><td>{{ d.steward }}</td><td>{{ d.products|join(', ') }}</td><td>{{ d.responsibilities|join('; ') }}</td></tr>{% endfor %}</table>{% endblock %}
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Knowledge Domains{% endblock %}
+{% block content %}
+{{ page_header("Knowledge Domains") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Domain</th><th>Owner</th><th>Steward</th><th>Products</th><th>Responsibilities</th></tr></thead>
+    <tbody>
+      {% for d in domains %}
+      <tr><td>{{ d.label }}</td><td>{{ d.owner }}</td><td>{{ d.steward }}</td><td>{{ d.products|join(', ') }}</td><td>{{ d.responsibilities|join('; ') }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,3 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header, badge %}
 {% block title %}Agent Registry{% endblock %}
-{% block content %}<h2>Agent Registry</h2><table><tr><th>Agent</th><th>Version</th><th>Status</th><th>Capabilities</th></tr>{% for agent in agents %}<tr><td>{{ agent.label }}</td><td>{{ agent.version }}</td><td>{{ agent.status.value }}</td><td>{{ agent.capabilities|join(', ') }}</td></tr>{% endfor %}</table>{% endblock %}
+{% block content %}
+{{ page_header("Agent Registry") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Agent</th><th>Version</th><th>Status</th><th>Capabilities</th></tr></thead>
+    <tbody>
+      {% for agent in agents %}
+      <tr><td>{{ agent.label }}</td><td>{{ agent.version }}</td><td>{{ badge(agent.status.value, "info") }}</td><td>{{ agent.capabilities|join(', ') }}</td></tr>
+      {% else %}
+      <tr><td colspan="4"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

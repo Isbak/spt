@@ -1,24 +1,31 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Query | Semantic Platform{% endblock %}
 {% block content %}
-<h2>SPARQL Query</h2>
+{{ page_header("SPARQL Query", subtitle="Run a read-only SPARQL query against the local graph.") }}
 <form method="post">
-  <label for="query">Query</label>
-  <textarea id="query" name="query" rows="18">{{ query }}</textarea>
+  <div class="field">
+    <label for="query">Query</label>
+    <textarea id="query" name="query" rows="18">{{ query }}</textarea>
+  </div>
   <button type="submit">Run query</button>
 </form>
-{% if error %}<p class="error">{{ error }}</p>{% endif %}
+{% if error %}<p class="alert alert--error">{{ error }}</p>{% endif %}
 {% if rows is not none %}
-  <h3>Results</h3>
-  <table>
-    <thead>
-      <tr>{% for key in rows[0].keys() if rows %}<th>{{ key }}</th>{% endfor %}</tr>
-    </thead>
-    <tbody>
-      {% for row in rows %}
-      <tr>{% for value in row.values() %}<td>{{ value }}</td>{% endfor %}</tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <h3>Results <span class="badge">{{ rows|length }}</span></h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>{% for key in rows[0].keys() if rows %}<th>{{ key }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>{% for value in row.values() %}<td>{{ value }}</td>{% endfor %}</tr>
+        {% else %}
+        <tr><td><span class="empty">No results.</span></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endif %}
 {% endblock %}

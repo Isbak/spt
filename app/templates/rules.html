@@ -1,8 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Rules{% endblock %}
 {% block content %}
-<h2>Rules</h2>
-<table><thead><tr><th>Rule</th><th>IRI</th><th>Version</th><th>Owner</th><th>Steward</th><th>Status</th><th>Executable</th></tr></thead><tbody>
-{% for rule in rules %}<tr><td>{{ rule.label }}</td><td>{{ rule.iri }}</td><td>{{ rule.version }}</td><td>{{ rule.owner }}</td><td>{{ rule.steward }}</td><td>{{ rule.status }}</td><td>{{ rule.executable }}</td></tr>{% endfor %}
-</tbody></table>
+{{ page_header("Rules") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Rule</th><th>IRI</th><th>Version</th><th>Owner</th><th>Steward</th><th>Status</th><th>Executable</th></tr></thead>
+    <tbody>
+      {% for rule in rules %}
+      <tr><td>{{ rule.label }}</td><td>{{ rule.iri }}</td><td>{{ rule.version }}</td><td>{{ rule.owner }}</td><td>{{ rule.steward }}</td><td>{{ rule.status }}</td><td>{{ rule.executable }}</td></tr>
+      {% else %}
+      <tr><td colspan="7"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

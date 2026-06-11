@@ -1,13 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Source Catalog - Semantic Platform{% endblock %}
 {% block content %}
-<h2>Source Catalog</h2>
-<table>
-  <thead><tr><th>Dataset</th><th>Source System</th><th>Owner</th><th>Steward</th><th>Version</th></tr></thead>
-  <tbody>
-  {% for dataset in datasets %}
-    <tr><td>{{ dataset.label }}</td><td>{{ dataset.source_system }}</td><td>{{ dataset.owner }}</td><td>{{ dataset.steward }}</td><td>{{ dataset.version }}</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+{{ page_header("Source Catalog") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Dataset</th><th>Source System</th><th>Owner</th><th>Steward</th><th>Version</th></tr></thead>
+    <tbody>
+      {% for dataset in datasets %}
+      <tr><td>{{ dataset.label }}</td><td>{{ dataset.source_system }}</td><td>{{ dataset.owner }}</td><td>{{ dataset.steward }}</td><td>{{ dataset.version }}</td></tr>
+      {% else %}
+      <tr><td colspan="5"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

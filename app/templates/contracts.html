@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block title %}Semantic Contracts{% endblock %}{% block content %}<h2>Semantic Contracts</h2><table><tr><th>Contract</th><th>Producer</th><th>Consumer</th><th>Version</th><th>Lifecycle</th><th>Compatibility</th></tr>{% for c in contracts %}<tr><td>{{ c.label }}</td><td>{{ c.producer }}</td><td>{{ c.consumer }}</td><td>{{ c.version }}</td><td>{{ c.lifecycle_state }}</td><td>{{ c.compatibility }}</td></tr>{% endfor %}</table>{% endblock %}
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Semantic Contracts{% endblock %}
+{% block content %}
+{{ page_header("Semantic Contracts") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Contract</th><th>Producer</th><th>Consumer</th><th>Version</th><th>Lifecycle</th><th>Compatibility</th></tr></thead>
+    <tbody>
+      {% for c in contracts %}
+      <tr><td>{{ c.label }}</td><td>{{ c.producer }}</td><td>{{ c.consumer }}</td><td>{{ c.version }}</td><td>{{ c.lifecycle_state }}</td><td>{{ c.compatibility }}</td></tr>
+      {% else %}
+      <tr><td colspan="6"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

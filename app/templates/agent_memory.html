@@ -1,3 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Agent Memory{% endblock %}
-{% block content %}<h2>Agent Memory</h2><table><tr><th>Agent</th><th>Type</th><th>Content</th></tr>{% for row in rows %}<tr><td>{{ row.agent_id }}</td><td>{{ row.memory_type.value }}</td><td>{{ row.content }}</td></tr>{% else %}<tr><td colspan="3">No runtime memory recorded yet.</td></tr>{% endfor %}</table>{% endblock %}
+{% block content %}
+{{ page_header("Agent Memory") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Agent</th><th>Type</th><th>Content</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><td>{{ row.agent_id }}</td><td>{{ row.memory_type.value }}</td><td>{{ row.content }}</td></tr>
+      {% else %}
+      <tr><td colspan="3"><span class="empty">No runtime memory recorded yet.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

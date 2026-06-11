@@ -1,8 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Inferences{% endblock %}
 {% block content %}
-<h2>Inferred Assertions</h2>
-<table><thead><tr><th>Subject</th><th>Predicate</th><th>Object</th></tr></thead><tbody>
-{% for s, p, o in triples %}<tr><td>{{ s }}</td><td>{{ p }}</td><td>{{ o }}</td></tr>{% endfor %}
-</tbody></table>
+{{ page_header("Inferred Assertions") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Subject</th><th>Predicate</th><th>Object</th></tr></thead>
+    <tbody>
+      {% for s, p, o in triples %}
+      <tr><td>{{ s }}</td><td>{{ p }}</td><td>{{ o }}</td></tr>
+      {% else %}
+      <tr><td colspan="3"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

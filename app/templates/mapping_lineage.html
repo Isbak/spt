@@ -1,13 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Mapping Lineage - Semantic Platform{% endblock %}
 {% block content %}
-<h2>Mapping Lineage</h2>
-<table>
-  <thead><tr><th>Source</th><th>Execution</th><th>Mapping</th><th>Generated Entity</th><th>Target Graph</th><th>Started</th><th>Ended</th></tr></thead>
-  <tbody>
-  {% for row in rows %}
-    <tr><td>{{ row.source }}</td><td>{{ row.execution }}</td><td>{{ row.mapping }}</td><td>{{ row.generated }}</td><td>{{ row.targetGraph }}</td><td>{{ row.started }}</td><td>{{ row.ended }}</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+{{ page_header("Mapping Lineage") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Source</th><th>Execution</th><th>Mapping</th><th>Generated Entity</th><th>Target Graph</th><th>Started</th><th>Ended</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><td>{{ row.source }}</td><td>{{ row.execution }}</td><td>{{ row.mapping }}</td><td>{{ row.generated }}</td><td>{{ row.targetGraph }}</td><td>{{ row.started }}</td><td>{{ row.ended }}</td></tr>
+      {% else %}
+      <tr><td colspan="7"><span class="empty">No records.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}
