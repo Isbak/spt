@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from semantic_platform.agents.assist import ExplanationResult, generate_explanation
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
 from semantic_platform.graph import GraphStats, graph_stats, load_graph
@@ -71,6 +72,13 @@ def load_sources_into_fuseki(settings: Settings | None = None) -> list[FusekiLoa
     """Materialize mappings and push the resulting graphs into Fuseki."""
     settings = settings or load_settings()
     return push_to_fuseki(materialize_mappings(settings=settings), settings=settings)
+
+
+def explain_with_agent(
+    agent_id: str, scope: str, question: str, settings: Settings | None = None
+) -> ExplanationResult:
+    """Governed read-only LLM assist: have an agent explain data it may read."""
+    return generate_explanation(agent_id, scope, question, settings=settings or load_settings())
 
 
 def fuseki_graph_triple_counts(

@@ -119,10 +119,18 @@ rule used, confidence, timestamp, and engine version for traceability.
 ### Agents (Phase 6)
 
 `src/semantic_platform/agents/` models agents as **RDF resources** (registry, memory,
-provenance, observations, governance, permissions, safety, planner, tools, context). It is
-deliberately domain-neutral: **no LLM integrations, autonomous orchestration, multi-agent
-delegation, or autonomous workflow execution.** Agents are registered in
-`rdf/data/agent_registry.ttl` and validated by SHACL (`rdf/shapes/agent_shapes.ttl`).
+provenance, observations, governance, permissions, safety, planner, tools, context, assist). It is
+deliberately domain-neutral: **no autonomous orchestration, multi-agent delegation, or autonomous
+workflow execution.** Agents are registered in `rdf/data/agent_registry.ttl` and validated by SHACL
+(`rdf/shapes/agent_shapes.ttl`).
+
+A **governed, opt-in, read-only LLM assist** (`agents/assist.py` + `agents/llm.py`, ADR-0013)
+lets a human ask an agent to explain or summarize data it is **already permitted to read**: the
+read permission is enforced, only in-scope facts are passed to the model, the model only produces
+text (it never selects tools, drives plans, or writes), and the explanation is PROV-recorded and
+attributed to the agent. The provider is pluggable; the **default is a free, offline deterministic
+model** (no API key, no network), with optional external providers (Anthropic, OpenAI, Ollama) via
+`LLM_PROVIDER`/`LLM_MODEL`. This preserves the non-autonomy and governance guarantees.
 
 ### Orchestration (Phase 7)
 
