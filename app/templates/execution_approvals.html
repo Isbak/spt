@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Governed Execution</h1>
+<p>Autonomous execution is constrained by policy, approvals, provenance, verification, and rollback declarations.</p>
+{% if actions %}<h2>Actions</h2><ul>{% for action in actions %}<li>{{ action.label }} — {{ action.action_type }} — risk {{ action.risk }} — approvals {{ action.approval_required }}</li>{% endfor %}</ul>{% endif %}
+{% if executions %}<h2>History</h2><ul>{% for execution in executions %}<li>{{ execution.uri }} — {{ execution.status }} — {{ execution.outcome }}</li>{% endfor %}</ul>{% endif %}
+{% if approvals %}<h2>Approvals</h2><ul>{% for approval in approvals %}<li>{{ approval.action }} — {{ approval.status }} by {{ approval.approver }}</li>{% endfor %}</ul>{% endif %}
+{% if outcomes %}<h2>Outcomes</h2><ul>{% for outcome in outcomes %}<li>{{ outcome.status }} — verified={{ outcome.verified }} — {{ outcome.message }}</li>{% endfor %}</ul>{% endif %}
+{% if risks %}<h2>Risk</h2><ul>{% for risk in risks %}<li>{{ risk.label }} — {{ risk.risk }} — audit={{ risk.audit_required }}</li>{% endfor %}</ul>{% endif %}
+{% if plans %}<h2>Rollback</h2><ul>{% for plan in plans %}<li>{{ plan.action }} — supported={{ plan.supported }} — {{ plan.description }}</li>{% endfor %}</ul>{% endif %}
+{% endblock %}

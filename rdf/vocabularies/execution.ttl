@@ -1,0 +1,44 @@
+@prefix exec: <https://example.org/semantic-platform/execution#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+exec: a owl:Ontology ;
+    rdfs:label "Semantic Platform execution ontology" ;
+    dcterms:description "Domain-neutral vocabulary for governed execution, approvals, targets, risk, rollback, verification, outcomes, explainability, and PROV-O audit trails." ;
+    owl:versionInfo "0.8.0" .
+
+exec:ExecutionAction a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Execution Action" .
+exec:ExecutionTask a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Execution Task" .
+exec:ExecutionResult a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Execution Result" .
+exec:ExecutionTarget a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Execution Target" .
+exec:Approval a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Approval" .
+exec:RollbackPlan a owl:Class ; rdfs:subClassOf prov:Plan ; rdfs:label "Rollback Plan" .
+exec:ExecutionPolicy a owl:Class ; rdfs:subClassOf prov:Plan ; rdfs:label "Execution Policy" .
+exec:ExecutionConstraint a owl:Class ; rdfs:label "Execution Constraint" .
+exec:ExecutionOutcome a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Execution Outcome" .
+exec:VerificationActivity a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Verification Activity" .
+exec:ExecutionExplanation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Execution Explanation" .
+
+exec:executesAgainst a owl:ObjectProperty ; rdfs:domain exec:ExecutionTask ; rdfs:range exec:ExecutionTarget .
+exec:producedOutcome a owl:ObjectProperty ; rdfs:domain exec:ExecutionTask ; rdfs:range exec:ExecutionOutcome .
+exec:verifiedBy a owl:ObjectProperty ; rdfs:domain exec:ExecutionOutcome ; rdfs:range exec:VerificationActivity .
+exec:governedBy a owl:ObjectProperty ; rdfs:range exec:ExecutionPolicy .
+exec:requiresApproval a owl:ObjectProperty ; rdfs:range exec:Approval .
+exec:hasRollbackPlan a owl:ObjectProperty ; rdfs:domain exec:ExecutionAction ; rdfs:range exec:RollbackPlan .
+exec:executedByAgent a owl:DatatypeProperty ; rdfs:domain exec:ExecutionTask ; rdfs:range xsd:string .
+exec:executedByHuman a owl:DatatypeProperty ; rdfs:domain exec:ExecutionTask ; rdfs:range xsd:string .
+exec:executedAction a owl:ObjectProperty ; rdfs:domain exec:ExecutionTask ; rdfs:range exec:ExecutionAction .
+exec:approvesAction a owl:ObjectProperty ; rdfs:domain exec:Approval ; rdfs:range exec:ExecutionAction .
+exec:verifiesOutcome a owl:ObjectProperty ; rdfs:domain exec:VerificationActivity ; rdfs:range exec:ExecutionOutcome .
+
+exec:actionType a owl:DatatypeProperty ; rdfs:range xsd:string .
+exec:targetType a owl:DatatypeProperty ; rdfs:range xsd:string .
+exec:riskLevel a owl:DatatypeProperty ; rdfs:range xsd:string .
+exec:registryStatus a owl:DatatypeProperty ; rdfs:range xsd:string .
+exec:rollbackSupported a owl:DatatypeProperty ; rdfs:range xsd:boolean .
+exec:approvalCountRequired a owl:DatatypeProperty ; rdfs:range xsd:integer .
+exec:outcomeStatus a owl:DatatypeProperty ; rdfs:range xsd:string .
+exec:outcomeMessage a owl:DatatypeProperty ; rdfs:range xsd:string .

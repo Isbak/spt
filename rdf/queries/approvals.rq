@@ -1,10 +1,8 @@
+PREFIX exec: <https://example.org/semantic-platform/execution#>
 PREFIX orch: <https://example.org/semantic-platform/orchestration#>
-PREFIX aggov: <https://example.org/semantic-platform/agent-governance#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT ?resource ?label ?status WHERE {
-  ?resource a ?type .
-  OPTIONAL { ?resource rdfs:label ?label }
-  OPTIONAL { ?resource orch:lifecycleState|orch:status|aggov:approvalStatus|orch:approvalStatus ?status }
-  FILTER(?type IN (orch:Goal, orch:Workflow, orch:Task, orch:ExecutionPlan, orch:Event, orch:ApprovalGate, orch:OrchestrationExplanation))
+SELECT ?approval ?subject ?status WHERE {
+  { ?approval a exec:Approval ; exec:approvesAction ?subject ; exec:approvalStatus ?status . }
+  UNION
+  { ?approval a orch:ApprovalGate ; orch:approvalSubject ?subject ; orch:approvalStatus ?status . }
 }
-ORDER BY ?resource
+ORDER BY ?approval
