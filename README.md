@@ -65,6 +65,54 @@ warehouse via `SOURCE_DATABASE_URL`, Jena via `FUSEKI_BASE_URL`, and the agent L
 `LLM_PROVIDER`. These toggles are independent and composable (e.g. self-contained LLM + external
 Jena). See [docs/integration/EXTERNAL_INTEGRATION.md](docs/integration/EXTERNAL_INTEGRATION.md).
 
+### Getting started with data, Jena, and the LLM
+
+Each of the three services works out of the box (self-contained) and can be pointed at an
+external system by setting one env var. None requires the others.
+
+**1. Data — source materialization** (relational → RDF via R2RML)
+
+```bash
+# Self-contained (default): mappings/sql/*.sql → in-memory SQLite → RDF in output/
+make materialize
+
+# Bring your own: drop a .ttl in rdf/data/ (auto-loaded + SHACL-validated) and/or an
+# R2RML mapping (.r2rml or .ttl) in mappings/r2rml/ with a *.sql source, then:
+make materialize
+
+# External warehouse (e.g. Snowflake/Postgres): install the driver, then
+SOURCE_DATABASE_URL='postgresql+psycopg://user:pass@host:5432/db' make materialize
+```
+
+**2. Jena / Fuseki — serving + SPARQL**
+
+```bash
+make docker-up        # start the bundled Fuseki (triple store) + Flask
+make load-fuseki      # load the RDF assets + materialized graphs into Fuseki
+# Fuseki UI: http://localhost:3030 · platform UI: /integration and /materialization
+
+# External Jena: point at a remote server instead of the bundled one
+FUSEKI_BASE_URL='https://jena.example.org:3030' make load-fuseki
+```
+
+**3. LLM — governed, read-only agent assist** (an agent explains data it may read)
+
+```bash
+make app   # then, with the default free OFFLINE model (no key, no network):
+curl 'http://localhost:5000/api/agents/semantic-context-agent/explain?scope=reference&question=summarize'
+
+# Real local LLM (free): start the bundled Ollama service and pull a model
+make docker-up-llm
+docker exec semantic-platform-ollama ollama pull llama3.2
+LLM_PROVIDER=ollama make app
+
+# External cloud LLM:
+LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=... LLM_MODEL=claude-opus-4-8 make app   # pip install anthropic
+```
+
+The agent only ever explains data it is **already permitted to read**; the call returns 403 for a
+scope the agent may not access.
+
 ## Purpose
 
 Build a reusable semantic platform based on:
