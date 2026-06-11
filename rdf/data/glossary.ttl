@@ -1,0 +1,26 @@
+@prefix ex: <https://example.org/semantic-platform/data#> .
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:enterprise-glossary a fabric:BusinessGlossary, skos:ConceptScheme ;
+  rdfs:label "Enterprise Business Glossary" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:enterprise-concept-a a skos:Concept, fabric:EnterpriseConcept ;
+  skos:inScheme ex:enterprise-glossary ;
+  skos:prefLabel "Enterprise Concept A" ;
+  skos:altLabel "Concept A" ;
+  skos:definition "A generic enterprise concept used to validate glossary ownership and lifecycle." ;
+  fabric:ownedBy ex:owner-enterprise ;
+  fabric:lifecycleState "Active" .
+
+ex:enterprise-concept-b a skos:Concept, fabric:EnterpriseConcept ;
+  skos:inScheme ex:enterprise-glossary ;
+  skos:prefLabel "Enterprise Concept B" ;
+  skos:altLabel "Concept B" ;
+  skos:definition "A second generic enterprise concept for semantic alignment examples." ;
+  fabric:ownedBy ex:owner-enterprise ;
+  fabric:lifecycleState "Active" ;
+  skos:exactMatch ex:enterprise-concept-a .

@@ -1,0 +1,21 @@
+@prefix contract: <https://example.org/semantic-platform/contracts#> .
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+contract: a owl:Ontology ; rdfs:label "Semantic contracts ontology" ;
+  dcterms:created "2026-06-11"^^xsd:date ;
+  dcterms:modified "2026-06-11"^^xsd:date ;
+  dcterms:creator "Semantic Platform" ;
+  dcterms:publisher "Semantic Platform" ;
+  owl:versionInfo "0.10.0" .
+contract:SemanticContract a owl:Class ; rdfs:label "Semantic Contract" ; rdfs:subClassOf fabric:SemanticContract .
+contract:Compatibility a owl:Class ; rdfs:label "Compatibility" .
+contract:producer a owl:ObjectProperty ; rdfs:label "producer" .
+contract:consumer a owl:ObjectProperty ; rdfs:label "consumer" .
+contract:compatibleWith a owl:ObjectProperty ; rdfs:label "compatible with" .
+contract:version a owl:DatatypeProperty ; rdfs:label "version" ; rdfs:range xsd:string .
+contract:lifecycleState a owl:DatatypeProperty ; rdfs:label "lifecycle state" ; rdfs:range xsd:string .
+contract:compatibility a owl:DatatypeProperty ; rdfs:label "compatibility" ; rdfs:range xsd:string .

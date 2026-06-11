@@ -83,3 +83,17 @@ def governance_summary(settings: Settings | None = None) -> dict[str, object]:
     records = graph_assets(graph=graph)
     errors = validate_graph_governance(graph=graph)
     return {"graph_asset_count": len(records), "graph_assets": records, "errors": errors}
+
+
+def enterprise_governance_summary(graph: Graph | None = None, settings: Settings | None = None) -> dict[str, int]:
+    """Return governance counts for Phase 10 enterprise asset classes."""
+    settings = settings or load_settings()
+    graph = graph or load_governance_metadata(settings=settings)
+    fabric = Namespace("https://example.org/semantic-platform/knowledge-fabric#")
+    return {
+        "domain_governance": len(set(graph.subjects(RDF.type, fabric.DomainGovernance))),
+        "product_governance": len(set(graph.subjects(RDF.type, fabric.ProductGovernance))),
+        "contract_governance": len(set(graph.subjects(RDF.type, fabric.ContractGovernance))),
+        "ontology_governance": len(set(graph.subjects(RDF.type, fabric.OntologyGovernance))),
+        "agent_governance": len(set(graph.subjects(RDF.type, fabric.AgentGovernance))),
+    }

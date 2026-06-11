@@ -1,0 +1,32 @@
+@prefix ex: <https://example.org/semantic-platform/data#> .
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:owner-enterprise a gov:Owner ; rdfs:label "Enterprise Owner" .
+ex:steward-enterprise a gov:Steward ; rdfs:label "Enterprise Steward" .
+ex:fabric-governance a fabric:DomainGovernance, fabric:ProductGovernance, fabric:ContractGovernance, fabric:OntologyGovernance, fabric:AgentGovernance ; rdfs:label "Enterprise Fabric Governance" .
+
+ex:domain-a a fabric:KnowledgeDomain ;
+  rdfs:label "Domain A" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  gov:hasSteward ex:steward-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:responsibility "Manage semantic assets for generic domain A." ;
+  fabric:produces ex:knowledge-product-a .
+
+ex:domain-b a fabric:KnowledgeDomain ;
+  rdfs:label "Domain B" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  gov:hasSteward ex:steward-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:responsibility "Manage semantic assets for generic domain B." ;
+  fabric:produces ex:knowledge-product-b .
+
+ex:domain-c a fabric:KnowledgeDomain ;
+  rdfs:label "Domain C" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  gov:hasSteward ex:steward-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:responsibility "Manage semantic assets for generic domain C." ;
+  fabric:produces ex:knowledge-product-c .

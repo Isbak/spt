@@ -1,0 +1,59 @@
+@prefix ex: <https://example.org/semantic-platform/data#> .
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix contract: <https://example.org/semantic-platform/contracts#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:knowledge-product-a a fabric:KnowledgeProduct, prov:Entity ;
+  rdfs:label "Knowledge Product A" ;
+  fabric:version "1.0.0" ;
+  fabric:lifecycleState "Active" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  gov:hasSteward ex:steward-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:consumes ex:consumer-a ;
+  fabric:dependsOn ex:knowledge-product-b ;
+  fabric:exposesContract ex:contract-a-b ;
+  prov:wasGeneratedBy ex:fabric-publication-a .
+
+ex:knowledge-product-b a fabric:KnowledgeProduct, prov:Entity ;
+  rdfs:label "Knowledge Product B" ;
+  fabric:version "1.1.0" ;
+  fabric:lifecycleState "Active" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  gov:hasSteward ex:steward-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:consumes ex:consumer-b ;
+  fabric:dependsOn ex:data-product-b ;
+  fabric:exposesContract ex:contract-b-c .
+
+ex:knowledge-product-c a fabric:KnowledgeProduct, prov:Entity ;
+  rdfs:label "Knowledge Product C" ;
+  fabric:version "0.9.0" ;
+  fabric:lifecycleState "Candidate" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  gov:hasSteward ex:steward-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:consumes ex:consumer-c ;
+  fabric:exposesContract ex:contract-c-a .
+
+ex:data-product-b a fabric:DataProduct, prov:Entity ;
+  rdfs:label "Data Product B" ;
+  fabric:version "1.0.0" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:semantic-service-a a fabric:SemanticService ;
+  rdfs:label "Semantic Service A" ;
+  fabric:produces ex:knowledge-product-a ;
+  fabric:exposesContract ex:contract-a-b ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:consumer-a rdfs:label "Consumer A" .
+ex:consumer-b rdfs:label "Consumer B" .
+ex:consumer-c rdfs:label "Consumer C" .
+ex:fabric-publication-a a prov:Activity ; rdfs:label "Knowledge Product A publication" ; prov:used ex:data-product-b ; prov:startedAtTime "2026-01-01T00:00:00Z"^^xsd:dateTime ; prov:wasAssociatedWith ex:owner-enterprise .
+ex:decision-a a prov:Activity ; rdfs:label "Decision A" ; prov:used ex:knowledge-product-a ; prov:startedAtTime "2026-01-02T00:00:00Z"^^xsd:dateTime ; prov:wasAssociatedWith ex:consumer-a .
+ex:execution-a a prov:Activity ; rdfs:label "Execution A" ; prov:wasInformedBy ex:decision-a ; prov:startedAtTime "2026-01-03T00:00:00Z"^^xsd:dateTime ; prov:wasAssociatedWith ex:consumer-a .

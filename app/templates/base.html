@@ -48,6 +48,13 @@
         <a href="{{ url_for('multi_agent.negotiations_view') }}">Negotiations</a>
         <a href="{{ url_for('multi_agent.consensus_view') }}">Consensus</a>
         <a href="{{ url_for('multi_agent.conflicts_view') }}">Conflicts</a>
+        <a href="{{ url_for('fabric.knowledge_fabric_view') }}">Knowledge Fabric</a>
+        <a href="{{ url_for('fabric.domains_view') }}">Domains</a>
+        <a href="{{ url_for('fabric.products_view') }}">Products</a>
+        <a href="{{ url_for('fabric.contracts_view') }}">Contracts</a>
+        <a href="{{ url_for('fabric.glossary_view') }}">Glossary</a>
+        <a href="{{ url_for('fabric.federation_view') }}">Federation</a>
+        <a href="{{ url_for('fabric.interoperability_view') }}">Interoperability</a>
       </nav>
     </header>
     <main>{% block content %}{% endblock %}</main>

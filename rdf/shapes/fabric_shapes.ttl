@@ -1,0 +1,46 @@
+@prefix contract: <https://example.org/semantic-platform/contracts#> .
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+fabric:KnowledgeDomainShape a sh:NodeShape ;
+  sh:targetClass fabric:KnowledgeDomain ;
+  sh:property [ sh:path fabric:ownedBy ; sh:minCount 1 ; sh:message "Knowledge domains require ownership." ] ;
+  sh:property [ sh:path gov:hasSteward ; sh:minCount 1 ; sh:message "Knowledge domains require a steward." ] ;
+  sh:property [ sh:path fabric:governedBy ; sh:minCount 1 ; sh:message "Knowledge domains require governance." ] .
+
+fabric:KnowledgeProductShape a sh:NodeShape ;
+  sh:targetClass fabric:KnowledgeProduct ;
+  sh:property [ sh:path fabric:ownedBy ; sh:minCount 1 ; sh:message "Knowledge products require ownership." ] ;
+  sh:property [ sh:path fabric:version ; sh:minCount 1 ; sh:message "Knowledge products require a version." ] ;
+  sh:property [ sh:path fabric:lifecycleState ; sh:minCount 1 ; sh:message "Knowledge products require lifecycle state." ] ;
+  sh:property [ sh:path fabric:governedBy ; sh:minCount 1 ; sh:message "Knowledge products require governance." ] .
+
+fabric:SemanticContractShape a sh:NodeShape ;
+  sh:targetClass contract:SemanticContract ;
+  sh:property [ sh:path contract:producer ; sh:minCount 1 ; sh:message "Semantic contracts require a producer." ] ;
+  sh:property [ sh:path contract:consumer ; sh:minCount 1 ; sh:message "Semantic contracts require a consumer." ] ;
+  sh:property [ sh:path contract:version ; sh:minCount 1 ; sh:message "Semantic contracts require a version." ] ;
+  sh:property [ sh:path contract:lifecycleState ; sh:minCount 1 ; sh:message "Semantic contracts require lifecycle state." ] ;
+  sh:property [ sh:path contract:compatibility ; sh:minCount 1 ; sh:message "Semantic contracts require compatibility metadata." ] .
+
+fabric:GlossaryShape a sh:NodeShape ;
+  sh:targetClass fabric:EnterpriseConcept ;
+  sh:property [ sh:path skos:prefLabel ; sh:minCount 1 ; sh:message "Glossary concepts require preferred labels." ] ;
+  sh:property [ sh:path skos:definition ; sh:minCount 1 ; sh:message "Glossary concepts require definitions." ] ;
+  sh:property [ sh:path fabric:ownedBy ; sh:minCount 1 ; sh:message "Glossary concepts require ownership." ] ;
+  sh:property [ sh:path fabric:lifecycleState ; sh:minCount 1 ; sh:message "Glossary concepts require lifecycle state." ] .
+
+fabric:InteroperabilityShape a sh:NodeShape ;
+  sh:targetClass fabric:SemanticDependency ;
+  sh:property [ sh:path fabric:sourceConcept ; sh:minCount 1 ; sh:message "Semantic dependencies require source concepts." ] ;
+  sh:property [ sh:path fabric:dependsOn ; sh:minCount 1 ; sh:message "Semantic dependencies require target concepts." ] ;
+  sh:property [ sh:path fabric:governedBy ; sh:minCount 1 ; sh:message "Semantic dependencies require governance." ] .
+
+fabric:FederationShape a sh:NodeShape ;
+  sh:targetClass fabric:Federation ;
+  sh:property [ sh:path fabric:consumes ; sh:minCount 1 ; sh:message "Federations require domains." ] ;
+  sh:property [ sh:path fabric:federatesWith ; sh:minCount 1 ; sh:message "Federations require federated graphs." ] ;
+  sh:property [ sh:path fabric:governedBy ; sh:minCount 1 ; sh:message "Federations require governance." ] .
