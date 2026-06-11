@@ -1,4 +1,4 @@
-.PHONY: setup validate test query goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app ci-validate verify docker-up docker-down clean lint
+.PHONY: setup validate test query goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app ci-validate verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -33,6 +33,21 @@ orchestration:
 
 execution-plans:
 	./scripts/execution-plans.sh
+
+execution:
+	./scripts/execution.sh
+
+execution-history:
+	./scripts/execution-history.sh
+
+execution-risk:
+	./scripts/execution-risk.sh
+
+rollback:
+	./scripts/rollback.sh
+
+verification:
+	./scripts/verification.sh
 
 governance:
 	./scripts/governance.sh
@@ -121,7 +136,7 @@ app:
 # Canonical list of semantic validation checks. This is the single source of
 # truth shared by `make verify` and every CI system (Azure DevOps and GitHub
 # Actions) so the pipelines cannot drift. To add a check, edit this list only.
-ci-validate: validate goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability
+ci-validate: validate goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability
 
 verify: ci-validate test query
 

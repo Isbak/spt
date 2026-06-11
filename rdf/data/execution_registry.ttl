@@ -1,0 +1,31 @@
+@prefix exec: <https://example.org/semantic-platform/execution#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+exec:rest-target a exec:ExecutionTarget ; rdfs:label "Generic REST API target" ; exec:targetType "REST API" ; exec:endpoint "https://example.org/api" .
+exec:webhook-target a exec:ExecutionTarget ; rdfs:label "Generic webhook target" ; exec:targetType "Webhook" ; exec:endpoint "https://example.org/webhook" .
+exec:queue-target a exec:ExecutionTarget ; rdfs:label "Generic message queue target" ; exec:targetType "Message Queue" ; exec:endpoint "queue://semantic-platform" .
+exec:database-target a exec:ExecutionTarget ; rdfs:label "Generic database procedure target" ; exec:targetType "Database Procedure" ; exec:endpoint "dbproc://semantic-platform" .
+exec:file-target a exec:ExecutionTarget ; rdfs:label "Generic file drop target" ; exec:targetType "File Drop" ; exec:endpoint "filedrop://semantic-platform" .
+exec:email-target a exec:ExecutionTarget ; rdfs:label "Generic email target" ; exec:targetType "Email" ; exec:endpoint "mailto:steward@example.org" .
+
+exec:default-execution-policy a exec:ExecutionPolicy ;
+    rdfs:label "Default governed execution policy" ;
+    exec:maxRiskLevel "High" ;
+    exec:requireApproval true ;
+    exec:allowedTargetType "REST API", "Webhook", "Message Queue", "Database Procedure", "File Drop", "Email" ;
+    exec:allowedActionType "Create Resource", "Update Resource", "Delete Resource", "Publish Message", "Send Notification", "Start Process", "Stop Process", "Generate Artifact" .
+
+exec:create-resource-action a exec:ExecutionAction ; rdfs:label "Create Resource" ; exec:actionType "Create Resource" ; exec:executesAgainst exec:rest-target ; exec:riskLevel "Low" ; exec:approvalCountRequired 0 ; exec:rollbackSupported true ; exec:registryStatus "Approved" ; exec:governedBy exec:default-execution-policy .
+exec:update-resource-action a exec:ExecutionAction ; rdfs:label "Update Resource" ; exec:actionType "Update Resource" ; exec:executesAgainst exec:rest-target ; exec:riskLevel "Medium" ; exec:approvalCountRequired 1 ; exec:rollbackSupported true ; exec:registryStatus "Approved" ; exec:governedBy exec:default-execution-policy .
+exec:delete-resource-action a exec:ExecutionAction ; rdfs:label "Delete Resource" ; exec:actionType "Delete Resource" ; exec:executesAgainst exec:rest-target ; exec:riskLevel "High" ; exec:approvalCountRequired 2 ; exec:rollbackSupported true ; exec:registryStatus "Restricted" ; exec:governedBy exec:default-execution-policy .
+exec:publish-message-action a exec:ExecutionAction ; rdfs:label "Publish Message" ; exec:actionType "Publish Message" ; exec:executesAgainst exec:queue-target ; exec:riskLevel "Low" ; exec:approvalCountRequired 0 ; exec:rollbackSupported false ; exec:registryStatus "Testing" ; exec:governedBy exec:default-execution-policy .
+exec:send-notification-action a exec:ExecutionAction ; rdfs:label "Send Notification" ; exec:actionType "Send Notification" ; exec:executesAgainst exec:email-target ; exec:riskLevel "Low" ; exec:approvalCountRequired 0 ; exec:rollbackSupported false ; exec:registryStatus "Approved" ; exec:governedBy exec:default-execution-policy .
+exec:start-process-action a exec:ExecutionAction ; rdfs:label "Start Process" ; exec:actionType "Start Process" ; exec:executesAgainst exec:webhook-target ; exec:riskLevel "Medium" ; exec:approvalCountRequired 1 ; exec:rollbackSupported true ; exec:registryStatus "Draft" ; exec:governedBy exec:default-execution-policy .
+exec:stop-process-action a exec:ExecutionAction ; rdfs:label "Stop Process" ; exec:actionType "Stop Process" ; exec:executesAgainst exec:webhook-target ; exec:riskLevel "High" ; exec:approvalCountRequired 2 ; exec:rollbackSupported true ; exec:registryStatus "Restricted" ; exec:governedBy exec:default-execution-policy .
+exec:generate-artifact-action a exec:ExecutionAction ; rdfs:label "Generate Artifact" ; exec:actionType "Generate Artifact" ; exec:executesAgainst exec:file-target ; exec:riskLevel "Medium" ; exec:approvalCountRequired 1 ; exec:rollbackSupported true ; exec:registryStatus "Retired" ; exec:governedBy exec:default-execution-policy .
+
+exec:create-resource-rollback a exec:RollbackPlan ; exec:rollbackSupported true ; exec:rollbackDescription "Delete created resource when target supports idempotent delete." .
+exec:create-resource-action exec:hasRollbackPlan exec:create-resource-rollback .
+exec:publish-message-rollback a exec:RollbackPlan ; exec:rollbackSupported false ; exec:rollbackDescription "Published messages are immutable; compensating action required." .
+exec:publish-message-action exec:hasRollbackPlan exec:publish-message-rollback .

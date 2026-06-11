@@ -1,0 +1,6 @@
+PREFIX exec: <https://example.org/semantic-platform/execution#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?action ?label ?risk ?approvals WHERE {
+  ?action a exec:ExecutionAction ; rdfs:label ?label ; exec:riskLevel ?risk ; exec:approvalCountRequired ?approvals .
+}
+ORDER BY ?risk ?label
