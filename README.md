@@ -392,6 +392,7 @@ Validation and smoke checks:
 make advisory
 ```
 
-The example `field-service-planner` and `field-service-dispatcher` agents are illustrative
-only; the capability is domain-neutral and carries no domain assumptions in core code.
+The example `sourcing-planner` and `sourcing-advisor` agents (supplier selection) are
+illustrative only — the same capabilities apply to cases such as a field service planner and
+dispatcher — and the capability is domain-neutral, carrying no domain assumptions in core code.
 `make verify` includes the advisory check.

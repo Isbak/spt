@@ -4,12 +4,13 @@
 Accepted
 
 ## Context
-Users want the platform to support **planner / dispatcher**-style agents — for example a field
-service planner or dispatcher — that can "talk to data", analyse it, optimise, and find
-patterns. The capability must stay **domain-neutral** (field service is an example only, like
-the existing people/organization sample data) and must not break the platform's deliberate
-**non-autonomy** guarantee (ADR-0008, ADR-0011, ADR-0013): agents represent, recommend, and
-explain, but never autonomously execute business actions.
+Users want the platform to support decision-support agents that can "talk to data", analyse it,
+optimise, and find patterns — for example ranking candidate suppliers in a sourcing decision
+(the same capabilities apply to cases such as a field service planner and dispatcher). The
+capability must stay **domain-neutral** (the example is illustrative only, like the existing
+people/organization sample data) and must not break the platform's deliberate **non-autonomy**
+guarantee (ADR-0008, ADR-0011, ADR-0013): agents represent, recommend, and explain, but never
+autonomously execute business actions.
 
 Most of the required primitives already existed but were scattered: governed read-only LLM
 assist and semantic search ("talk to data"), analytics ("analyse"), inference and rules ("find
@@ -36,12 +37,12 @@ Add a domain-neutral **advisory** layer (`semantic_platform.advisory`):
   `api.advise`, and via a Flask `/advisory` dashboard plus `POST /api/advisory` (which returns
   **403** when an `agent_id` lacks permission). A new `advisory` Make target is added to the
   single-source-of-truth `ci-validate` list.
-- Two **illustrative** agents (`field-service-planner`, `field-service-dispatcher`) are
-  registered in `rdf/data/agent_registry.ttl`. They are examples — like the sample instance data
-  — composing the generic capabilities; the core code contains no field-service assumptions.
+- Two **illustrative** agents (`sourcing-planner`, `sourcing-advisor`) are registered in
+  `rdf/data/agent_registry.ttl`. They are examples — like the sample instance data — composing
+  the generic capabilities; the core code contains no domain assumptions.
 
 ## Consequences
-The platform can support planner/dispatcher agents that talk to data, analyse, optimise, and
+The platform can support decision-support agents that talk to data, analyse, optimise, and
 find patterns, while every governance property holds: permission-checked, explainable,
 provenance-recorded, and **non-autonomous**. No prior ADR is reversed and no safety gate is
 removed; the advisory layer is fully consistent with ADR-0011 and ADR-0013. Going further to

@@ -4,35 +4,35 @@
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 
-# Illustrative advisory record. "Assignment" candidates are an example only; the advisory
+# Illustrative advisory record. "Supplier" candidates are an example only; the advisory
 # capability is domain-neutral and works over any governed candidate type and criteria.
 adv:example-advisory a adv:Advisory ;
-  rdfs:label "Example assignment advisory" ;
-  dcterms:description "Illustrative governed advisory ranking candidate assignments against weighted criteria. Advisory only; requires human approval before execution." ;
+  rdfs:label "Example supplier-selection advisory" ;
+  dcterms:description "Illustrative governed advisory ranking candidate suppliers against weighted criteria. Advisory only; requires human approval before execution." ;
   owl:versionInfo "0.1.0" ;
   aggov:owner "Semantic Platform Core Team" ;
   aggov:steward "Semantic Platform Steward" ;
   aggov:approvalStatus "Approved" ;
-  adv:objective "Recommend the best assignment for a service job" ;
-  adv:hasCriterion adv:criterion-proximity, adv:criterion-skill-match, adv:criterion-availability ;
+  adv:objective "Recommend the best supplier for a sourcing decision" ;
+  adv:hasCriterion adv:criterion-price, adv:criterion-quality, adv:criterion-reliability ;
   adv:recommends adv:example-recommendation .
 
-adv:criterion-proximity a adv:Criterion ;
-  rdfs:label "Proximity" ;
+adv:criterion-price a adv:Criterion ;
+  rdfs:label "Price" ;
   adv:criterionWeight 2.0 ;
   adv:criterionDirection "minimize" .
 
-adv:criterion-skill-match a adv:Criterion ;
-  rdfs:label "Skill match" ;
+adv:criterion-quality a adv:Criterion ;
+  rdfs:label "Quality rating" ;
   adv:criterionWeight 3.0 ;
   adv:criterionDirection "maximize" .
 
-adv:criterion-availability a adv:Criterion ;
-  rdfs:label "Availability" ;
+adv:criterion-reliability a adv:Criterion ;
+  rdfs:label "Reliability" ;
   adv:criterionWeight 1.0 ;
   adv:criterionDirection "maximize" .
 
 adv:example-recommendation a adv:Recommendation ;
-  rdfs:label "Recommended assignment" ;
+  rdfs:label "Recommended supplier" ;
   adv:score 0.78 ;
-  adv:rationale "Highest weighted score across skill match, proximity, and availability; pending human approval." .
+  adv:rationale "Highest weighted score across quality, price, and reliability; pending human approval." .

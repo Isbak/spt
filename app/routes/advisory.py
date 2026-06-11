@@ -3,7 +3,7 @@
 Surfaces the generic advisory/optimization capability: rank candidate options against weighted
 criteria and return an explainable, non-executing recommendation. When an ``agent_id`` is
 supplied, the request is routed through the governed agent tool so the agent's read permission
-is enforced (denial returns HTTP 403) — demonstrating that the dispatcher recommends only and
+is enforced (denial returns HTTP 403) — demonstrating that the agent recommends only and
 never executes.
 """
 

@@ -119,17 +119,17 @@ def test_advise_facade_ranks_graph_candidates():
 
     assert result.ready is False
     assert len(result.ranked) >= 1
-    # The skill-match criterion carries the highest weight (3.0) in the example registry.
-    assert result.recommendation.endswith("criterion-skill-match")
+    # The quality criterion carries the highest weight (3.0) in the example registry.
+    assert result.recommendation.endswith("criterion-quality")
 
 
 def test_advisory_tool_enforces_read_permission():
     tools = AgentToolRegistry(graph=load_graph())
     registry = AgentRegistry()
-    dispatcher = registry.require("field-service-dispatcher")
+    advisor = registry.require("sourcing-advisor")
 
     result = tools.execute(
-        dispatcher,
+        advisor,
         "advisory",
         objective="Rank example criteria",
         candidate_type=str(ADV.Criterion),
@@ -150,11 +150,11 @@ def test_advisory_tool_enforces_read_permission():
         )
 
 
-def test_example_planner_and_dispatcher_are_registered():
+def test_example_advisory_agents_are_registered():
     registry = AgentRegistry()
 
     assert not registry.validate()
-    for agent_id in ("field-service-planner", "field-service-dispatcher"):
+    for agent_id in ("sourcing-planner", "sourcing-advisor"):
         agent = registry.require(agent_id)
         assert agent.status == AgentStatus.APPROVED
         assert "advisory" in agent.allowed_tools
@@ -194,7 +194,7 @@ def test_advisory_flask_routes():
     governed = client.post(
         "/api/advisory",
         json={
-            "agent_id": "field-service-dispatcher",
+            "agent_id": "sourcing-advisor",
             "candidate_type": str(ADV.Criterion),
             "criteria": [{"name": "criterionWeight", "direction": "maximize"}],
         },

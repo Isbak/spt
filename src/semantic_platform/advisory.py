@@ -3,8 +3,9 @@
 A domain-neutral decision-support capability: given an objective, a set of candidate
 options drawn from governed data, and weighted criteria, rank the candidates and emit an
 **explainable, provenance-recorded recommendation**. It supports agents that "talk to data",
-analyse, optimise, and find patterns (a field-service *planner* or *dispatcher* is one example
-configuration, expressed entirely as registry data, never as core logic).
+analyse, optimise, and find patterns. Supplier selection is one example configuration (and the
+same capabilities apply to cases such as a field service planner and dispatcher) — expressed
+entirely as registry data, never as core logic.
 
 The capability is deliberately **advisory only**, consistent with the platform's non-autonomy
 guarantee (ADR-0011, ADR-0013): it produces a ranked recommendation and a rationale for human

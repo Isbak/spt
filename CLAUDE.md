@@ -155,8 +155,9 @@ returns an explainable, PROV-recorded **`AdvisoryResult` that is advisory only**
 always `False`) — consistent with the non-autonomy guarantee. It is surfaced as the governed
 `advisory` agent tool, `api.advise`, the `advisory` Flask blueprint (`/advisory`,
 `POST /api/advisory` → 403 on permission denial), and the `advisory` Make target. The example
-`field-service-planner`/`field-service-dispatcher` agents in `rdf/data/agent_registry.ttl` are
-**illustrative only** (like the sample instance data); core code carries no domain assumptions.
+`sourcing-planner`/`sourcing-advisor` agents in `rdf/data/agent_registry.ttl` are **illustrative
+only** (like the sample instance data — the same capabilities apply to cases such as a field
+service planner and dispatcher); core code carries no domain assumptions.
 Carrying out an approved recommendation stays the job of the approval-gated
 `execution/executor.py:GovernedExecutor`, invoked by a human.
 
