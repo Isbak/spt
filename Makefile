@@ -4,6 +4,10 @@ PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
 export PYTHONPATH := src:.:$(PYTHONPATH)
 
+# Use Docker Compose v2 (`docker compose`) when available, else fall back to the
+# standalone v1 binary (`docker-compose`). Override with DOCKER_COMPOSE=... .
+DOCKER_COMPOSE ?= $(shell docker compose version >/dev/null 2>&1 && echo "docker compose" || echo "docker-compose")
+
 setup:
 	$(PIP) install -e ".[dev]"
 
@@ -183,13 +187,13 @@ lint:
 	$(PYTHON) -m ruff check src app tests
 
 docker-up:
-	docker compose up -d
+	$(DOCKER_COMPOSE) up -d
 
 docker-up-llm:
-	docker compose --profile llm up -d
+	$(DOCKER_COMPOSE) --profile llm up -d
 
 docker-down:
-	docker compose down
+	$(DOCKER_COMPOSE) down
 
 clean:
 	rm -rf .pytest_cache .ruff_cache htmlcov .coverage build dist *.egg-info

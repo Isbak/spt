@@ -57,8 +57,17 @@ make docker-up-llm                          # + a free local Ollama LLM (compose
 docker compose --profile integration up -d  # + Postgres (an external relational-source demo)
 ```
 
-`permission denied … /var/run/docker.sock` just means your user isn't in the docker group:
-`sudo usermod -aG docker $USER`, then log out/in (or `newgrp docker`).
+`make docker-up` auto-detects Docker Compose **v2** (`docker compose`) or **v1**
+(`docker-compose`) — override with `make docker-up DOCKER_COMPOSE='docker compose'`.
+
+Docker troubleshooting:
+- `permission denied … /var/run/docker.sock` → your user isn't in the docker group:
+  `sudo usermod -aG docker $USER`, then log out/in (or `newgrp docker`).
+- `unknown shorthand flag: 'd' in -d` → Compose v2 isn't installed. Install it
+  (`sudo apt-get install -y docker-compose-v2`) or use v1 (`docker-compose up -d`).
+- **snap-installed Docker** is finicky (no `docker` group, no Compose v2 by default). The
+  smoothest path on Ubuntu is the distro packages: `sudo snap remove docker &&
+  sudo apt-get install -y docker.io docker-compose-v2`.
 
 Every capability is **self-contained by default and externally pluggable per service** — the data
 warehouse via `SOURCE_DATABASE_URL`, Jena via `FUSEKI_BASE_URL`, and the agent LLM via
