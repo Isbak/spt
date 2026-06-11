@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.api import materialize_sources, load_sources_into_fuseki
 from semantic_platform.materialize import mapping_files
 

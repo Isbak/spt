@@ -1,7 +1,11 @@
 .PHONY: setup validate test query domains products contracts glossary federation fabric goals workflows events approvals orchestration execution-plans execution execution-history execution-risk rollback verification governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql materialize lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability agent-teams delegations negotiations consensus conflicts collaboration load-fuseki load-fuseki-docker app ci-validate verify docker-up docker-up-llm docker-down clean lint
 
-PYTHON ?= python
+# Prefer `python3` (some systems ship only `python3`, others only `python`);
+# fall back to `python`. Override with PYTHON=... . Exported so the helper
+# scripts in scripts/*.sh inherit the same interpreter.
+PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python 2>/dev/null || echo python3)
 PIP ?= $(PYTHON) -m pip
+export PYTHON
 export PYTHONPATH := src:.:$(PYTHONPATH)
 
 # Use Docker Compose v2 (`docker compose`) when available, else fall back to the

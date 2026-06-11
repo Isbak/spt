@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.source_catalog import list_source_datasets
 
 records = list_source_datasets()

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from rdflib import URIRef
 from semantic_platform.execution.common import EXEC
 from semantic_platform.execution.approvals import ExecutionApprovalEngine

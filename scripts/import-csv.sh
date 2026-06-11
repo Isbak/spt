@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.import_csv import import_csv_file
 
 graph = import_csv_file('mappings/csv/people.csv')

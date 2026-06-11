@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.config import load_settings
 from semantic_platform.graph import load_graph
 from semantic_platform.query import read_query, result_rows

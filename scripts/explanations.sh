@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.reasoning import run_reasoning
 run = run_reasoning()
 print(run.reasoning_graph.serialize(format='turtle'))

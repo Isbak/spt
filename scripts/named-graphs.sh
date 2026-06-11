@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.named_graphs import graph_lifecycle_summary
 
 summary = graph_lifecycle_summary()

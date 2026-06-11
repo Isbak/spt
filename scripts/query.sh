@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from semantic_platform.query import execute_default_query
 
 rows = execute_default_query()
