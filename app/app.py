@@ -8,6 +8,7 @@ from app.routes.agents import agents_bp
 from app.routes.graph import graph_bp
 from app.routes.health import health_bp
 from app.routes.governance import governance_bp
+from app.routes.fabric import fabric_bp
 from app.routes.execution import execution_bp
 from app.routes.named_graphs import named_graphs_bp
 from app.routes.ontology_version import ontology_version_bp
@@ -42,6 +43,7 @@ def create_app() -> Flask:
     app.register_blueprint(orchestration_bp)
     app.register_blueprint(execution_bp)
     app.register_blueprint(multi_agent_bp)
+    app.register_blueprint(fabric_bp)
 
     @app.get("/")
     def index():

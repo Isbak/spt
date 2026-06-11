@@ -1,0 +1,53 @@
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix gov: <https://example.org/semantic-platform/governance#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+fabric: a owl:Ontology ;
+  rdfs:label "Enterprise Knowledge Fabric ontology" ;
+  rdfs:comment "Authoritative semantic layer for enterprise knowledge products, domains, contracts, context, governance, provenance, and federation." ;
+  dcterms:created "2026-06-11"^^xsd:date ;
+  dcterms:modified "2026-06-11"^^xsd:date ;
+  dcterms:creator "Semantic Platform" ;
+  dcterms:publisher "Semantic Platform" ;
+  owl:versionInfo "0.10.0" .
+
+fabric:KnowledgeFabric a owl:Class ; rdfs:label "Knowledge Fabric" ; rdfs:subClassOf prov:Entity .
+fabric:KnowledgeDomain a owl:Class ; rdfs:label "Knowledge Domain" ; rdfs:subClassOf prov:Entity .
+fabric:KnowledgeProduct a owl:Class ; rdfs:label "Knowledge Product" ; rdfs:subClassOf prov:Entity .
+fabric:DataProduct a owl:Class ; rdfs:label "Data Product" ; rdfs:subClassOf prov:Entity .
+fabric:SemanticService a owl:Class ; rdfs:label "Semantic Service" ; rdfs:subClassOf prov:Entity .
+fabric:SemanticContract a owl:Class ; rdfs:label "Semantic Contract" ; rdfs:subClassOf prov:Entity .
+fabric:ContextModel a owl:Class ; rdfs:label "Context Model" ; rdfs:subClassOf prov:Entity .
+fabric:BusinessCapability a owl:Class ; rdfs:label "Business Capability" .
+fabric:BusinessGlossary a owl:Class ; rdfs:label "Business Glossary" .
+fabric:EnterpriseConcept a owl:Class ; rdfs:label "Enterprise Concept" .
+fabric:SemanticDependency a owl:Class ; rdfs:label "Semantic Dependency" .
+fabric:Federation a owl:Class ; rdfs:label "Federation" ; rdfs:subClassOf prov:Entity .
+
+fabric:dependsOn a owl:ObjectProperty ; rdfs:label "depends on" .
+fabric:governedBy a owl:ObjectProperty ; rdfs:label "governed by" .
+fabric:ownedBy a owl:ObjectProperty ; rdfs:label "owned by" .
+fabric:contributesTo a owl:ObjectProperty ; rdfs:label "contributes to" .
+fabric:consumes a owl:ObjectProperty ; rdfs:label "consumes" .
+fabric:produces a owl:ObjectProperty ; rdfs:label "produces" .
+fabric:federatesWith a owl:ObjectProperty ; rdfs:label "federates with" .
+fabric:exposesContract a owl:ObjectProperty ; rdfs:label "exposes contract" .
+fabric:usesOntology a owl:ObjectProperty ; rdfs:label "uses ontology" .
+fabric:sourceConcept a owl:ObjectProperty ; rdfs:label "source concept" .
+
+fabric:version a owl:DatatypeProperty ; rdfs:label "version" ; rdfs:range xsd:string .
+fabric:lifecycleState a owl:DatatypeProperty ; rdfs:label "lifecycle state" ; rdfs:range xsd:string .
+fabric:responsibility a owl:DatatypeProperty ; rdfs:label "responsibility" ; rdfs:range xsd:string .
+fabric:contextType a owl:DatatypeProperty ; rdfs:label "context type" ; rdfs:range xsd:string .
+fabric:scope a owl:DatatypeProperty ; rdfs:label "scope" ; rdfs:range xsd:string .
+
+fabric:DomainGovernance a owl:Class ; rdfs:label "Domain Governance" ; rdfs:subClassOf gov:GovernancePolicy .
+fabric:ProductGovernance a owl:Class ; rdfs:label "Product Governance" ; rdfs:subClassOf gov:GovernancePolicy .
+fabric:ContractGovernance a owl:Class ; rdfs:label "Contract Governance" ; rdfs:subClassOf gov:GovernancePolicy .
+fabric:OntologyGovernance a owl:Class ; rdfs:label "Ontology Governance" ; rdfs:subClassOf gov:GovernancePolicy .
+fabric:AgentGovernance a owl:Class ; rdfs:label "Agent Governance" ; rdfs:subClassOf gov:GovernancePolicy .

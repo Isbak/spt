@@ -1,0 +1,64 @@
+@prefix ex: <https://example.org/semantic-platform/data#> .
+@prefix fabric: <https://example.org/semantic-platform/knowledge-fabric#> .
+@prefix contract: <https://example.org/semantic-platform/contracts#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+ex:enterprise-knowledge-fabric a fabric:KnowledgeFabric, prov:Entity ;
+  rdfs:label "Enterprise Knowledge Fabric" ;
+  fabric:ownedBy ex:owner-enterprise ;
+  fabric:governedBy ex:fabric-governance ;
+  fabric:consumes ex:domain-a, ex:domain-b, ex:domain-c ;
+  fabric:produces ex:knowledge-product-a, ex:knowledge-product-b, ex:knowledge-product-c ;
+  fabric:exposesContract ex:contract-a-b, ex:contract-b-c, ex:contract-c-a .
+
+ex:contract-a-b a contract:SemanticContract, fabric:SemanticContract ;
+  rdfs:label "Contract A B" ;
+  contract:producer ex:knowledge-product-a ;
+  contract:consumer ex:consumer-b ;
+  contract:version "1.0.0" ;
+  contract:lifecycleState "Active" ;
+  contract:compatibility "Compatible" ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:contract-b-c a contract:SemanticContract, fabric:SemanticContract ;
+  rdfs:label "Contract B C" ;
+  contract:producer ex:knowledge-product-b ;
+  contract:consumer ex:consumer-c ;
+  contract:version "1.0.0" ;
+  contract:lifecycleState "Active" ;
+  contract:compatibility "BackwardCompatible" ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:contract-c-a a contract:SemanticContract, fabric:SemanticContract ;
+  rdfs:label "Contract C A" ;
+  contract:producer ex:knowledge-product-c ;
+  contract:consumer ex:consumer-a ;
+  contract:version "0.9.0" ;
+  contract:lifecycleState "Candidate" ;
+  contract:compatibility "Compatible" ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:federation-abc a fabric:Federation ;
+  rdfs:label "Federation ABC" ;
+  fabric:consumes ex:domain-a, ex:domain-b, ex:domain-c ;
+  fabric:produces ex:knowledge-product-a, ex:knowledge-product-b, ex:knowledge-product-c ;
+  fabric:federatesWith ex:federated-graph-a, ex:federated-graph-b, ex:federated-graph-c ;
+  fabric:usesOntology fabric: ;
+  fabric:governedBy ex:fabric-governance .
+
+ex:federated-graph-a rdfs:label "Federated Graph A" .
+ex:federated-graph-b rdfs:label "Federated Graph B" .
+ex:federated-graph-c rdfs:label "Federated Graph C" .
+
+ex:context-organizational a fabric:ContextModel ; rdfs:label "Organizational Context" ; fabric:contextType "organizational" ; fabric:scope "enterprise" ; fabric:governedBy ex:fabric-governance .
+ex:context-operational a fabric:ContextModel ; rdfs:label "Operational Context" ; fabric:contextType "operational" ; fabric:scope "workflow" ; fabric:governedBy ex:fabric-governance .
+ex:context-semantic a fabric:ContextModel ; rdfs:label "Semantic Context" ; fabric:contextType "semantic" ; fabric:scope "ontology" ; fabric:governedBy ex:fabric-governance .
+ex:context-execution a fabric:ContextModel ; rdfs:label "Execution Context" ; fabric:contextType "execution" ; fabric:scope "runtime" ; fabric:governedBy ex:fabric-governance .
+ex:context-agent a fabric:ContextModel ; rdfs:label "Agent Context" ; fabric:contextType "agent" ; fabric:scope "agent" ; fabric:governedBy ex:fabric-governance .
+
+ex:dependency-a-b a fabric:SemanticDependency ;
+  rdfs:label "Dependency A B" ;
+  fabric:sourceConcept ex:enterprise-concept-a ;
+  fabric:dependsOn ex:enterprise-concept-b ;
+  fabric:governedBy ex:fabric-governance .
