@@ -52,7 +52,7 @@ external services.
 
 ```bash
 make docker-up                              # Fuseki triple store + Flask UI
-make load-fuseki                            # load the RDF assets / materialized graphs into Fuseki
+make load-fuseki-docker                     # load the RDF assets / materialized graphs into Fuseki
 make docker-up-llm                          # + a free local Ollama LLM (compose profile: llm)
 docker compose --profile integration up -d  # + Postgres (an external relational-source demo)
 ```
@@ -96,13 +96,35 @@ SOURCE_DATABASE_URL='postgresql+psycopg://user:pass@host:5432/db' make materiali
 **2. Jena / Fuseki — serving + SPARQL**
 
 ```bash
-make docker-up        # start the bundled Fuseki (triple store) + Flask
-make load-fuseki      # load the RDF assets + materialized graphs into Fuseki
+make docker-up          # start the bundled Fuseki (triple store) + Flask
+make load-fuseki-docker # load the RDF assets + materialized graphs into Fuseki
 # Fuseki UI: http://localhost:3030 · platform UI: /integration and /materialization
 
 # External Jena: point at a remote server instead of the bundled one
 FUSEKI_BASE_URL='https://jena.example.org:3030' make load-fuseki
 ```
+
+`docker compose up` creates an **empty** `semantic-platform` dataset; the load step
+above is what populates it. Use **`make load-fuseki-docker`** with the bundled stack:
+it runs the loader inside the container, where the `fuseki` hostname resolves and the
+credentials come from the compose environment. Running `make load-fuseki` from your
+host instead requires `FUSEKI_BASE_URL=http://localhost:3030` (the `fuseki` hostname
+only resolves inside the Docker network).
+
+Fuseki troubleshooting:
+- **Fuseki UI dataset list spins on "Loading…" forever** → the upstream image
+  restricts the admin endpoints to localhost, which fails through Docker's published
+  port. The bundled image (`docker/fuseki/`) ships a dev-bundle `shiro.ini` that opens
+  them. If you started the stack before this fix, recreate it so the new config takes
+  effect — the named volume keeps the old `shiro.ini` otherwise:
+  `docker compose down -v && make docker-up` (`-v` also clears the loaded data, so
+  re-run `make load-fuseki-docker` afterwards).
+- **`make load-fuseki` fails with HTTP 401** → you're hitting an authenticated Fuseki
+  without credentials. Use `make load-fuseki-docker`, or set `FUSEKI_USERNAME` /
+  `FUSEKI_PASSWORD`.
+- **`Failed to resolve 'fuseki'`** → you're running host-side tooling with
+  `FUSEKI_BASE_URL=http://fuseki:3030`. Use `localhost:3030` on the host, or
+  `make load-fuseki-docker`.
 
 **3. LLM — governed, read-only agent assist** (an agent explains data it may read)
 

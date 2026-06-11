@@ -71,6 +71,12 @@ def load_settings() -> Settings:
         os.getenv("DEFAULT_SPARQL_QUERY", queries_dir / "validation-summary.rq")
     ).expanduser().resolve()
     sql_dir = Path(os.getenv("MAPPINGS_SQL_DIR", root / "mappings" / "sql")).expanduser().resolve()
+    # Fuseki credentials. The HTTP client only authenticates when BOTH username and
+    # password are present, so default the username to "admin" (the Fuseki admin
+    # user) when only a password / FUSEKI_ADMIN_PASSWORD is supplied. Otherwise a
+    # lone FUSEKI_ADMIN_PASSWORD would silently send no auth and 401 on writes.
+    fuseki_password = os.getenv("FUSEKI_PASSWORD") or os.getenv("FUSEKI_ADMIN_PASSWORD") or None
+    fuseki_username = os.getenv("FUSEKI_USERNAME") or ("admin" if fuseki_password else None)
     configured_sql = os.getenv("MATERIALIZE_SQL_FILES", "")
     source_sql_files = tuple(
         Path(item.strip()).expanduser().resolve()
@@ -98,8 +104,8 @@ def load_settings() -> Settings:
         llm_model=os.getenv("LLM_MODEL") or None,
         fuseki_base_url=os.getenv("FUSEKI_BASE_URL", "http://localhost:3030"),
         fuseki_dataset=os.getenv("FUSEKI_DATASET", "semantic-platform"),
-        fuseki_username=os.getenv("FUSEKI_USERNAME") or None,
-        fuseki_password=os.getenv("FUSEKI_PASSWORD") or os.getenv("FUSEKI_ADMIN_PASSWORD") or None,
+        fuseki_username=fuseki_username,
+        fuseki_password=fuseki_password,
         flask_host=os.getenv("FLASK_HOST", "0.0.0.0"),
         flask_port=int(os.getenv("FLASK_PORT", "5000")),
         default_query_file=default_query,
