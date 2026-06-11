@@ -37,18 +37,46 @@ class MappingExecutionResult:
     triple_count: int
 
 
+MAPPING_EXTENSIONS = (".ttl", ".r2rml")
+
+
 def load_r2rml_mapping(path: Path | str) -> Graph:
-    """Load an R2RML mapping file into an RDF graph."""
+    """Load an R2RML mapping file (``.ttl`` or ``.r2rml``) into an RDF graph.
+
+    Both extensions are parsed as Turtle; ``.r2rml`` is accepted so that
+    drop-in mapping files do not need to be renamed.
+    """
     graph = Graph()
     graph.parse(Path(path), format="turtle")
     return graph
 
 
 def mapping_files(settings: Settings | None = None) -> list[Path]:
-    """Return available R2RML mapping files."""
+    """Return available R2RML mapping files (``.ttl`` and ``.r2rml``)."""
     settings = settings or load_settings()
-    root = settings.project_root / "mappings" / "r2rml"
-    return sorted(root.glob("*.ttl"))
+    root = settings.r2rml_dir
+    paths: list[Path] = []
+    for extension in MAPPING_EXTENSIONS:
+        paths.extend(root.glob(f"*{extension}"))
+    return sorted(paths)
+
+
+def logical_table_sql(mapping_graph: Graph, triples_map: URIRef) -> str:
+    """Return the SQL query for a mapping's ``rr:logicalTable``.
+
+    Supports both ``rr:sqlQuery`` (verbatim) and ``rr:tableName`` (expanded to
+    ``SELECT * FROM <table>``). Raises ``ValueError`` when neither is present.
+    """
+    logical_table = next(mapping_graph.objects(triples_map, RR.logicalTable), None)
+    if logical_table is None:
+        raise ValueError(f"{triples_map} is missing rr:logicalTable.")
+    sql_query = next(mapping_graph.objects(logical_table, RR.sqlQuery), None)
+    if sql_query is not None:
+        return str(sql_query)
+    table_name = next(mapping_graph.objects(logical_table, RR.tableName), None)
+    if table_name is not None:
+        return f"SELECT * FROM {table_name}"
+    raise ValueError(f"{triples_map} rr:logicalTable needs rr:sqlQuery or rr:tableName.")
 
 
 def validate_mapping(graph: Graph) -> MappingValidationResult:

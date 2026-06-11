@@ -19,6 +19,7 @@ from app.routes.ontology import ontology_bp
 from app.routes.query import query_bp
 from app.routes.reasoning import reasoning_bp
 from app.routes.visualization import visualization_bp
+from app.routes.materialization import materialization_bp
 from app.routes.mappings import integration_bp, mapping_lineage_bp, mappings_bp, source_catalog_bp
 
 
@@ -37,6 +38,7 @@ def create_app() -> Flask:
     app.register_blueprint(source_catalog_bp)
     app.register_blueprint(integration_bp)
     app.register_blueprint(mapping_lineage_bp)
+    app.register_blueprint(materialization_bp)
     app.register_blueprint(reasoning_bp)
     app.register_blueprint(visualization_bp)
     app.register_blueprint(agents_bp)
