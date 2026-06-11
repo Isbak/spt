@@ -1,14 +1,56 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Semantic Platform{% endblock %}
 {% block content %}
-<section>
-  <h2>Phase 1 MVP</h2>
-  <p>A domain-neutral Semantic Platform for RDF loading, SHACL validation, SPARQL querying, and Fuseki integration.</p>
-  <ul>
-    <li><a href="{{ url_for('graph.index') }}">View graph statistics</a></li>
-    <li><a href="{{ url_for('ontology.index') }}">View the core ontology</a></li>
-    <li><a href="{{ url_for('query.index') }}">Run a local SPARQL query</a></li>
-    <li><a href="{{ url_for('health.health_view') }}">Check Fuseki health</a></li>
-  </ul>
+{{ page_header(
+    "Semantic Platform",
+    subtitle="A domain-neutral platform for representing, validating, governing, reasoning over, querying, and visualizing knowledge graphs.") }}
+
+<section class="cards">
+  <article class="card">
+    <h3>Explore &amp; ask</h3>
+    <p class="muted">Query the graph, browse the ontology, and ask agents to explain what they read.</p>
+    <ul>
+      <li><a href="{{ url_for('visualization.search') }}">Semantic search</a></li>
+      <li><a href="{{ url_for('query.index') }}">Run a SPARQL query</a></li>
+      <li><a href="{{ url_for('visualization.graph_explorer') }}">Graph explorer</a></li>
+      <li><a href="{{ url_for('advisory.advisory_view') }}">Advisory recommendations</a></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <h3>Govern &amp; assure</h3>
+    <p class="muted">Ownership, stewardship, provenance, consistency, and lifecycle of every asset.</p>
+    <ul>
+      <li><a href="{{ url_for('visualization.governance_dashboard') }}">Governance dashboard</a></li>
+      <li><a href="{{ url_for('visualization.provenance_explorer') }}">Provenance explorer</a></li>
+      <li><a href="{{ url_for('reasoning.consistency_index') }}">Consistency</a></li>
+      <li><a href="{{ url_for('ontology_version.index') }}">Ontology versions</a></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <h3>Integrate &amp; model</h3>
+    <p class="muted">Map source systems into RDF and design the ontology and reasoning rules.</p>
+    <ul>
+      <li><a href="{{ url_for('source_catalog.source_catalog_index') }}">Source catalog</a></li>
+      <li><a href="{{ url_for('mappings.index') }}">Mappings</a></li>
+      <li><a href="{{ url_for('materialization.materialization_index') }}">Materialization</a></li>
+      <li><a href="{{ url_for('reasoning.rules_index') }}">Reasoning rules</a></li>
+    </ul>
+  </article>
+
+  <article class="card">
+    <h3>Coordinate &amp; oversee</h3>
+    <p class="muted">Model governed coordination and inspect the agents that read the graph.</p>
+    <ul>
+      <li><a href="{{ url_for('orchestration.orchestration_dashboard_view') }}">Orchestration dashboard</a></li>
+      <li><a href="{{ url_for('orchestration.approvals_view') }}">Approvals</a></li>
+      <li><a href="{{ url_for('agents.agent_registry_view') }}">Agent registry</a></li>
+      <li><a href="{{ url_for('multi_agent.collaboration_dashboard_view') }}">Collaboration</a></li>
+    </ul>
+  </article>
 </section>
+
+<p class="muted"><a href="{{ url_for('health.health_view') }}">Check platform &amp; Fuseki health →</a></p>
 {% endblock %}

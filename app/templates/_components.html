@@ -1,0 +1,64 @@
+{#- Shared UI components for the Semantic Platform.
+    Import in a template with, e.g.:
+      {% from "_components.html" import page_header, metric_cards, data_table %}
+    Every macro is defensive (defaults + guarded loops) because the end-to-end
+    test suite renders every page — an undefined variable would 500 the route. -#}
+
+{#- Page header. ALWAYS emits an <h2> (tests assert on it). -#}
+{% macro page_header(title, meta=none, subtitle=none) %}
+<div class="page-head">
+  <h2 class="page-title">{{ title }}</h2>
+  {% if subtitle %}<p class="page-subtitle">{{ subtitle }}</p>{% endif %}
+  {% if meta %}<p class="metadata">{{ meta }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{#- Metric cards. `items` is an iterable of (label, value) pairs. -#}
+{% macro metric_cards(items) %}
+<section class="cards">
+  {% for label, value in items or [] %}
+  <article class="card">
+    <div class="card__label">{{ label }}</div>
+    <div class="card__value">{{ value }}</div>
+  </article>
+  {% endfor %}
+</section>
+{% endmacro %}
+
+{#- Data table. `headers` is a list of strings; `rows` is a list of cell-lists.
+    Cells are escaped by default; pass pre-rendered Markup for richer cells. -#}
+{% macro data_table(headers, rows, empty_text="No records.") %}
+<div class="table-wrap">
+  <table>
+    <thead><tr>{% for h in headers or [] %}<th>{{ h }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {% for row in rows or [] %}
+      <tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>
+      {% else %}
+      <tr><td colspan="{{ (headers or [1])|length }}"><span class="empty">{{ empty_text }}</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endmacro %}
+
+{#- Simple item list. `items` is an iterable of strings. -#}
+{% macro item_list(items, empty_text="No items.") %}
+{% if items %}
+<ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>
+{% else %}
+<p class="empty">{{ empty_text }}</p>
+{% endif %}
+{% endmacro %}
+
+{#- Status badge. kind ∈ {neutral, success, warning, danger, info}. -#}
+{% macro badge(text, kind="neutral") %}
+<span class="badge{% if kind and kind != 'neutral' %} badge--{{ kind }}{% endif %}">{{ text }}</span>
+{%- endmacro %}
+
+{#- Visualization panel. Keeps id + data-* attributes that main JS / vis-network read. -#}
+{% macro viz_panel(panel_id, nodes, edges, summary=none) %}
+<div id="{{ panel_id }}" class="visualization-panel" data-nodes='{{ (nodes or [])|tojson }}' data-edges='{{ (edges or [])|tojson }}'>
+  {% if summary %}<p>{{ summary }}</p>{% endif %}
+</div>
+{% endmacro %}

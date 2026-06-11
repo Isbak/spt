@@ -1,3 +1,21 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header, badge %}
 {% block title %}Agents{% endblock %}
-{% block content %}<h2>Agent Layer</h2><p>Governed, observable, explainable agent integration without autonomous orchestration.</p><ul>{% for agent in agents %}<li>{{ agent.label }} — {{ agent.status.value }} — {{ agent.version }}</li>{% endfor %}</ul><h3>Metrics</h3><pre>{{ metrics }}</pre>{% endblock %}
+{% block content %}
+{{ page_header("Agent Layer",
+   subtitle="Governed, observable, explainable agent integration without autonomous orchestration.") }}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Agent</th><th>Status</th><th>Version</th></tr></thead>
+    <tbody>
+      {% for agent in agents %}
+      <tr><td>{{ agent.label }}</td><td>{{ badge(agent.status.value, "info") }}</td><td>{{ agent.version }}</td></tr>
+      {% else %}
+      <tr><td colspan="3"><span class="empty">No agents registered.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<h3>Metrics</h3>
+<pre>{{ metrics }}</pre>
+{% endblock %}

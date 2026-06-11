@@ -1,13 +1,12 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header, metric_cards %}
 {% block title %}Graphs | Semantic Platform{% endblock %}
 {% block content %}
-<h2>Graph Statistics</h2>
-<table>
-  <tbody>
-    <tr><th>Triples</th><td>{{ stats.triples }}</td></tr>
-    <tr><th>Subjects</th><td>{{ stats.subjects }}</td></tr>
-    <tr><th>Predicates</th><td>{{ stats.predicates }}</td></tr>
-    <tr><th>Objects</th><td>{{ stats.objects }}</td></tr>
-  </tbody>
-</table>
+{{ page_header("Graph Statistics") }}
+{{ metric_cards([
+  ("Triples", stats.triples),
+  ("Subjects", stats.subjects),
+  ("Predicates", stats.predicates),
+  ("Objects", stats.objects),
+]) }}
 {% endblock %}

@@ -1,13 +1,21 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Governance - Semantic Platform{% endblock %}
 {% block content %}
-<h2>Governance</h2>
-<p>Graph assets: {{ summary.graph_asset_count }}</p>
+{{ page_header("Governance") }}
+<section class="cards">
+  <article class="card"><div class="card__label">Graph assets</div><div class="card__value">{{ summary.graph_asset_count }}</div></article>
+  {% if summary.errors %}<article class="card"><div class="card__label">Validation issues</div><div class="card__value">{{ summary.errors|length }}</div></article>{% endif %}
+</section>
 {% if summary.errors %}<p class="error">Governance validation issues: {{ summary.errors|length }}</p>{% endif %}
-<table>
-  <tr><th>Graph</th><th>Owner</th><th>Steward</th><th>Classification</th></tr>
-  {% for record in summary.graph_assets %}
-  <tr><td>{{ record.label }}</td><td>{{ record.owner }}</td><td>{{ record.steward }}</td><td>{{ record.classification }}</td></tr>
-  {% endfor %}
-</table>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Graph</th><th>Owner</th><th>Steward</th><th>Classification</th></tr></thead>
+    <tbody>
+      {% for record in summary.graph_assets %}
+      <tr><td>{{ record.label }}</td><td>{{ record.owner }}</td><td>{{ record.steward }}</td><td>{{ record.classification }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

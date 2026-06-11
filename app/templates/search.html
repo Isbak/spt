@@ -1,8 +1,31 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header %}
 {% block title %}Semantic Search{% endblock %}
 {% block content %}
-<h2>Semantic Search</h2>
-<p class="metadata">Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved</p>
-<form method="get"><input name="q" value="{{ query }}" placeholder="Search labels, URI, classes, datasets, mappings, governance, provenance, inferences"><button type="submit">Search</button></form>
-<table><tr><th>Result</th><th>Type</th><th>Match</th><th>Value</th></tr>{% for result in results %}<tr><td>{{ result.label }}<br><small>{{ result.uri }}</small></td><td>{{ result.resource_type }}</td><td>{{ result.match_type }}</td><td>{{ result.value }}</td></tr>{% endfor %}</table>
+{{ page_header("Semantic Search",
+   meta="Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved") }}
+<form class="form-row" method="get" role="search">
+  <div class="field">
+    <label for="q">Query</label>
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Labels, URIs, classes, datasets, mappings, governance, provenance, inferences">
+  </div>
+  <button type="submit">Search</button>
+</form>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Result</th><th>Type</th><th>Match</th><th>Value</th></tr></thead>
+    <tbody>
+      {% for result in results %}
+      <tr>
+        <td>{{ result.label }}<br><small>{{ result.uri }}</small></td>
+        <td>{{ result.resource_type }}</td>
+        <td>{{ result.match_type }}</td>
+        <td>{{ result.value }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4"><span class="empty">No matches{% if query %} for “{{ query }}”{% endif %}.</span></td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

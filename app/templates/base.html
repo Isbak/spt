@@ -4,62 +4,148 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Semantic Platform{% endblock %}</title>
+    {# Anti-flash: apply the saved theme before the stylesheet paints. #}
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
   </head>
   <body>
-    <header>
-      <h1>Semantic Platform</h1>
-      <nav>
-        <a href="{{ url_for('index') }}">Home</a>
-        <a href="{{ url_for('health.health_view') }}">Health</a>
-        <a href="{{ url_for('visualization.graph_explorer') }}">Graph Explorer</a>
-        <a href="{{ url_for('graph.index') }}">Graph Stats</a>
-        <a href="{{ url_for('ontology.index') }}">Ontology</a>
-        <a href="{{ url_for('visualization.ontology_browser') }}">Ontology Browser</a>
-        <a href="{{ url_for('query.index') }}">Query</a>
-        <a href="{{ url_for('governance.index') }}">Governance</a>
-        <a href="{{ url_for('visualization.governance_dashboard') }}">Governance Dashboard</a>
-        <a href="{{ url_for('provenance.index') }}">Provenance</a>
-        <a href="{{ url_for('visualization.provenance_explorer') }}">Provenance Explorer</a>
-        <a href="{{ url_for('named_graphs.index') }}">Named Graphs</a>
-        <a href="{{ url_for('ontology_version.index') }}">Ontology Version</a>
-        <a href="{{ url_for('mappings.index') }}">Mappings</a>
-        <a href="{{ url_for('source_catalog.source_catalog_index') }}">Source Catalog</a>
-        <a href="{{ url_for('integration.integration_index') }}">Integration</a>
-        <a href="{{ url_for('materialization.materialization_index') }}">Materialization</a>
-        <a href="{{ url_for('mapping_lineage.mapping_lineage_index') }}">Mapping Lineage</a>
-        <a href="{{ url_for('reasoning.reasoning_index') }}">Reasoning</a>
-        <a href="{{ url_for('visualization.reasoning_dashboard') }}">Reasoning Dashboard</a>
-        <a href="{{ url_for('reasoning.inferences_index') }}">Inferences</a>
-        <a href="{{ url_for('visualization.explanations') }}">Explanations</a>
-        <a href="{{ url_for('visualization.analytics') }}">Analytics</a>
-        <a href="{{ url_for('visualization.search') }}">Search</a>
-        <a href="{{ url_for('reasoning.consistency_index') }}">Consistency</a>
-        <a href="{{ url_for('reasoning.rules_index') }}">Rules</a>
-        <a href="{{ url_for('agents.agents_home') }}">Agents</a>
-        <a href="{{ url_for('agents.agent_registry_view') }}">Agent Registry</a>
-        <a href="{{ url_for('agents.agent_governance_view') }}">Agent Governance</a>
-        <a href="{{ url_for('agents.agent_memory_view') }}">Agent Memory</a>
-        <a href="{{ url_for('agents.agent_observations_view') }}">Agent Observations</a>
-        <a href="{{ url_for('agents.agent_provenance_view') }}">Agent Provenance</a>
-        <a href="{{ url_for('advisory.advisory_view') }}">Advisory</a>
-        <a href="{{ url_for('multi_agent.collaboration_dashboard_view') }}">Collaboration Dashboard</a>
-        <a href="{{ url_for('multi_agent.agent_teams_view') }}">Agent Teams</a>
-        <a href="{{ url_for('multi_agent.delegations_view') }}">Delegations</a>
-        <a href="{{ url_for('multi_agent.conversations_view') }}">Conversations</a>
-        <a href="{{ url_for('multi_agent.negotiations_view') }}">Negotiations</a>
-        <a href="{{ url_for('multi_agent.consensus_view') }}">Consensus</a>
-        <a href="{{ url_for('multi_agent.conflicts_view') }}">Conflicts</a>
-        <a href="{{ url_for('fabric.knowledge_fabric_view') }}">Knowledge Fabric</a>
-        <a href="{{ url_for('fabric.domains_view') }}">Domains</a>
-        <a href="{{ url_for('fabric.products_view') }}">Products</a>
-        <a href="{{ url_for('fabric.contracts_view') }}">Contracts</a>
-        <a href="{{ url_for('fabric.glossary_view') }}">Glossary</a>
-        <a href="{{ url_for('fabric.federation_view') }}">Federation</a>
-        <a href="{{ url_for('fabric.interoperability_view') }}">Interoperability</a>
-      </nav>
-    </header>
-    <main>{% block content %}{% endblock %}</main>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    {#- Navigation model: grouped by task domain, derived from user journeys. -#}
+    {%- set ep = request.endpoint -%}
+    {%- set nav_top = [
+      ('index', 'Home'),
+      ('health.health_view', 'Health'),
+    ] -%}
+    {%- set nav_groups = [
+      ('Knowledge Graph', [
+        ('visualization.graph_explorer', 'Graph Explorer'),
+        ('graph.index', 'Graph Stats'),
+        ('ontology.index', 'Ontology'),
+        ('visualization.ontology_browser', 'Ontology Browser'),
+        ('named_graphs.index', 'Named Graphs'),
+        ('ontology_version.index', 'Ontology Version'),
+      ]),
+      ('Query & Search', [
+        ('query.index', 'Query'),
+        ('visualization.search', 'Search'),
+      ]),
+      ('Governance & Provenance', [
+        ('governance.index', 'Governance'),
+        ('visualization.governance_dashboard', 'Governance Dashboard'),
+        ('provenance.index', 'Provenance'),
+        ('visualization.provenance_explorer', 'Provenance Explorer'),
+      ]),
+      ('Data Integration', [
+        ('mappings.index', 'Mappings'),
+        ('source_catalog.source_catalog_index', 'Source Catalog'),
+        ('integration.integration_index', 'Integration'),
+        ('materialization.materialization_index', 'Materialization'),
+        ('mapping_lineage.mapping_lineage_index', 'Mapping Lineage'),
+      ]),
+      ('Reasoning', [
+        ('reasoning.reasoning_index', 'Reasoning'),
+        ('visualization.reasoning_dashboard', 'Reasoning Dashboard'),
+        ('reasoning.inferences_index', 'Inferences'),
+        ('visualization.explanations', 'Explanations'),
+        ('reasoning.consistency_index', 'Consistency'),
+        ('reasoning.rules_index', 'Rules'),
+        ('visualization.analytics', 'Analytics'),
+      ]),
+      ('Agents', [
+        ('agents.agents_home', 'Agents'),
+        ('agents.agent_registry_view', 'Agent Registry'),
+        ('agents.agent_governance_view', 'Agent Governance'),
+        ('agents.agent_memory_view', 'Agent Memory'),
+        ('agents.agent_observations_view', 'Agent Observations'),
+        ('agents.agent_provenance_view', 'Agent Provenance'),
+        ('advisory.advisory_view', 'Advisory'),
+      ]),
+      ('Multi-Agent', [
+        ('multi_agent.collaboration_dashboard_view', 'Collaboration Dashboard'),
+        ('multi_agent.agent_teams_view', 'Agent Teams'),
+        ('multi_agent.delegations_view', 'Delegations'),
+        ('multi_agent.conversations_view', 'Conversations'),
+        ('multi_agent.negotiations_view', 'Negotiations'),
+        ('multi_agent.consensus_view', 'Consensus'),
+        ('multi_agent.conflicts_view', 'Conflicts'),
+      ]),
+      ('Orchestration & Execution', [
+        ('orchestration.orchestration_dashboard_view', 'Orchestration Dashboard'),
+        ('orchestration.goal_management_view', 'Goal Management'),
+        ('orchestration.workflows_view', 'Workflows'),
+        ('orchestration.execution_plans_view', 'Execution Plans'),
+        ('orchestration.events_view', 'Events'),
+        ('orchestration.approvals_view', 'Approvals'),
+        ('orchestration.orchestration_explanations_view', 'Orchestration Explanations'),
+        ('execution.execution_view', 'Execution'),
+        ('execution.execution_actions_view', 'Execution Actions'),
+        ('execution.execution_history_view', 'Execution History'),
+        ('execution.execution_approvals_view', 'Execution Approvals'),
+        ('execution.execution_outcomes_view', 'Execution Outcomes'),
+        ('execution.execution_risk_view', 'Execution Risk'),
+        ('execution.execution_rollback_view', 'Execution Rollback'),
+      ]),
+      ('Knowledge Fabric', [
+        ('fabric.knowledge_fabric_view', 'Knowledge Fabric'),
+        ('fabric.domains_view', 'Domains'),
+        ('fabric.products_view', 'Products'),
+        ('fabric.contracts_view', 'Contracts'),
+        ('fabric.glossary_view', 'Glossary'),
+        ('fabric.federation_view', 'Federation'),
+        ('fabric.interoperability_view', 'Interoperability'),
+      ]),
+    ] -%}
+
+    {%- macro nav_link(endpoint, label) -%}
+      <a class="nav-link" href="{{ url_for(endpoint) }}"{% if ep == endpoint %} aria-current="page"{% endif %}>{{ label }}</a>
+    {%- endmacro -%}
+
+    <div class="app" data-sidebar="expanded">
+      <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation">
+        <div class="brand">
+          <h1><span class="brand__mark" aria-hidden="true"></span>Semantic Platform</h1>
+        </div>
+        <nav aria-label="Sections">
+          {% for endpoint, label in nav_top %}{{ nav_link(endpoint, label) }}{% endfor %}
+          {% for group_label, links in nav_groups %}
+            {%- set group_endpoints = links | map(attribute=0) | list -%}
+            <details class="nav-group"{% if ep in group_endpoints %} open{% endif %}>
+              <summary>{{ group_label }}</summary>
+              <div class="nav-group__items">
+                {% for endpoint, label in links %}{{ nav_link(endpoint, label) }}{% endfor %}
+              </div>
+            </details>
+          {% endfor %}
+        </nav>
+      </aside>
+
+      <header class="topbar">
+        <button class="icon-btn nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="app-sidebar">☰</button>
+        <nav class="breadcrumb" aria-label="Breadcrumb">{% block breadcrumb %}{% endblock %}</nav>
+        <div class="topbar__actions">
+          <form class="topbar__search" role="search" method="get" action="{{ url_for('visualization.search') }}">
+            <input type="search" name="q" placeholder="Search the platform" aria-label="Search">
+          </form>
+          <button class="icon-btn theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false" title="Toggle light / dark">
+            <span class="theme-toggle__icon" aria-hidden="true">◐</span>
+          </button>
+        </div>
+      </header>
+
+      <main id="main" class="main">
+        <div class="container">{% block content %}{% endblock %}</div>
+      </main>
+    </div>
+    <div class="sidebar-backdrop" hidden></div>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>

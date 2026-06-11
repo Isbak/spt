@@ -1,8 +1,18 @@
 {% extends "base.html" %}
+{% from "_components.html" import page_header, badge %}
 {% block title %}Health | Semantic Platform{% endblock %}
 {% block content %}
-<h2>Health</h2>
-<p>Flask: ok</p>
-<p>Fuseki: {{ "ok" if fuseki.ok else "unavailable" }}{% if fuseki.status_code %} ({{ fuseki.status_code }}){% endif %}</p>
-<p>{{ fuseki.message }}</p>
+{{ page_header("Health", subtitle="Liveness of the platform and its serving layer.") }}
+{% set fuseki_ok = fuseki.ok %}
+<section class="cards">
+  <article class="card">
+    <div class="card__label">Flask</div>
+    <div class="card__value">{{ badge("ok", "success") }}</div>
+  </article>
+  <article class="card">
+    <div class="card__label">Fuseki{% if fuseki.status_code %} · {{ fuseki.status_code }}{% endif %}</div>
+    <div class="card__value">{% if fuseki_ok %}{{ badge("ok", "success") }}{% else %}{{ badge("unavailable", "danger") }}{% endif %}</div>
+  </article>
+</section>
+{% if fuseki.message %}<p class="muted">{{ fuseki.message }}</p>{% endif %}
 {% endblock %}
