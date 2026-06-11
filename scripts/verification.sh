@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-python - <<'PY'
+PYTHON="${PYTHON:-$(command -v python3 || command -v python)}"
+"$PYTHON" - <<'PY'
 from rdflib import Graph
 from semantic_platform.execution.outcomes import OutcomeStore
 from semantic_platform.execution.verification import VerificationService
