@@ -171,3 +171,38 @@ make agent-observability
 
 `make verify` includes the Phase 6 agent checks in addition to RDF syntax, SHACL,
 governance, provenance, reasoning, integration, visualization, and test validation.
+
+## Phase 7: Semantic Coordination Platform
+
+The platform now includes a human-controlled Semantic Orchestration Layer. Goals,
+workflow templates, execution plans, events, approvals, coordination recommendations,
+policies, and explanations are represented as RDF resources and validated with SHACL.
+The layer coordinates and explains work across humans, agents, workflows, and knowledge
+assets, but it does **not** perform autonomous business execution.
+
+Phase 7 APIs and dashboards:
+
+- `GET /api/goals` and `/goal-management`
+- `GET /api/workflows` and `/workflows`
+- `GET /api/events` and `/events`
+- `GET /api/approvals` and `/approvals`
+- `GET /api/execution-plans` and `/execution-plans`
+- `GET /api/orchestration` and `/orchestration-dashboard`
+- `/orchestration-explanations`
+
+Phase 7 validation and smoke checks are available through:
+
+```bash
+make goals
+make workflows
+make events
+make approvals
+make orchestration
+make execution-plans
+```
+
+`make verify` includes Phase 7 RDF syntax, SHACL, orchestration metadata, workflow,
+event, approval, execution-plan, API, UI, and unit-test checks while preserving the Phase 6
+agent constraints: agents may receive tasks, propose plans, and contribute observations,
+but may not autonomously execute workflows, bypass approval gates, or modify governance
+assets.

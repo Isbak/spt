@@ -1,0 +1,9 @@
+PREFIX orch: <https://example.org/semantic-platform/orchestration#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?workflow ?workflowLabel ?task ?taskLabel ?dependsOn ?dependencyLabel WHERE {
+  ?workflow a orch:Workflow ; orch:decomposesInto ?task .
+  OPTIONAL { ?workflow rdfs:label ?workflowLabel }
+  OPTIONAL { ?task rdfs:label ?taskLabel }
+  OPTIONAL { ?task orch:dependsOn ?dependsOn . OPTIONAL { ?dependsOn rdfs:label ?dependencyLabel } }
+}
+ORDER BY ?workflow ?task

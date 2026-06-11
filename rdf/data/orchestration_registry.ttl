@@ -1,0 +1,18 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix orch: <https://example.org/semantic-platform/orchestration#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+orch:orchestration-registry a prov:Collection ;
+  rdfs:label "Semantic orchestration registry" ;
+  prov:hadMember orch:multi-step-workflow, orch:approval-workflow, orch:investigation-workflow, orch:review-workflow ;
+  dcterms:description "Registered domain-neutral workflow templates with ownership, stewardship, lifecycle, version, and approval metadata." .
+
+orch:multi-step-registration a prov:Entity ; orch:registeredWorkflow orch:multi-step-workflow ; aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; orch:lifecycleState "Ready" ; owl:versionInfo "1.0.0" ; aggov:approvalStatus "Approved" .
+orch:approval-registration a prov:Entity ; orch:registeredWorkflow orch:approval-workflow ; aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; orch:lifecycleState "Ready" ; owl:versionInfo "1.0.0" ; aggov:approvalStatus "Approved" .
+orch:investigation-registration a prov:Entity ; orch:registeredWorkflow orch:investigation-workflow ; aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; orch:lifecycleState "Draft" ; owl:versionInfo "0.9.0" ; aggov:approvalStatus "Testing" .
+orch:review-registration a prov:Entity ; orch:registeredWorkflow orch:review-workflow ; aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; orch:lifecycleState "Ready" ; owl:versionInfo "1.0.0" ; aggov:approvalStatus "Approved" .
+
+orch:registeredWorkflow a owl:ObjectProperty ; rdfs:label "registered workflow" .

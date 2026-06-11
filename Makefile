@@ -1,7 +1,8 @@
-.PHONY: setup validate test query governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app verify docker-up docker-down clean lint
+.PHONY: setup validate test query goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
+export PYTHONPATH := src:.:$(PYTHONPATH)
 
 setup:
 	$(PIP) install -e ".[dev]"
@@ -14,6 +15,24 @@ test:
 
 query:
 	./scripts/query.sh
+
+goals:
+	./scripts/goals.sh
+
+workflows:
+	./scripts/workflows.sh
+
+events:
+	./scripts/events.sh
+
+approvals:
+	./scripts/approvals.sh
+
+orchestration:
+	./scripts/orchestration.sh
+
+execution-plans:
+	./scripts/execution-plans.sh
 
 governance:
 	./scripts/governance.sh
@@ -99,7 +118,7 @@ load-fuseki:
 app:
 	FLASK_APP=app.app:create_app $(PYTHON) -m flask run --host $${FLASK_HOST:-0.0.0.0} --port $${FLASK_PORT:-5000}
 
-verify: validate governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability test query
+verify: validate goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability test query
 
 lint:
 	$(PYTHON) -m ruff check src app tests

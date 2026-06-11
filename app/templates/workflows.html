@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Workflows{% endblock %}{% block content %}<h2>Workflows</h2><p>Governed workflow templates with tasks, dependencies, and lifecycle state.</p><ul>{% for workflow in workflows %}<li>{{ workflow.label }} — {{ workflow.lifecycle_state }} — {{ workflow.version }} — {{ workflow.approval_status.value }}</li>{% endfor %}</ul>{% endblock %}

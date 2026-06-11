@@ -1,0 +1,93 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix agent: <https://example.org/semantic-platform/agents#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix orch: <https://example.org/semantic-platform/orchestration#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+orch: a owl:Ontology ;
+  rdfs:label "Semantic Platform orchestration ontology" ;
+  dcterms:description "Domain-neutral vocabulary for human-controlled semantic orchestration, goals, workflows, plans, events, approvals, coordination, policy, and explanations." ;
+  owl:versionInfo "0.7.0" .
+
+orch:Goal a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Goal" .
+orch:Objective a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Objective" .
+orch:Workflow a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Workflow" .
+orch:Task a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Task" .
+orch:TaskGroup a owl:Class ; rdfs:subClassOf orch:Task ; rdfs:label "Task group" .
+orch:Milestone a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Milestone" .
+orch:Dependency a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Dependency" .
+orch:ExecutionPlan a owl:Class ; rdfs:subClassOf prov:Plan ; rdfs:label "Execution plan" .
+orch:DecisionPoint a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Decision point" .
+orch:ApprovalGate a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Approval gate" .
+orch:Escalation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Escalation" .
+orch:Event a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Event" .
+orch:Trigger a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Trigger" .
+orch:Action a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Action" .
+orch:Outcome a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Outcome" .
+orch:OrchestrationPolicy a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Orchestration policy" .
+orch:ApprovalPolicy a owl:Class ; rdfs:subClassOf orch:OrchestrationPolicy ; rdfs:label "Approval policy" .
+orch:EscalationPolicy a owl:Class ; rdfs:subClassOf orch:OrchestrationPolicy ; rdfs:label "Escalation policy" .
+orch:ExecutionConstraint a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Execution constraint" .
+orch:CoordinationRecommendation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Coordination recommendation" .
+orch:OrchestrationExplanation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Orchestration explanation" .
+
+orch:GoalCreated a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Goal created" .
+orch:ObjectiveRegistered a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Objective registered" .
+orch:GoalTaskMapped a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Goal task mapped" .
+orch:WorkflowDefined a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Workflow defined" .
+orch:DependencyRegistered a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Dependency registered" .
+orch:ExecutionPlanGenerated a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Execution plan generated" .
+orch:EventRecorded a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Event recorded" .
+orch:PolicyCreated a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Policy created" .
+orch:PolicyEvaluated a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Policy evaluated" .
+orch:ApprovalRequested a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Approval requested" .
+orch:ApprovalReviewed a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Approval reviewed" .
+orch:CoordinationRecommended a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Coordination recommended" .
+orch:ExplanationRecorded a owl:Class ; rdfs:subClassOf prov:Activity ; rdfs:label "Explanation recorded" .
+
+orch:decomposesInto a owl:ObjectProperty ; rdfs:domain orch:Workflow ; rdfs:range orch:Task ; rdfs:label "decomposes into" .
+orch:dependsOn a owl:ObjectProperty ; rdfs:domain orch:Task ; rdfs:range orch:Task ; rdfs:label "depends on" .
+orch:triggeredBy a owl:ObjectProperty ; rdfs:range orch:Event ; rdfs:label "triggered by" .
+orch:assignedTo a owl:DatatypeProperty ; rdfs:label "assigned to" .
+orch:requiresApproval a owl:ObjectProperty ; rdfs:range orch:ApprovalGate ; rdfs:label "requires approval" .
+orch:producesOutcome a owl:ObjectProperty ; rdfs:range orch:Outcome ; rdfs:label "produces outcome" .
+orch:contributesToGoal a owl:ObjectProperty ; rdfs:range orch:Goal ; rdfs:label "contributes to goal" .
+orch:governedByPolicy a owl:ObjectProperty ; rdfs:range orch:OrchestrationPolicy ; rdfs:label "governed by policy" .
+orch:hasObjective a owl:ObjectProperty ; rdfs:domain orch:Goal ; rdfs:range orch:Objective ; rdfs:label "has objective" .
+orch:hasTask a owl:ObjectProperty ; rdfs:domain orch:Goal ; rdfs:range orch:Task ; rdfs:label "has task" .
+orch:hasPlannedTask a owl:ObjectProperty ; rdfs:domain orch:ExecutionPlan ; rdfs:range orch:Task ; rdfs:label "has planned task" .
+orch:hasRecommendation a owl:ObjectProperty ; rdfs:range orch:CoordinationRecommendation ; rdfs:label "has recommendation" .
+orch:hasExplanation a owl:ObjectProperty ; rdfs:range orch:OrchestrationExplanation ; rdfs:label "has explanation" .
+orch:explainsRecommendation a owl:ObjectProperty ; rdfs:domain orch:OrchestrationExplanation ; rdfs:label "explains recommendation" .
+orch:approvalSubject a owl:ObjectProperty ; rdfs:domain orch:ApprovalGate ; rdfs:label "approval subject" .
+
+orch:lifecycleState a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "lifecycle state" .
+orch:status a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "status" .
+orch:progress a owl:DatatypeProperty ; rdfs:range xsd:decimal ; rdfs:label "progress" .
+orch:completed a owl:DatatypeProperty ; rdfs:range xsd:boolean ; rdfs:label "completed" .
+orch:planOrder a owl:DatatypeProperty ; rdfs:range xsd:integer ; rdfs:label "plan order" .
+orch:planVersion a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "plan version" .
+orch:executionReady a owl:DatatypeProperty ; rdfs:range xsd:boolean ; rdfs:label "execution ready" .
+orch:eventType a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "event type" .
+orch:eventSource a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "event source" .
+orch:eventMessage a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "event message" .
+orch:occurredAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "occurred at" .
+orch:executionConstraint a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "execution constraint" .
+orch:participantType a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "participant type" .
+orch:rationale a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "rationale" .
+orch:explanationText a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "explanation text" .
+orch:approvalStatus a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "approval status" .
+orch:requestedBy a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "requested by" .
+orch:reviewedBy a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "reviewed by" .
+orch:requestedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "requested at" .
+orch:reviewedAt a owl:DatatypeProperty ; rdfs:range xsd:dateTime ; rdfs:label "reviewed at" .
+orch:reviewComment a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "review comment" .
+
+orch:defaultOrchestrationPolicy a orch:OrchestrationPolicy ;
+  rdfs:label "Default human-controlled orchestration policy" ;
+  orch:requiresApproval true ;
+  orch:executionConstraint "No autonomous execution; human approval required before business action." .

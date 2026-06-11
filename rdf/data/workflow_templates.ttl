@@ -1,0 +1,50 @@
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix orch: <https://example.org/semantic-platform/orchestration#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+orch:multi-step-workflow a orch:Workflow ;
+  rdfs:label "Generic multi-step workflow" ;
+  aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; aggov:approvalStatus "Approved" ;
+  owl:versionInfo "1.0.0" ; orch:lifecycleState "Ready" ; orch:governedByPolicy orch:defaultOrchestrationPolicy ;
+  orch:decomposesInto orch:multi-step-intake, orch:multi-step-analysis, orch:multi-step-review ;
+  prov:wasGeneratedBy orch:workflow-template-publication .
+orch:multi-step-intake a orch:Task ; rdfs:label "Intake request" .
+orch:multi-step-analysis a orch:Task ; rdfs:label "Analyze inputs" ; orch:dependsOn orch:multi-step-intake .
+orch:multi-step-review a orch:Task ; rdfs:label "Review recommendation" ; orch:dependsOn orch:multi-step-analysis .
+
+orch:approval-workflow a orch:Workflow ;
+  rdfs:label "Generic approval workflow" ;
+  aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; aggov:approvalStatus "Approved" ;
+  owl:versionInfo "1.0.0" ; orch:lifecycleState "Ready" ; orch:governedByPolicy orch:defaultOrchestrationPolicy ;
+  orch:decomposesInto orch:approval-request-task, orch:approval-review-task, orch:approval-decision-task .
+orch:approval-request-task a orch:Task ; rdfs:label "Request approval" .
+orch:approval-review-task a orch:Task ; rdfs:label "Review request" ; orch:dependsOn orch:approval-request-task .
+orch:approval-decision-task a orch:Task ; rdfs:label "Record approval decision" ; orch:dependsOn orch:approval-review-task .
+
+orch:investigation-workflow a orch:Workflow ;
+  rdfs:label "Generic investigation workflow" ;
+  aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; aggov:approvalStatus "Testing" ;
+  owl:versionInfo "0.9.0" ; orch:lifecycleState "Draft" ; orch:governedByPolicy orch:defaultOrchestrationPolicy ;
+  orch:decomposesInto orch:investigation-scope-task, orch:investigation-evidence-task, orch:investigation-findings-task .
+orch:investigation-scope-task a orch:Task ; rdfs:label "Define investigation scope" .
+orch:investigation-evidence-task a orch:Task ; rdfs:label "Collect semantic evidence" ; orch:dependsOn orch:investigation-scope-task .
+orch:investigation-findings-task a orch:Task ; rdfs:label "Summarize findings" ; orch:dependsOn orch:investigation-evidence-task .
+
+orch:review-workflow a orch:Workflow ;
+  rdfs:label "Generic review workflow" ;
+  aggov:owner "platform-governance" ; aggov:steward "orchestration-steward" ; aggov:approvalStatus "Approved" ;
+  owl:versionInfo "1.0.0" ; orch:lifecycleState "Ready" ; orch:governedByPolicy orch:defaultOrchestrationPolicy ;
+  orch:decomposesInto orch:review-prepare-task, orch:review-evaluate-task, orch:review-outcome-task .
+orch:review-prepare-task a orch:Task ; rdfs:label "Prepare review packet" .
+orch:review-evaluate-task a orch:Task ; rdfs:label "Evaluate review packet" ; orch:dependsOn orch:review-prepare-task .
+orch:review-outcome-task a orch:Task ; rdfs:label "Record review outcome" ; orch:dependsOn orch:review-evaluate-task .
+
+orch:workflow-template-publication a prov:Activity, orch:WorkflowDefined ;
+  rdfs:label "Workflow template publication" ;
+  prov:wasAssociatedWith orch:orchestration-steward-agent ;
+  prov:startedAtTime "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> ;
+  prov:endedAtTime "2026-01-01T00:00:00Z"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+orch:orchestration-steward-agent a prov:Agent ; rdfs:label "Orchestration steward" .
