@@ -1,0 +1,75 @@
+@prefix ma: <https://example.org/semantic-platform/multi-agent#> .
+@prefix agent: <https://example.org/semantic-platform/agents#> .
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ma: a owl:Ontology ;
+  rdfs:label "Semantic Platform multi-agent collaboration ontology" ;
+  dcterms:description "Domain-neutral vocabulary for governed, attributable, explainable, provenance-aware collaboration among agent teams." ;
+  owl:versionInfo "0.9.0" .
+
+ma:AgentTeam a owl:Class ; rdfs:label "Agent team" .
+ma:AgentRole a owl:Class ; rdfs:label "Agent role" .
+ma:AgentCapability a owl:Class ; rdfs:label "Agent capability" .
+ma:AgentDelegation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent delegation" .
+ma:AgentTask a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent task" .
+ma:AgentConversation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent conversation" .
+ma:AgentConversationMessage a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent conversation message" .
+ma:AgentDecision a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent decision" .
+ma:AgentNegotiation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent negotiation" .
+ma:AgentRecommendation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent recommendation" .
+ma:AgentConsensus a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent consensus" .
+ma:AgentConflict a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent conflict" .
+ma:AgentConflictResolution a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent conflict resolution" .
+ma:AgentConflictEscalation a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent conflict escalation" .
+ma:SharedSemanticMemory a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Shared semantic memory" .
+ma:SharedWorkingMemory a owl:Class ; rdfs:subClassOf ma:SharedSemanticMemory ; rdfs:label "Shared working memory" .
+ma:SharedKnowledgeMemory a owl:Class ; rdfs:subClassOf ma:SharedSemanticMemory ; rdfs:label "Shared knowledge memory" .
+ma:SharedDecisionMemory a owl:Class ; rdfs:subClassOf ma:SharedSemanticMemory ; rdfs:label "Shared decision memory" .
+ma:CollaborativePlan a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Collaborative plan" .
+ma:AgentAccountabilityRecord a owl:Class ; rdfs:subClassOf prov:Entity ; rdfs:label "Agent accountability record" .
+
+ma:delegatesTo a owl:ObjectProperty ; rdfs:label "delegates to" ; rdfs:domain ma:AgentDelegation .
+ma:collaboratesWith a owl:ObjectProperty ; rdfs:label "collaborates with" .
+ma:assignedTask a owl:ObjectProperty ; rdfs:label "assigned task" ; rdfs:range ma:AgentTask .
+ma:participatesIn a owl:ObjectProperty ; rdfs:label "participates in" .
+ma:proposedDecision a owl:ObjectProperty ; rdfs:label "proposed decision" .
+ma:agreedWith a owl:ObjectProperty ; rdfs:label "agreed with" .
+ma:disagreedWith a owl:ObjectProperty ; rdfs:label "disagreed with" .
+ma:contributedTo a owl:ObjectProperty ; rdfs:label "contributed to" .
+ma:escalatedTo a owl:ObjectProperty ; rdfs:label "escalated to" .
+ma:hasRole a owl:ObjectProperty ; rdfs:domain ma:AgentTeam ; rdfs:range ma:AgentRole ; rdfs:label "has role" .
+ma:hasCapability a owl:ObjectProperty ; rdfs:range ma:AgentCapability ; rdfs:label "has capability" .
+ma:delegatingAgent a owl:ObjectProperty ; rdfs:domain ma:AgentDelegation ; rdfs:label "delegating agent" .
+ma:team a owl:ObjectProperty ; rdfs:range ma:AgentTeam ; rdfs:label "team" .
+ma:role a owl:ObjectProperty ; rdfs:range ma:AgentRole ; rdfs:label "role" .
+ma:partOfConversation a owl:ObjectProperty ; rdfs:domain ma:AgentConversationMessage ; rdfs:range ma:AgentConversation ; rdfs:label "part of conversation" .
+ma:evaluatedRecommendation a owl:ObjectProperty ; rdfs:domain ma:AgentNegotiation ; rdfs:range ma:AgentRecommendation ; rdfs:label "evaluated recommendation" .
+ma:hasResolution a owl:ObjectProperty ; rdfs:domain ma:AgentConflict ; rdfs:range ma:AgentConflictResolution ; rdfs:label "has resolution" .
+ma:hasEscalation a owl:ObjectProperty ; rdfs:domain ma:AgentConflict ; rdfs:range ma:AgentConflictEscalation ; rdfs:label "has escalation" .
+ma:referencesSemanticAsset a owl:ObjectProperty ; rdfs:label "references semantic asset" .
+ma:accountableTask a owl:ObjectProperty ; rdfs:range ma:AgentTask ; rdfs:label "accountable task" .
+
+ma:responsibility a owl:DatatypeProperty ; rdfs:domain ma:AgentTeam ; rdfs:range xsd:string ; rdfs:label "responsibility" .
+ma:delegationReason a owl:DatatypeProperty ; rdfs:domain ma:AgentDelegation ; rdfs:range xsd:string ; rdfs:label "delegation reason" .
+ma:memoryContent a owl:DatatypeProperty ; rdfs:domain ma:SharedSemanticMemory ; rdfs:range xsd:string ; rdfs:label "memory content" .
+ma:messageType a owl:DatatypeProperty ; rdfs:domain ma:AgentConversationMessage ; rdfs:range xsd:string ; rdfs:label "message type" .
+ma:messageContent a owl:DatatypeProperty ; rdfs:domain ma:AgentConversationMessage ; rdfs:range xsd:string ; rdfs:label "message content" .
+ma:recommendedOption a owl:DatatypeProperty ; rdfs:domain ma:AgentRecommendation ; rdfs:range xsd:string ; rdfs:label "recommended option" .
+ma:rationale a owl:DatatypeProperty ; rdfs:range xsd:string ; rdfs:label "rationale" .
+ma:optionScore a owl:DatatypeProperty ; rdfs:domain ma:AgentRecommendation ; rdfs:range xsd:decimal ; rdfs:label "option score" .
+ma:compromiseOption a owl:DatatypeProperty ; rdfs:domain ma:AgentNegotiation ; rdfs:range xsd:string ; rdfs:label "compromise option" .
+ma:consensusMethod a owl:DatatypeProperty ; rdfs:domain ma:AgentConsensus ; rdfs:range xsd:string ; rdfs:label "consensus method" .
+ma:decisionText a owl:DatatypeProperty ; rdfs:domain ma:AgentConsensus ; rdfs:range xsd:string ; rdfs:label "decision text" .
+ma:agreementRate a owl:DatatypeProperty ; rdfs:domain ma:AgentConsensus ; rdfs:range xsd:decimal ; rdfs:label "agreement rate" .
+ma:consensusApproved a owl:DatatypeProperty ; rdfs:domain ma:AgentConsensus ; rdfs:range xsd:boolean ; rdfs:label "consensus approved" .
+ma:conflictType a owl:DatatypeProperty ; rdfs:domain ma:AgentConflict ; rdfs:range xsd:string ; rdfs:label "conflict type" .
+ma:conflictStatus a owl:DatatypeProperty ; rdfs:domain ma:AgentConflict ; rdfs:range xsd:string ; rdfs:label "conflict status" .
+ma:resolutionText a owl:DatatypeProperty ; rdfs:domain ma:AgentConflictResolution ; rdfs:range xsd:string ; rdfs:label "resolution text" .
+ma:escalationReason a owl:DatatypeProperty ; rdfs:domain ma:AgentConflictEscalation ; rdfs:range xsd:string ; rdfs:label "escalation reason" .
+ma:outcome a owl:DatatypeProperty ; rdfs:domain ma:AgentAccountabilityRecord ; rdfs:range xsd:string ; rdfs:label "outcome" .

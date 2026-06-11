@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Negotiations{% endblock %}{% block content %}<h2>Negotiations</h2><ul>{% for item in negotiations %}<li>{{ item.uri }} selected {{ item.selected }} with {{ item.compromise }}</li>{% endfor %}</ul>{% endblock %}

@@ -69,3 +69,21 @@ Required interfaces:
 - load named graphs
 - expose Flask health endpoint
 - document R2RML mappings
+
+### Phase 9 Multi-Agent Collaboration Components
+
+```text
+src/semantic_platform/multi_agent/
+  teams.py
+  delegation.py
+  collaboration.py
+  negotiation.py
+  consensus.py
+  conflict.py
+  memory.py
+  conversations.py
+  accountability.py
+  explainability.py
+```
+
+Flask exposes collaboration APIs and dashboards while business logic remains in the Python service layer.

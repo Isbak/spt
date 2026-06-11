@@ -12,6 +12,7 @@ from app.routes.execution import execution_bp
 from app.routes.named_graphs import named_graphs_bp
 from app.routes.ontology_version import ontology_version_bp
 from app.routes.orchestration import orchestration_bp
+from app.routes.multi_agent import multi_agent_bp
 from app.routes.provenance import provenance_bp
 from app.routes.ontology import ontology_bp
 from app.routes.query import query_bp
@@ -40,6 +41,7 @@ def create_app() -> Flask:
     app.register_blueprint(agents_bp)
     app.register_blueprint(orchestration_bp)
     app.register_blueprint(execution_bp)
+    app.register_blueprint(multi_agent_bp)
 
     @app.get("/")
     def index():
