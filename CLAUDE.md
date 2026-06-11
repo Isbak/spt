@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A **domain-neutral semantic platform**: a layered system for representing, validating,
 governing, reasoning over, querying, and visualizing knowledge graphs built on RDF / RDFS /
 OWL, SHACL, SPARQL, PROV-O, SKOS, and R2RML, served through Apache Jena Fuseki and a Flask UI.
-The codebase was generated incrementally in **phases 1–6** (the phase numbering still appears
+The codebase was generated incrementally in **phases 1–7** (the phase numbering still appears
 in test names, blueprint comments, and docs), but it is now a working implementation, not a
 template to generate from.
 
@@ -32,9 +32,10 @@ make clean        # remove caches, coverage, build artifacts
 
 `make verify` is the acceptance gate. Run it before pushing — `CONTRIBUTING.md` requires it.
 It is defined as `ci-validate test query`, where `ci-validate` is the **single source of truth**
-for the semantic check sequence (`validate governance provenance named-graphs ontology-version
-reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql
-lineage graph ontology *-dashboard analytics search agents agent-*`).
+for the semantic check sequence (`validate goals workflows events approvals orchestration
+execution-plans governance provenance named-graphs ontology-version reasoning inference
+consistency explanations rules mappings source-catalog import-csv import-sql lineage graph
+ontology *-dashboard analytics search agents agent-*`).
 
 **CI runs on two systems — Azure DevOps (`azure-pipelines.yml`) and GitHub Actions
 (`.github/workflows/ci.yml`) — and they must not drift.** Both are thin wrappers with identical
@@ -68,7 +69,7 @@ graph.py (load/parse RDF) · fuseki.py (HTTP client)
 domain modules: validate, reasoning, inference, consistency, explanation,
    rule_registry, governance, provenance, named_graphs, ontology_version,
    mappings, r2rdf, import_csv, import_sql, source_catalog, query, search,
-   analytics, graph, agents/*
+   analytics, graph, agents/*, orchestration/*
    ↓
 api.py  ← single service facade
    ↓                ↓
@@ -122,6 +123,17 @@ provenance, observations, governance, permissions, safety, planner, tools, conte
 deliberately domain-neutral: **no LLM integrations, autonomous orchestration, multi-agent
 delegation, or autonomous workflow execution.** Agents are registered in
 `rdf/data/agent_registry.ttl` and validated by SHACL (`rdf/shapes/agent_shapes.ttl`).
+
+### Orchestration (Phase 7)
+
+`src/semantic_platform/orchestration/` models **governed coordination as RDF resources** —
+goals, workflows, execution plans, approvals, events, coordination, policies, and
+explainability — surfaced through the `orchestration` Flask blueprint and the `goals`,
+`workflows`, `events`, `approvals`, `orchestration`, and `execution-plans` Make targets. Like
+the agent layer it is **non-autonomous**: it represents and validates coordination structure
+(`rdf/vocabularies/orchestration.ttl`, `rdf/shapes/orchestration_shapes.ttl`,
+`rdf/data/orchestration_registry.ttl`, `workflow_templates.ttl`) but performs **no autonomous
+execution**.
 
 ## Conventions & workflow
 
