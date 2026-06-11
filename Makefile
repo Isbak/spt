@@ -1,4 +1,4 @@
-.PHONY: setup validate test query goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app verify docker-up docker-down clean lint
+.PHONY: setup validate test query goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability load-fuseki app ci-validate verify docker-up docker-down clean lint
 
 PYTHON ?= python
 PIP ?= $(PYTHON) -m pip
@@ -118,7 +118,12 @@ load-fuseki:
 app:
 	FLASK_APP=app.app:create_app $(PYTHON) -m flask run --host $${FLASK_HOST:-0.0.0.0} --port $${FLASK_PORT:-5000}
 
-verify: validate goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability test query
+# Canonical list of semantic validation checks. This is the single source of
+# truth shared by `make verify` and every CI system (Azure DevOps and GitHub
+# Actions) so the pipelines cannot drift. To add a check, edit this list only.
+ci-validate: validate goals workflows events approvals orchestration execution-plans governance provenance named-graphs ontology-version reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql lineage graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search agents agent-registry agent-memory agent-provenance agent-observability
+
+verify: ci-validate test query
 
 lint:
 	$(PYTHON) -m ruff check src app tests

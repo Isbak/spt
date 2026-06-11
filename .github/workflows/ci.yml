@@ -1,0 +1,54 @@
+# NOTE: Keep these jobs in lock-step with azure-pipelines.yml. Both pipelines
+# are thin wrappers that call the same Makefile targets so they cannot drift.
+# The actual list of checks lives only in the Makefile (`ci-validate`), never
+# inline here. To add a check, edit the Makefile and both CIs pick it up.
+name: CI
+
+on:
+  push:
+    branches: [main, work]
+  pull_request:
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: make setup
+        name: Install Python dependencies
+      - run: make lint
+        name: Lint (ruff)
+      - run: docker compose config
+        name: Validate Docker Compose configuration
+
+  validate:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: make setup
+        name: Install Python dependencies
+      - run: make ci-validate
+        name: Run all semantic validation checks
+
+  test:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: make setup
+        name: Install Python dependencies
+      - run: make test query
+        name: Run tests and SPARQL query checks

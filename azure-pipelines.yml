@@ -11,6 +11,10 @@ variables:
   pythonVersion: '3.12'
 
 stages:
+  # NOTE: Keep these stages in lock-step with .github/workflows/ci.yml. Both
+  # pipelines are thin wrappers that call the same Makefile targets so they
+  # cannot drift. The actual list of checks lives only in the Makefile
+  # (`ci-validate`), never inline here.
   - stage: Build
     jobs:
       - job: Install
@@ -20,6 +24,8 @@ stages:
               versionSpec: '$(pythonVersion)'
           - script: make setup
             displayName: Install Python dependencies
+          - script: make lint
+            displayName: Lint (ruff)
           - script: docker compose config
             displayName: Validate Docker Compose configuration
 
@@ -33,43 +39,8 @@ stages:
               versionSpec: '$(pythonVersion)'
           - script: make setup
             displayName: Install Python dependencies
-          - script: |
-              make validate
-              make orchestration
-              make execution-plans
-              make approvals
-              make events
-            displayName: RDF syntax, SHACL, and orchestration metadata validation
-          - script: make governance
-            displayName: Validate governance metadata
-          - script: make provenance
-            displayName: Validate provenance traces
-          - script: make named-graphs
-            displayName: Validate named graph manifest
-          - script: make mappings
-            displayName: Validate mapping definitions
-          - script: make source-catalog
-            displayName: Validate semantic source catalog
-          - script: make import-csv
-            displayName: Validate CSV import workflow
-          - script: make import-sql
-            displayName: Validate SQL import workflow
-          - script: make lineage
-            displayName: Validate mapping lineage queries
-          - script: make reasoning
-            displayName: Validate reasoning execution
-          - script: make inference
-            displayName: Validate inferred graph generation
-          - script: make consistency
-            displayName: Validate consistency report
-          - script: make explanations
-            displayName: Validate explanation generation
-          - script: make rules
-            displayName: Validate reasoning rules
-          - script: make graph ontology governance-dashboard provenance-dashboard reasoning-dashboard analytics search
-            displayName: Validate dashboard generation, visualization metadata, analytics, and search
-          - script: make agents agent-registry agent-memory agent-provenance agent-observability
-            displayName: Validate agent registry, permissions, governance, provenance, memory, and observability
+          - script: make ci-validate
+            displayName: Run all semantic validation checks
 
   - stage: Test
     dependsOn: Validate
@@ -81,5 +52,5 @@ stages:
               versionSpec: '$(pythonVersion)'
           - script: make setup
             displayName: Install Python dependencies
-          - script: make verify
-            displayName: Run Phase 7 verification
+          - script: make test query
+            displayName: Run tests and SPARQL query checks

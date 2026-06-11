@@ -30,11 +30,18 @@ make docker-up    # docker compose up -d (Fuseki + Flask; postgres via integrati
 make clean        # remove caches, coverage, build artifacts
 ```
 
-`make verify` is the acceptance gate and what CI runs (`azure-pipelines.yml`). Run it before
-pushing — `CONTRIBUTING.md` requires it. It chains every domain check: `validate governance
-provenance named-graphs ontology-version reasoning inference consistency explanations rules
-mappings source-catalog import-csv import-sql lineage graph ontology *-dashboard analytics
-search agents agent-* test query`.
+`make verify` is the acceptance gate. Run it before pushing — `CONTRIBUTING.md` requires it.
+It is defined as `ci-validate test query`, where `ci-validate` is the **single source of truth**
+for the semantic check sequence (`validate governance provenance named-graphs ontology-version
+reasoning inference consistency explanations rules mappings source-catalog import-csv import-sql
+lineage graph ontology *-dashboard analytics search agents agent-*`).
+
+**CI runs on two systems — Azure DevOps (`azure-pipelines.yml`) and GitHub Actions
+(`.github/workflows/ci.yml`) — and they must not drift.** Both are thin wrappers with identical
+Build → Validate → Test stages that call the same Makefile targets (`make lint`, `make
+ci-validate`, `make test query`). **Never enumerate individual checks inside a pipeline YAML** —
+add or remove a check by editing the `ci-validate` list in the `Makefile` only, and both CIs
+(plus `make verify`) pick it up automatically.
 
 ### Running a single test
 
