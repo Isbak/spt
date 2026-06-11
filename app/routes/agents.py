@@ -6,6 +6,7 @@ from flask import Blueprint, jsonify, render_template, request
 
 from semantic_platform.agents.agent import AgentRuntime
 from semantic_platform.agents.governance import validate_agent_governance
+from semantic_platform.api import explain_with_agent
 from semantic_platform.agents.memory import AgentMemoryStore
 from semantic_platform.agents.observations import AgentObservationLog
 from semantic_platform.agents.provenance import AgentProvenanceRecorder
@@ -57,6 +58,32 @@ def api_agent_context(agent_id: str):
     scope = request.args.get("scope", "reference")
     response = _runtime.ask(agent_id, f"Retrieve {scope} context", user="api", context_scope=scope)
     return jsonify(response.__dict__)
+
+
+@agents_bp.get("/api/agents/<agent_id>/explain")
+def api_agent_explain(agent_id: str):
+    """Governed, read-only LLM assist: explain data the agent is permitted to read.
+
+    Returns 403 when the agent may not read the requested scope.
+    """
+    scope = request.args.get("scope", "reference")
+    question = request.args.get("question", f"Summarize the {scope} scope")
+    try:
+        result = explain_with_agent(agent_id, scope, question)
+    except PermissionError as exc:
+        return jsonify({"error": str(exc), "agent_id": agent_id, "scope": scope}), 403
+    return jsonify(
+        {
+            "agent_id": result.agent_id,
+            "scope": result.scope,
+            "question": result.question,
+            "provider": result.provider,
+            "model": result.model_id,
+            "fact_count": result.fact_count,
+            "explanation_iri": result.explanation_iri,
+            "text": result.text,
+        }
+    )
 
 
 @agents_bp.get("/api/agents/<agent_id>/memory")

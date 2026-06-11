@@ -14,3 +14,4 @@
 | ADR-0010 | Docker strategy |
 | ADR-0011 | Governed multi-agent collaboration layer |
 | ADR-0012 | Drop-in source materialization |
+| ADR-0013 | Governed read-only LLM assist for agents |

@@ -24,6 +24,8 @@ class Settings:
     output_dir: Path
     source_database_url: str | None
     source_sql_files: tuple[Path, ...]
+    llm_provider: str
+    llm_model: str | None
     fuseki_base_url: str
     fuseki_dataset: str
     fuseki_username: str | None
@@ -92,6 +94,8 @@ def load_settings() -> Settings:
         output_dir=Path(os.getenv("OUTPUT_DIR", root / "output")).expanduser().resolve(),
         source_database_url=os.getenv("SOURCE_DATABASE_URL") or None,
         source_sql_files=source_sql_files,
+        llm_provider=(os.getenv("LLM_PROVIDER") or "local").strip().lower(),
+        llm_model=os.getenv("LLM_MODEL") or None,
         fuseki_base_url=os.getenv("FUSEKI_BASE_URL", "http://localhost:3030"),
         fuseki_dataset=os.getenv("FUSEKI_DATASET", "semantic-platform"),
         fuseki_username=os.getenv("FUSEKI_USERNAME") or None,
