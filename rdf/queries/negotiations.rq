@@ -1,0 +1,12 @@
+PREFIX ma: <https://example.org/semantic-platform/multi-agent#>
+PREFIX aggov: <https://example.org/semantic-platform/agent-governance#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+SELECT ?resource ?label ?status
+WHERE {
+  ?resource a ma:AgentNegotiation .
+  OPTIONAL { ?resource rdfs:label ?label }
+  OPTIONAL { ?resource aggov:approvalStatus ?status }
+}
+ORDER BY ?resource

@@ -67,3 +67,7 @@ User
 - Agent writes are limited to sandbox and integration scopes by default.
 - Ontology, governance, and provenance writes require explicit approval and are not part of normal runtime behavior.
 - Planning creates reviewable plans only; it does not execute actions.
+
+## Phase 9 Multi-Agent Collaboration Layer
+
+Agents may collaborate through governed teams, delegations, conversations, negotiations and consensus records. No agent acts anonymously or outside governance: each action records actor, team, role, task, outcome, timestamp and PROV-O lineage. Phase 9 does not allow recursive agent creation, self-modifying agents or autonomous governance changes.

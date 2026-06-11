@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Conflicts{% endblock %}{% block content %}<h2>Conflicts</h2><ul>{% for item in conflicts %}<li>{{ item.conflict_type }} — {{ item.status }} — {{ item.escalation }}</li>{% endfor %}</ul>{% endblock %}

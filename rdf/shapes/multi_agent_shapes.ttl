@@ -1,0 +1,45 @@
+@prefix ma: <https://example.org/semantic-platform/multi-agent#> .
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ma:AgentTeamShape a sh:NodeShape ;
+  sh:targetClass ma:AgentTeam ;
+  sh:property [ sh:path aggov:owner ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path aggov:steward ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path aggov:approvalStatus ; sh:minCount 1 ; sh:in ( "Approved" "Testing" "Draft" "Deprecated" "Retired" ) ] ;
+  sh:property [ sh:path ma:hasRole ; sh:minCount 1 ] .
+
+ma:AgentDelegationShape a sh:NodeShape ;
+  sh:targetClass ma:AgentDelegation ;
+  sh:property [ sh:path ma:delegatingAgent ; sh:minCount 1 ] ;
+  sh:property [ sh:path ma:delegatesTo ; sh:minCount 1 ] ;
+  sh:property [ sh:path ma:assignedTask ; sh:minCount 1 ] ;
+  sh:property [ sh:path ma:delegationReason ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path aggov:approvalStatus ; sh:minCount 1 ] ;
+  sh:property [ sh:path prov:generatedAtTime ; sh:minCount 1 ; sh:datatype xsd:dateTime ] .
+
+ma:AgentConversationShape a sh:NodeShape ;
+  sh:targetClass ma:AgentConversation ;
+  sh:property [ sh:path prov:generatedAtTime ; sh:minCount 1 ; sh:datatype xsd:dateTime ] .
+
+ma:AgentConversationMessageShape a sh:NodeShape ;
+  sh:targetClass ma:AgentConversationMessage ;
+  sh:property [ sh:path ma:partOfConversation ; sh:minCount 1 ] ;
+  sh:property [ sh:path ma:messageType ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path ma:messageContent ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path prov:wasAttributedTo ; sh:minCount 1 ] .
+
+ma:AgentConsensusShape a sh:NodeShape ;
+  sh:targetClass ma:AgentConsensus ;
+  sh:property [ sh:path ma:consensusMethod ; sh:minCount 1 ; sh:in ( "Unanimous" "Majority" "Weighted" "GovernanceApproved" ) ] ;
+  sh:property [ sh:path ma:decisionText ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path ma:agreementRate ; sh:minCount 1 ; sh:datatype xsd:decimal ] ;
+  sh:property [ sh:path ma:consensusApproved ; sh:minCount 1 ; sh:datatype xsd:boolean ] .
+
+ma:AgentConflictShape a sh:NodeShape ;
+  sh:targetClass ma:AgentConflict ;
+  sh:property [ sh:path ma:conflictType ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path ma:conflictStatus ; sh:minCount 1 ; sh:datatype xsd:string ] ;
+  sh:property [ sh:path prov:generatedAtTime ; sh:minCount 1 ; sh:datatype xsd:dateTime ] .

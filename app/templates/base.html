@@ -41,6 +41,13 @@
         <a href="{{ url_for('agents.agent_memory_view') }}">Agent Memory</a>
         <a href="{{ url_for('agents.agent_observations_view') }}">Agent Observations</a>
         <a href="{{ url_for('agents.agent_provenance_view') }}">Agent Provenance</a>
+        <a href="{{ url_for('multi_agent.collaboration_dashboard_view') }}">Collaboration Dashboard</a>
+        <a href="{{ url_for('multi_agent.agent_teams_view') }}">Agent Teams</a>
+        <a href="{{ url_for('multi_agent.delegations_view') }}">Delegations</a>
+        <a href="{{ url_for('multi_agent.conversations_view') }}">Conversations</a>
+        <a href="{{ url_for('multi_agent.negotiations_view') }}">Negotiations</a>
+        <a href="{{ url_for('multi_agent.consensus_view') }}">Consensus</a>
+        <a href="{{ url_for('multi_agent.conflicts_view') }}">Conflicts</a>
       </nav>
     </header>
     <main>{% block content %}{% endblock %}</main>

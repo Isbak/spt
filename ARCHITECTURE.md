@@ -54,3 +54,7 @@ Phase 4 evolves the repository into a knowledge discovery platform by inserting 
 | `urn:graph:validation` | Semantic consistency and validation results. |
 
 The lightweight reasoner supports practical enterprise patterns: RDFS subclass/type/subproperty inference, equivalent class/property expansion, inverse property materialization, transitive and symmetric property inference, and governed generic rules. Deprecated and retired rules are excluded from execution. Every inference records source facts, rule usage, confidence, timestamp and engine version for trusted consumption.
+
+## Phase 9 Multi-Agent Collaboration Layer
+
+Phase 9 adds a governed collaboration layer in which goals are handled by an orchestrator agent, delegated to specialist roles, coordinated through shared semantic context, negotiated into collaborative plans and handed to governed execution. Every collaboration asset is represented in RDF, validated with SHACL, exposed through thin Flask APIs and tied to PROV-O activities for auditability.

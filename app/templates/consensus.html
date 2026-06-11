@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Consensus{% endblock %}{% block content %}<h2>Consensus</h2><ul>{% for item in consensuses %}<li>{{ item.method }} — {{ item.decision }} — approved {{ item.approved }}</li>{% endfor %}</ul>{% endblock %}

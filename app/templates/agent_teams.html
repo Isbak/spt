@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Agent Teams{% endblock %}{% block content %}<h2>Agent Teams</h2><ul>{% for team in teams %}<li>{{ team.label }} — owner {{ team.owner }} — roles {{ team.roles }}</li>{% endfor %}</ul>{% endblock %}

@@ -1,0 +1,24 @@
+@prefix ma: <https://example.org/semantic-platform/multi-agent#> .
+@prefix aggov: <https://example.org/semantic-platform/agent-governance#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ma:collaboration-team a ma:AgentTeam ;
+  rdfs:label "Governed Collaboration Agent Team" ;
+  aggov:owner "semantic-platform-owner" ;
+  aggov:steward "semantic-platform-steward" ;
+  aggov:approvalStatus "Approved" ;
+  dcterms:description "Reusable domain-neutral team for governed multi-agent planning, collaboration, consensus and escalation." ;
+  ma:hasRole ma:PlannerAgent, ma:ResearchAgent, ma:ValidationAgent, ma:ExecutionAgent, ma:GovernanceAgent, ma:ObserverAgent ;
+  ma:responsibility "Coordinate goals through accountable agent roles" ;
+  ma:responsibility "Keep collaboration governed, observable, auditable and explainable" ;
+  prov:generatedAtTime "2026-06-11T00:00:00Z"^^xsd:dateTime .
+
+ma:PlannerAgent a ma:AgentRole ; rdfs:label "Planner Agent" ; ma:responsibility "Decompose goals into collaborative tasks and distributed plans" .
+ma:ResearchAgent a ma:AgentRole ; rdfs:label "Research Agent" ; ma:responsibility "Collect semantic evidence and candidate recommendations" .
+ma:ValidationAgent a ma:AgentRole ; rdfs:label "Validation Agent" ; ma:responsibility "Validate recommendations, plans and constraints" .
+ma:ExecutionAgent a ma:AgentRole ; rdfs:label "Execution Agent" ; ma:responsibility "Prepare governed execution handoff without bypassing approval gates" .
+ma:GovernanceAgent a ma:AgentRole ; rdfs:label "Governance Agent" ; ma:responsibility "Enforce ownership, stewardship, approval and escalation rules" .
+ma:ObserverAgent a ma:AgentRole ; rdfs:label "Observer Agent" ; ma:responsibility "Record observations, provenance, metrics and audit evidence" .

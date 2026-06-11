@@ -189,3 +189,34 @@ def orchestration_metrics(graph: Graph | None = None, settings: Settings | None 
         "workflow_coverage": round(active_workflows / workflow_count, 4) if workflow_count else 0.0,
         "approval_bottlenecks": approval_count,
     }
+
+
+def collaboration_metrics(graph: Graph | None = None, settings: Settings | None = None) -> dict[str, int | float]:
+    """Calculate Phase 9 multi-agent collaboration metrics."""
+    settings = settings or load_settings()
+    graph = graph or load_graph(settings=settings)
+    ma = Namespace("https://example.org/semantic-platform/multi-agent#")
+    team_count = len(set(graph.subjects(RDF.type, ma.AgentTeam)))
+    delegation_count = len(set(graph.subjects(RDF.type, ma.AgentDelegation)))
+    active_conversations = len(set(graph.subjects(RDF.type, ma.AgentConversation)))
+    negotiation_count = len(set(graph.subjects(RDF.type, ma.AgentNegotiation)))
+    consensuses = set(graph.subjects(RDF.type, ma.AgentConsensus))
+    conflicts = set(graph.subjects(RDF.type, ma.AgentConflict))
+    approved_consensus = sum(1 for item in consensuses if str(graph.value(item, ma.consensusApproved, default="false")) == "true")
+    unresolved_conflicts = sum(1 for item in conflicts if str(graph.value(item, ma.conflictStatus, default="Detected")) != "Resolved")
+    tasks = set(graph.subjects(RDF.type, ma.AgentTask))
+    completed_tasks = sum(1 for task in tasks if str(graph.value(task, ma.outcome, default="")) == "Completed")
+    participating_agents = set(graph.objects(None, ma.delegatesTo)) | set(graph.objects(None, ma.agreedWith)) | set(graph.objects(None, ma.disagreedWith))
+    return {
+        "team_count": team_count,
+        "delegation_count": delegation_count,
+        "active_conversations": active_conversations,
+        "negotiation_count": negotiation_count,
+        "consensus_count": len(consensuses),
+        "consensus_rate": round(approved_consensus / len(consensuses), 4) if consensuses else 0.0,
+        "conflict_count": len(conflicts),
+        "conflict_rate": round(unresolved_conflicts / max(delegation_count + negotiation_count + len(consensuses), 1), 4),
+        "task_completion": round(completed_tasks / len(tasks), 4) if tasks else 0.0,
+        "delegation_efficiency": round(delegation_count / max(team_count, 1), 4),
+        "collaboration_participation": len(participating_agents),
+    }

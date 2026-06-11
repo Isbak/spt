@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block title %}Conversations{% endblock %}{% block content %}<h2>Conversations</h2><ul>{% for message in messages %}<li>{{ message.message_type }} from {{ message.actor }}: {{ message.content }}</li>{% endfor %}</ul>{% endblock %}
