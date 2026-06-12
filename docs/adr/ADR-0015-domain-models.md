@@ -1,7 +1,7 @@
 # ADR-0015: Drop-in Domain Models and Knowledge-Architect Onboarding
 
 ## Status
-Accepted
+Accepted — the browser **upload/validate** write path was later retired (see *Superseded* below).
 
 ## Context
 A knowledge architect onboards a new domain by supplying three artefacts: a domain **ontology**
@@ -44,6 +44,15 @@ manifest edit for the grouping itself. The capability stays **domain-neutral** (
 namespace-based; no domain assumptions in core code) and preserves governance: mapping uploads
 still enforce the ADR-0004/ADR-0012 governance metadata, and a brand-new `map:targetGraph` still
 requires a manual `rdf/graphs/manifest.ttl` entry (surfaced as an informational note, never
-auto-edited, per ADR-0007). The upload path is the platform's first UI-driven write to the RDF
+auto-edited, per ADR-0007). The upload path was the platform's first UI-driven write to the RDF
 tree; it is validate-before-write and confined to the configured asset directories. No prior ADR
 is reversed.
+
+## Superseded
+The browser **upload & validate** form (`import_domain_files` / `api.import_domain` /
+`POST /domain-models/import`) has been removed. Authoring new or edited domain content is now
+handled by the governed conversational **Studio** (ADR-0016), which scaffolds and validates RDF
+in a sandboxed clone of a separate domain content repo and surfaces it as a human-reviewed Pull
+Request — a stronger governance posture than a direct write into the authoritative RDF tree. The
+read-only **namespace-grouping** view (`list_domain_models`, `/domain-models`) and the `/shapes`
+catalog remain unchanged.

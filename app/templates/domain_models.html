@@ -2,32 +2,7 @@
 {% from "_components.html" import page_header, badge %}
 {% block title %}Domain Models - Semantic Platform{% endblock %}
 {% block content %}
-{{ page_header("Domain Models", subtitle="Each domain groups its ontology, SHACL shapes, and R2RML mappings. Add a domain by dropping its files into the RDF directories, or upload them below.") }}
-
-{% if result %}
-  {% if result.ok %}
-  <div class="notice notice--success" role="status">
-    <p>Imported {{ result.files|length }} file(s):</p>
-    <ul>{% for f in result.files %}<li>{{ f.kind }}: {{ f.filename }} &rarr; {{ f.target_path }}</li>{% endfor %}</ul>
-    <p class="metadata">If a mapping targets a brand-new named graph, remember to register it in <code>rdf/graphs/manifest.ttl</code>.</p>
-  </div>
-  {% else %}
-  <div class="notice notice--danger" role="alert">
-    <p>Import failed. No files were written.</p>
-    <ul>{% for error in result.errors %}<li>{{ error }}</li>{% endfor %}</ul>
-  </div>
-  {% endif %}
-{% endif %}
-
-<section class="card">
-  <h3>Add a domain</h3>
-  <form method="post" action="{{ url_for('domain_models.import_view') }}" enctype="multipart/form-data">
-    <p><label>Ontology (.ttl) <input type="file" name="ontology" accept=".ttl"></label></p>
-    <p><label>SHACL shape (.ttl) <input type="file" name="shape" accept=".ttl"></label></p>
-    <p><label>R2RML mapping (.ttl/.r2rml) <input type="file" name="mapping" accept=".ttl,.r2rml"></label></p>
-    <p><button type="submit">Upload &amp; validate</button></p>
-  </form>
-</section>
+{{ page_header("Domain Models", subtitle="Each domain groups its ontology, SHACL shapes, and R2RML mappings. Add or edit a domain through the governed Studio, or by dropping its files into the RDF directories.") }}
 
 {% for domain in domains %}
 <section class="card">

@@ -8,8 +8,7 @@
   var panel = document.getElementById("chat-panel");
   if (!panel) return;
 
-  var fab = document.getElementById("chat-fab");
-  var closeBtn = document.getElementById("chat-close");
+  var toggles = document.querySelectorAll("[data-chat-toggle]");
   var log = document.getElementById("chat-log");
   var form = document.getElementById("chat-form");
   var input = document.getElementById("chat-input");
@@ -29,19 +28,29 @@
 
   scopeEl.textContent = context.label;
 
-  function open() {
-    panel.hidden = false;
-    fab.setAttribute("aria-expanded", "true");
-    input.focus();
+  var STORE_KEY = "chat-open";
+  function syncToggles(open) {
+    toggles.forEach(function (t) { t.setAttribute("aria-expanded", open ? "true" : "false"); });
   }
-  function close() {
-    panel.hidden = true;
-    fab.setAttribute("aria-expanded", "false");
+  function setOpen(open, opts) {
+    document.body.classList.toggle("chat-open", open);
+    syncToggles(open);
+    try { localStorage.setItem(STORE_KEY, open ? "1" : "0"); } catch (e) {}
+    if (open && opts && opts.focus) input.focus();
   }
-  fab.addEventListener("click", function () {
-    panel.hidden ? open() : close();
+  function isOpen() { return document.body.classList.contains("chat-open"); }
+
+  toggles.forEach(function (t) {
+    t.addEventListener("click", function () { setOpen(!isOpen(), { focus: true }); });
   });
-  closeBtn.addEventListener("click", close);
+
+  // Restore docked state (default open on the studio, closed elsewhere).
+  var stored;
+  try { stored = localStorage.getItem(STORE_KEY); } catch (e) { stored = null; }
+  var startOpen = stored === null
+    ? document.body.classList.contains("is-studio")
+    : stored === "1";
+  setOpen(startOpen, { focus: false });
 
   function bubble(role, text) {
     var el = document.createElement("div");

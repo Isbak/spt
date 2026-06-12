@@ -1,9 +1,10 @@
 {% extends "base.html" %}
-{% from "_components.html" import page_header %}
 {% block title %}Modelling Studio{% endblock %}
-{% block content %}
-{{ page_header("Knowledge Modelling Studio",
-   subtitle="Scaffold and edit a domain model, validate it, and open a Pull Request for review. Use the chat (💬, 'Model a domain') to talk through requirements.") }}
+
+{#- Full-screen VSCode-style takeover: override the whole app shell. The global
+   agent rail (_chat_panel.html) is included here too and defaults open. -#}
+{% block shell %}
+<script>document.body.classList.add("is-studio");</script>
 
 {#- Syntax-highlighting editor via CDN. Degrades to a plain textarea offline. -#}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
@@ -14,61 +15,84 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
 
 {% if not domains %}
-<p class="empty">No domains configured. Add one under
-  <a href="{{ url_for('setup.domain_setup_view') }}">Settings → Domain Repos</a> to begin.</p>
+<div class="studio-empty">
+  <div>
+    <h1>Knowledge Modelling Studio</h1>
+    <p class="empty">No domains configured. Add one under
+      <a href="{{ url_for('setup.domain_setup_view') }}">Settings → Domain Repos</a> to begin.</p>
+    <p><a href="{{ url_for('index') }}">← Back to platform</a></p>
+  </div>
+</div>
 {% else %}
-<div class="studio">
-  <div class="studio__bar">
-    <label for="studio-domain">Domain</label>
-    <select id="studio-domain">
+<div class="studio-shell">
+  <nav class="studio-activity" aria-label="Studio actions">
+    <a href="{{ url_for('index') }}" title="Back to platform" aria-label="Back to platform">⌂</a>
+    <span class="spacer"></span>
+    <button class="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false" title="Toggle light / dark">
+      <span class="theme-toggle__icon" aria-hidden="true">◐</span>
+    </button>
+    <button type="button" data-chat-toggle aria-controls="chat-panel" aria-expanded="false" title="Toggle assistant">💬</button>
+  </nav>
+
+  <aside class="studio-explorer" aria-label="Explorer">
+    <h2>Domain</h2>
+    <select id="studio-domain" aria-label="Domain">
       {% for d in domains %}<option value="{{ d.domain_id }}">{{ d.label }}</option>{% endfor %}
     </select>
-    <button type="button" id="pr-btn">Open Pull Request</button>
-    <span class="metadata" id="pr-result"></span>
-  </div>
+    <h2>Files</h2>
+    <ul id="file-tree"></ul>
 
-  <details class="studio__scaffold">
-    <summary>Quick scaffold</summary>
-    <div class="stack">
+    <details class="studio-scaffold">
+      <summary>＋ Quick scaffold</summary>
       <label>Domain label <input id="sc-label" value="My Domain"></label>
       <label>Prefix <input id="sc-prefix" value="ex"></label>
       <label>Base namespace <input id="sc-ns" value="https://example.org/domain#"></label>
       <label>Classes (comma-separated) <input id="sc-classes" placeholder="Technician, WorkOrder"></label>
       <button type="button" id="scaffold-btn">Generate</button>
-    </div>
-  </details>
+    </details>
+  </aside>
 
-  <div class="studio__main">
-    <aside class="studio__tree">
-      <h3>Files</h3>
-      <ul id="file-tree"></ul>
-    </aside>
-    <section class="studio__editor">
-      <div class="studio__editor-bar">
-        <span id="current-file" class="metadata">No file open</span>
-        <button type="button" id="save-btn" disabled>Save</button>
-      </div>
-      <textarea id="editor" spellcheck="false" placeholder="Select a file to edit…"></textarea>
-      <p class="metadata" id="validation"></p>
-    </section>
+  <div class="studio-toolbar">
+    <strong>Knowledge Modelling Studio</strong>
+    <span class="spacer"></span>
+    <button type="button" id="save-btn" disabled>Save</button>
+    <button type="button" id="pr-btn">Open Pull Request</button>
+    <span class="metadata" id="pr-result"></span>
   </div>
+
+  <section class="studio-editor">
+    <div class="studio-tabs" id="editor-tabs" role="tablist"></div>
+    <div class="studio-editor__body">
+      <textarea id="editor" spellcheck="false" placeholder="Select a file to edit…"></textarea>
+    </div>
+    <div class="studio-status"><span id="current-file">No file open</span><span class="spacer"></span><span id="validation"></span></div>
+  </section>
 </div>
+{% endif %}
+
+<div class="sidebar-backdrop" hidden></div>
+{% include "_chat_panel.html" %}
 
 <script>
 (function () {
   var domainSel = document.getElementById("studio-domain");
+  if (!domainSel) return;  // empty state: nothing to wire up
   var tree = document.getElementById("file-tree");
+  var tabsBar = document.getElementById("editor-tabs");
   var editor = document.getElementById("editor");
   var current = document.getElementById("current-file");
   var saveBtn = document.getElementById("save-btn");
   var validation = document.getElementById("validation");
-  var openPath = null;
 
   // Upgrade the textarea to a syntax-highlighting editor when CodeMirror loaded
   // (CDN). Offline, `cm` stays null and we fall back to the plain textarea.
   var cm = window.CodeMirror ? window.CodeMirror.fromTextArea(editor, {
     lineNumbers: true, mode: "text/turtle", viewportMargin: Infinity
   }) : null;
+
+  // Open editor tabs: [{ path, content, mode, dirty }]; `active` is the open path.
+  var tabs = [];
+  var active = null;
 
   function modeFor(path) {
     if (path.endsWith(".ttl")) return "text/turtle";
@@ -77,11 +101,57 @@
     if (path.endsWith(".json")) return { name: "javascript", json: true };
     return "text/plain";
   }
-  function setContent(path, content) {
-    if (cm) { cm.setOption("mode", modeFor(path)); cm.setValue(content); }
+  function render(content, mode) {
+    if (cm) { cm.setOption("mode", mode); cm.setValue(content); }
     else { editor.value = content; }
   }
-  function getContent() { return cm ? cm.getValue() : editor.value; }
+  function liveContent() { return cm ? cm.getValue() : editor.value; }
+  function tabFor(path) { for (var i = 0; i < tabs.length; i++) if (tabs[i].path === path) return tabs[i]; return null; }
+
+  function syncTree() {
+    tree.querySelectorAll("a").forEach(function (a) {
+      a.classList.toggle("is-open", a.getAttribute("data-path") === active);
+    });
+  }
+  function renderTabs() {
+    tabsBar.innerHTML = "";
+    tabs.forEach(function (t) {
+      var tab = document.createElement("button");
+      tab.className = "studio-tab" + (t.path === active ? " is-active" : "") + (t.dirty ? " is-dirty" : "");
+      tab.setAttribute("role", "tab");
+      var dot = document.createElement("span"); dot.className = "studio-tab__dot";
+      var name = document.createElement("span"); name.textContent = t.path.split("/").pop();
+      var close = document.createElement("span"); close.className = "studio-tab__close"; close.textContent = "×";
+      tab.appendChild(dot); tab.appendChild(name); tab.appendChild(close);
+      tab.addEventListener("click", function (e) {
+        if (e.target === close) { closeTab(t.path); return; }
+        activate(t.path);
+      });
+      tabsBar.appendChild(tab);
+    });
+    syncTree();
+  }
+  function stashActive() {
+    var t = tabFor(active);
+    if (t) t.content = liveContent();
+  }
+  function activate(path) {
+    if (active === path) return;
+    stashActive();
+    active = path;
+    var t = tabFor(path);
+    render(t.content, t.mode);
+    current.textContent = path; saveBtn.disabled = false; validation.textContent = "";
+    renderTabs();
+  }
+  function closeTab(path) {
+    var idx = -1;
+    tabs = tabs.filter(function (t, i) { if (t.path === path) { idx = i; return false; } return true; });
+    if (active === path) {
+      if (tabs.length) { active = null; activate(tabs[Math.max(0, idx - 1)].path); }
+      else { active = null; render("", "text/plain"); current.textContent = "No file open"; saveBtn.disabled = true; renderTabs(); }
+    } else { renderTabs(); }
+  }
 
   function domain() { return domainSel.value; }
   function jpost(url, body) {
@@ -97,27 +167,44 @@
         (d.files || []).forEach(function (path) {
           var li = document.createElement("li");
           var a = document.createElement("a");
-          a.href = "#"; a.textContent = path;
+          a.href = "#"; a.textContent = path; a.setAttribute("data-path", path);
           a.addEventListener("click", function (e) { e.preventDefault(); openFile(path); });
           li.appendChild(a); tree.appendChild(li);
         });
         if (!(d.files || []).length) tree.innerHTML = "<li class='empty'>No files yet — scaffold or chat to begin.</li>";
+        syncTree();
       });
   }
 
   function openFile(path) {
+    if (tabFor(path)) { activate(path); return; }
     fetch("/api/studio/file?domain_id=" + encodeURIComponent(domain()) + "&path=" + encodeURIComponent(path))
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.error) { validation.textContent = d.error; return; }
-        openPath = path; current.textContent = path; setContent(path, d.content); saveBtn.disabled = false;
+        stashActive();
+        tabs.push({ path: path, content: d.content, mode: modeFor(path), dirty: false });
+        active = path;
+        render(d.content, modeFor(path));
+        current.textContent = path; saveBtn.disabled = false; validation.textContent = "";
+        renderTabs();
       });
   }
 
+  function markDirty() {
+    var t = tabFor(active);
+    if (t && !t.dirty) { t.dirty = true; renderTabs(); }
+  }
+  if (cm) cm.on("change", markDirty); else editor.addEventListener("input", markDirty);
+
   saveBtn.addEventListener("click", function () {
-    if (!openPath) return;
-    jpost("/api/studio/file", { domain_id: domain(), path: openPath, content: getContent() })
-      .then(function (res) { validation.textContent = res.ok ? "Saved " + openPath : (res.data.error || "Save failed"); });
+    if (!active) return;
+    var path = active;
+    jpost("/api/studio/file", { domain_id: domain(), path: path, content: liveContent() })
+      .then(function (res) {
+        validation.textContent = res.ok ? "Saved " + path : (res.data.error || "Save failed");
+        if (res.ok) { var t = tabFor(path); if (t) { t.dirty = false; t.content = liveContent(); renderTabs(); } }
+      });
   });
 
   document.getElementById("scaffold-btn").addEventListener("click", function () {
@@ -148,9 +235,11 @@
     });
   });
 
-  domainSel.addEventListener("change", function () { setContent("", ""); openPath = null; current.textContent = "No file open"; saveBtn.disabled = true; loadTree(); });
+  domainSel.addEventListener("change", function () {
+    tabs = []; active = null; render("", "text/plain");
+    current.textContent = "No file open"; saveBtn.disabled = true; renderTabs(); loadTree();
+  });
   loadTree();
 })();
 </script>
-{% endif %}
 {% endblock %}

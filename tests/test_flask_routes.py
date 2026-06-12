@@ -43,47 +43,6 @@ def test_flask_routes(monkeypatch):
     assert client.get("/shapes").status_code == 200
 
 
-def test_domain_import_route_success(monkeypatch):
-    import io
-
-    from semantic_platform.domain_models import ImportedFile, ImportResult
-
-    captured = {}
-
-    def fake_import(*, ontology=None, shape=None, mapping=None, settings=None):
-        captured["ontology"] = ontology
-        return ImportResult(
-            ok=True,
-            files=(ImportedFile("ontology", "widget.ttl", "/rdf/ontology/widget.ttl", True),),
-            errors=(),
-        )
-
-    monkeypatch.setattr("app.routes.domain_models.import_domain", fake_import)
-    app = create_app()
-    response = app.test_client().post(
-        "/domain-models/import",
-        data={"ontology": (io.BytesIO(b"# turtle"), "widget.ttl")},
-        content_type="multipart/form-data",
-    )
-    assert response.status_code == 200
-    assert b"Imported" in response.data
-    assert captured["ontology"][0] == "widget.ttl"
-
-
-def test_domain_import_route_error(monkeypatch):
-    from semantic_platform.domain_models import ImportResult
-
-    monkeypatch.setattr(
-        "app.routes.domain_models.import_domain",
-        lambda **kwargs: ImportResult(ok=False, files=(), errors=("ontology (x.ttl): boom",)),
-    )
-    app = create_app()
-    response = app.test_client().post("/domain-models/import", data={})
-    assert response.status_code == 200
-    assert b"Import failed" in response.data
-    assert b"boom" in response.data
-
-
 def test_query_route_executes_post(monkeypatch):
     monkeypatch.setattr(
         "app.routes.query.run_local_query",

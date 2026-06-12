@@ -1,0 +1,23 @@
+{#- Global, context-aware agent panel — docked right rail, included app-wide.
+   Toggle via any [data-chat-toggle] control (topbar button, studio activity bar). -#}
+<aside class="chat-panel" id="chat-panel" aria-label="Assistant chat">
+  <header class="chat-panel__head">
+    <strong>Assistant</strong>
+    <span class="chat-panel__scope" id="chat-scope"></span>
+    <button class="icon-btn" type="button" id="chat-close" aria-label="Close chat" data-chat-toggle>×</button>
+  </header>
+  <div class="chat-panel__modes" role="tablist">
+    <button class="chat-mode is-active" type="button" data-mode="ask" role="tab">Ask this view</button>
+    <button class="chat-mode" type="button" data-mode="model" role="tab">Model a domain</button>
+  </div>
+  <div class="chat-panel__domain" id="chat-domain-row" hidden>
+    <label for="chat-domain">Domain</label>
+    <select id="chat-domain"></select>
+    <a href="{{ url_for('setup.domain_setup_view') }}">manage</a>
+  </div>
+  <div class="chat-panel__log" id="chat-log" aria-live="polite"></div>
+  <form class="chat-panel__form" id="chat-form">
+    <textarea id="chat-input" rows="2" placeholder="Ask about what you're looking at…" aria-label="Message"></textarea>
+    <button type="submit">Send</button>
+  </form>
+</aside>

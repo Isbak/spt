@@ -8,16 +8,13 @@ falls under a domain's ontology namespace belongs to that domain. Assets that
 match no declared ontology land in a synthetic "Shared / Core" bucket so nothing
 is silently dropped.
 
-The module also implements :func:`import_domain_files`, the write path behind the
-browser upload: it validates every supplied file (RDF syntax, plus R2RML
-governance metadata for mappings) and only writes — all files or none — once the
-whole bundle is valid.
+Authoring new domain content is handled by the governed Studio flow (ADR-0016);
+this module only assembles the read-only grouped view.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
 
 from rdflib import Graph, URIRef
 from rdflib.namespace import OWL, RDF, RDFS
@@ -26,13 +23,10 @@ from semantic_platform.config import Settings, load_settings
 from semantic_platform.graph import load_graph
 from semantic_platform.mappings import MappingRecord, discover_mapping_files, list_mappings
 from semantic_platform.ontology_version import ontology_metadata
-from semantic_platform.r2rdf import MAP, RR, load_r2rml_mapping, validate_mapping
+from semantic_platform.r2rdf import MAP, RR, load_r2rml_mapping
 from semantic_platform.shapes import ShapeRecord, list_shapes
 
 SHARED_LABEL = "Shared / Core"
-ONTOLOGY_SUFFIX = ".ttl"
-SHAPE_SUFFIX = ".ttl"
-MAPPING_SUFFIXES = (".ttl", ".r2rml")
 
 
 @dataclass(frozen=True)
@@ -50,25 +44,6 @@ class DomainModel:
     shapes: tuple[ShapeRecord, ...]
     mappings: tuple[MappingRecord, ...]
     is_shared: bool
-
-
-@dataclass(frozen=True)
-class ImportedFile:
-    """One file written by an import."""
-
-    kind: str
-    filename: str
-    target_path: str
-    written: bool
-
-
-@dataclass(frozen=True)
-class ImportResult:
-    """Outcome of importing a domain bundle."""
-
-    ok: bool
-    files: tuple[ImportedFile, ...]
-    errors: tuple[str, ...]
 
 
 def _base(iri: str) -> str:
@@ -193,91 +168,3 @@ def list_domain_models(settings: Settings | None = None) -> list[DomainModel]:
             )
         )
     return models
-
-
-def _sanitize(filename: str) -> str:
-    """Reduce an uploaded filename to a safe, directory-free name."""
-    name = Path(filename.replace("\x00", "")).name
-    allowed = "".join(ch for ch in name if ch.isalnum() or ch in "._-")
-    return allowed
-
-
-def _decode(content: bytes | str) -> str:
-    return content.decode("utf-8") if isinstance(content, bytes) else content
-
-
-def _validate_file(
-    kind: str,
-    spec: tuple[str, bytes | str],
-    target_dir: Path,
-    suffixes: tuple[str, ...],
-    *,
-    is_mapping: bool,
-) -> tuple[str | None, str, list[str]]:
-    """Validate one uploaded file; return (sanitized_name, text, errors)."""
-    filename, content = spec
-    errors: list[str] = []
-    name = _sanitize(filename)
-    if not name:
-        errors.append(f"{kind}: invalid or empty filename '{filename}'.")
-        return None, "", errors
-    if Path(name).suffix.lower() not in suffixes:
-        errors.append(f"{kind} ({name}): expected {' or '.join(suffixes)} file.")
-        return name, "", errors
-    resolved = (target_dir / name).resolve()
-    if resolved.parent != target_dir.resolve():
-        errors.append(f"{kind} ({name}): resolved path escapes the target directory.")
-        return name, "", errors
-    text = _decode(content)
-    graph = Graph()
-    try:
-        graph.parse(data=text, format="turtle")
-    except Exception as exc:  # noqa: BLE001 - surface any rdflib parse failure to the user
-        errors.append(f"{kind} ({name}): invalid Turtle syntax: {exc}")
-        return name, text, errors
-    if is_mapping:
-        result = validate_mapping(graph)
-        errors.extend(f"{kind} ({name}): {error}" for error in result.errors)
-    return name, text, errors
-
-
-def import_domain_files(
-    *,
-    ontology: tuple[str, bytes | str] | None = None,
-    shape: tuple[str, bytes | str] | None = None,
-    mapping: tuple[str, bytes | str] | None = None,
-    settings: Settings | None = None,
-) -> ImportResult:
-    """Validate and write a dropped-in domain bundle (ontology, shape, mapping).
-
-    All supplied files are validated first; nothing is written unless the whole
-    bundle is valid, so a failed import never leaves a partial set on disk.
-    """
-    settings = settings or load_settings()
-    plans = [
-        ("ontology", ontology, settings.ontology_dir, (ONTOLOGY_SUFFIX,), False),
-        ("shape", shape, settings.shapes_dir, (SHAPE_SUFFIX,), False),
-        ("mapping", mapping, settings.r2rml_dir, MAPPING_SUFFIXES, True),
-    ]
-    provided = [(kind, spec, target, suffixes, is_map) for kind, spec, target, suffixes, is_map in plans if spec]
-    if not provided:
-        return ImportResult(ok=False, files=(), errors=("No files provided.",))
-
-    errors: list[str] = []
-    writes: list[tuple[str, str, Path, str]] = []
-    for kind, spec, target_dir, suffixes, is_mapping in provided:
-        name, text, file_errors = _validate_file(kind, spec, target_dir, suffixes, is_mapping=is_mapping)
-        errors.extend(file_errors)
-        if not file_errors and name is not None:
-            writes.append((kind, name, target_dir, text))
-
-    if errors:
-        return ImportResult(ok=False, files=(), errors=tuple(errors))
-
-    written: list[ImportedFile] = []
-    for kind, name, target_dir, text in writes:
-        target_dir.mkdir(parents=True, exist_ok=True)
-        path = target_dir / name
-        path.write_text(text, encoding="utf-8")
-        written.append(ImportedFile(kind=kind, filename=name, target_path=str(path), written=True))
-    return ImportResult(ok=True, files=tuple(written), errors=())
