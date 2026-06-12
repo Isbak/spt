@@ -29,6 +29,130 @@ def test_studio_page_lists_domains(client_with_domain):
     html = client_with_domain.get("/studio").get_data(as_text=True)
     assert "Field Service" in html
     assert "Quick scaffold" in html
+    # The redesigned workbench chrome is present.
+    assert "wb-activitybar" in html
+    assert "Source Control" in html
+    assert "wb-statusbar" in html
+
+
+def _scaffold(client):
+    """Scaffold a small model into the field-service workspace."""
+    return client.post(
+        "/api/studio/chat",
+        json={
+            "domain_id": "field-service",
+            "answers": {
+                "domain_label": "Field Service",
+                "prefix": "fs",
+                "base_namespace": "https://example.org/fs#",
+                "classes": ["Technician", "WorkOrder"],
+                "properties": [],
+            },
+        },
+    )
+
+
+def test_studio_status_reports_changes(client_with_domain):
+    _scaffold(client_with_domain)  # scaffold commits, so the tree starts clean
+    client_with_domain.post(
+        "/api/studio/file",
+        json={"domain_id": "field-service", "path": "rdf/data/extra.ttl", "content": "# new\n"},
+    )
+    body = client_with_domain.get("/api/studio/status?domain_id=field-service").get_json()
+    assert body["branch"] == "authoring/field-service"
+    paths = {f["path"] for f in body["files"]}
+    assert "rdf/data/extra.ttl" in paths
+
+
+def test_studio_status_unknown_domain_is_empty(client):
+    body = client.get("/api/studio/status?domain_id=missing").get_json()
+    assert body == {"branch": "", "clean": True, "files": []}
+
+
+def test_studio_diff_returns_text(client_with_domain):
+    _scaffold(client_with_domain)
+    # Edit a committed file so there is an uncommitted diff to show.
+    client_with_domain.post(
+        "/api/studio/file",
+        json={
+            "domain_id": "field-service",
+            "path": "rdf/ontology/ontology.ttl",
+            "content": "# edited by test\n",
+        },
+    )
+    body = client_with_domain.get(
+        "/api/studio/diff?domain_id=field-service&path=rdf/ontology/ontology.ttl"
+    ).get_json()
+    assert "edited by test" in body["diff"]
+
+
+def test_studio_validate_workspace(client_with_domain):
+    _scaffold(client_with_domain)
+    body = client_with_domain.post(
+        "/api/studio/validate", json={"domain_id": "field-service"}
+    ).get_json()
+    assert body["ok"] is True
+    assert body["errors"] == 0
+    assert isinstance(body["problems"], list)
+
+
+def test_studio_validate_unknown_domain(client):
+    assert client.post("/api/studio/validate", json={"domain_id": "x"}).status_code == 404
+
+
+def test_studio_query_workspace(client_with_domain):
+    _scaffold(client_with_domain)
+    body = client_with_domain.post(
+        "/api/studio/query",
+        json={"domain_id": "field-service", "query": "SELECT ?s WHERE { ?s a owl:Class } LIMIT 5"},
+    ).get_json()
+    assert "rows" in body and "columns" in body
+
+
+def test_studio_query_bad_sparql_returns_error_inline(client_with_domain):
+    _scaffold(client_with_domain)
+    body = client_with_domain.post(
+        "/api/studio/query",
+        json={"domain_id": "field-service", "query": "NOT SPARQL"},
+    ).get_json()
+    assert "error" in body
+    assert body["rows"] == []
+
+
+def test_studio_analytics_workspace(client_with_domain):
+    _scaffold(client_with_domain)
+    body = client_with_domain.post(
+        "/api/studio/analytics", json={"domain_id": "field-service"}
+    ).get_json()
+    assert "triples" in body
+    assert body["class_count"] >= 1
+
+
+def test_studio_search_workspace(client_with_domain):
+    _scaffold(client_with_domain)
+    body = client_with_domain.post(
+        "/api/studio/search", json={"domain_id": "field-service", "query": "Technician"}
+    ).get_json()
+    assert "results" in body
+    assert isinstance(body["results"], list)
+
+
+def test_studio_analytics_unknown_domain(client):
+    assert client.post("/api/studio/analytics", json={"domain_id": "x"}).status_code == 404
+
+
+def test_studio_query_unknown_domain(client):
+    assert client.post("/api/studio/query", json={"domain_id": "x", "query": "SELECT * {}"}).status_code == 404
+
+
+def test_studio_search_unknown_domain(client):
+    assert client.post("/api/studio/search", json={"domain_id": "x", "query": "a"}).status_code == 404
+
+
+def test_studio_diff_unknown_domain_degrades(client):
+    body = client.get("/api/studio/diff?domain_id=x&path=a.ttl").get_json()
+    assert body["diff"] == ""
+    assert "error" in body
 
 
 def test_studio_chat_without_domain_prompts_setup(client):

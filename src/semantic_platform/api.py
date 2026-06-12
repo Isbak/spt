@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
+
+from rdflib import Graph
 
 from semantic_platform.advisory import (
     AdvisoryResult,
@@ -11,6 +14,7 @@ from semantic_platform.advisory import (
     candidates_from_graph,
     recommend,
 )
+from semantic_platform.analytics import analytics_summary
 from semantic_platform.agents.assist import ExplanationResult, generate_explanation
 from semantic_platform.agents.llm import (
     anthropic_configured,
@@ -19,7 +23,7 @@ from semantic_platform.agents.llm import (
 )
 from semantic_platform.authoring import workspace_config as wc
 from semantic_platform.authoring.assistant import AuthoringResult, author_model, chat_turn, open_pr
-from semantic_platform.authoring.gitrepo import GitRepo, PullRequestRef
+from semantic_platform.authoring.gitrepo import GitRepo, PullRequestRef, WorkspaceStatus
 from semantic_platform.authoring.scaffold import InterviewAnswers
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.domain_models import (
@@ -36,8 +40,15 @@ from semantic_platform.materialize import (
     push_to_fuseki,
 )
 from semantic_platform.query import execute_query, read_query, result_rows
+from semantic_platform.search import search_graph
 from semantic_platform.shapes import ShapeRecord, list_shapes
-from semantic_platform.validate import ShaclValidationReport, SyntaxValidationResult, run_validation
+from semantic_platform.validate import (
+    ShaclValidationReport,
+    SyntaxValidationResult,
+    run_validation,
+    validate_rdf_syntax,
+    validate_shacl,
+)
 
 
 def get_graph_stats(settings: Settings | None = None) -> GraphStats:
@@ -243,6 +254,117 @@ def commit_and_open_pr(
 ) -> PullRequestRef:
     """Commit the domain's authoring branch and open (or link) a Pull Request."""
     return open_pr(domain_id, title=title, body=body, settings=settings or load_settings())
+
+
+# --- Workspace knowledge-modelling operations (studio side panels / tool console) -------
+# These target the *domain content repository* (a sandboxed clone under WORKSPACE_ROOT),
+# never the platform's own ``rdf/`` tree, so validation/query/analytics reflect what the
+# user is authoring in the studio.
+
+_WORKSPACE_DATA_SUBDIRS = ("ontology", "vocabularies", "data")
+_WORKSPACE_SHAPES_SUBDIR = "shapes"
+
+
+def _workspace_root(domain_id: str, settings: Settings) -> Path:
+    """Return the local path of a domain repo, raising ``KeyError`` if unknown."""
+    domain = wc.get_domain(domain_id, settings)
+    if domain is None:
+        raise KeyError(domain_id)
+    return Path(domain.local_path)
+
+
+def _existing(paths: list[Path]) -> list[Path]:
+    return [path for path in paths if path.exists()]
+
+
+def _workspace_data_paths(root: Path) -> list[Path]:
+    return _existing([root / "rdf" / sub for sub in _WORKSPACE_DATA_SUBDIRS])
+
+
+def _workspace_shapes_paths(root: Path) -> list[Path]:
+    return _existing([root / "rdf" / _WORKSPACE_SHAPES_SUBDIR])
+
+
+def _workspace_graph(domain_id: str, settings: Settings) -> Graph:
+    """Load every RDF asset in a domain workspace into one in-memory graph."""
+    root = _workspace_root(domain_id, settings)
+    dirs = _workspace_data_paths(root) + _workspace_shapes_paths(root)
+    # ``load_graph([])`` returns an empty graph (it only falls back to platform
+    # defaults when ``paths is None``), so an empty workspace stays empty.
+    return load_graph(paths=dirs, settings=settings)
+
+
+def workspace_status(domain_id: str, settings: Settings | None = None) -> WorkspaceStatus:
+    """Return git working-tree status for a domain repo (empty when uninitialised)."""
+    settings = settings or load_settings()
+    domain = wc.get_domain(domain_id, settings)
+    if domain is None:
+        raise KeyError(domain_id)
+    repo = GitRepo(domain.local_path)
+    if not repo.exists:
+        return WorkspaceStatus(branch=f"authoring/{domain_id}", files=(), clean=True)
+    return repo.status()
+
+
+def workspace_diff(domain_id: str, relative_path: str, settings: Settings | None = None) -> str:
+    """Return the unified diff for one workspace file (``""`` when unavailable)."""
+    settings = settings or load_settings()
+    domain = wc.get_domain(domain_id, settings)
+    if domain is None:
+        raise KeyError(domain_id)
+    repo = GitRepo(domain.local_path)
+    return repo.diff(relative_path) if repo.exists else ""
+
+
+def validate_workspace(
+    domain_id: str, settings: Settings | None = None
+) -> tuple[list[SyntaxValidationResult], ShaclValidationReport]:
+    """Run RDF syntax + SHACL validation against a domain workspace's own assets."""
+    settings = settings or load_settings()
+    root = _workspace_root(domain_id, settings)
+    data_dirs = _workspace_data_paths(root)
+    shapes_dirs = _workspace_shapes_paths(root)
+    all_dirs = data_dirs + shapes_dirs
+    if not all_dirs:
+        return [], validate_shacl(data_graph=Graph(), shapes_graph=Graph(), settings=settings)
+    syntax = validate_rdf_syntax(paths=all_dirs, settings=settings)
+    data_graph = load_graph(paths=data_dirs, settings=settings) if data_dirs else Graph()
+    shapes_graph = load_graph(paths=shapes_dirs, settings=settings) if shapes_dirs else Graph()
+    report = validate_shacl(data_graph=data_graph, shapes_graph=shapes_graph, settings=settings)
+    return syntax, report
+
+
+def query_workspace(
+    domain_id: str, query_text: str, settings: Settings | None = None
+) -> list[dict[str, Any]]:
+    """Run a SELECT query against a domain workspace graph and return result rows."""
+    settings = settings or load_settings()
+    graph = _workspace_graph(domain_id, settings)
+    return result_rows(execute_query(query_text, graph))
+
+
+def workspace_analytics(domain_id: str, settings: Settings | None = None) -> dict[str, Any]:
+    """Return graph statistics + analytics for a domain workspace (preview metrics)."""
+    settings = settings or load_settings()
+    graph = _workspace_graph(domain_id, settings)
+    stats = graph_stats(graph)
+    summary = analytics_summary(graph=graph, settings=settings)
+    return {
+        **summary.as_dict(),
+        "triples": stats.triples,
+        "subjects": stats.subjects,
+        "predicates": stats.predicates,
+        "objects": stats.objects,
+    }
+
+
+def search_workspace(
+    domain_id: str, query: str, settings: Settings | None = None
+) -> list[dict[str, Any]]:
+    """Run a semantic search over a domain workspace graph and return matches."""
+    settings = settings or load_settings()
+    graph = _workspace_graph(domain_id, settings)
+    return [result.__dict__ for result in search_graph(query, graph=graph, settings=settings)]
 
 
 def advise(

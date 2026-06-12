@@ -2,27 +2,46 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from flask import Blueprint, jsonify, render_template, request
+from rdflib import RDF, Namespace
 
 from semantic_platform.api import (
     authoring_chat,
     authoring_generate,
     commit_and_open_pr,
+    get_model_config,
     list_domains,
+    query_workspace,
     read_workspace_file,
+    search_workspace,
+    validate_workspace,
+    workspace_analytics,
+    workspace_diff,
+    workspace_status,
     workspace_tree,
     write_workspace_file,
 )
 from semantic_platform.authoring.gitrepo import GitError
 from semantic_platform.authoring.scaffold import InterviewAnswers
+from semantic_platform.validate import ShaclValidationReport, SyntaxValidationResult
 
 studio_bp = Blueprint("studio", __name__)
+
+_SH = Namespace("http://www.w3.org/ns/shacl#")
+_SEVERITY = {
+    str(_SH.Violation): "error",
+    str(_SH.Warning): "warning",
+    str(_SH.Info): "info",
+}
 
 
 @studio_bp.get("/studio")
 def studio_view():
     """Render the modelling studio."""
-    return render_template("studio.html", domains=list_domains())
+    model = get_model_config()
+    return render_template("studio.html", domains=list_domains(), model=model)
 
 
 @studio_bp.get("/api/studio/tree")
@@ -115,3 +134,142 @@ def api_studio_pr():
             "message": ref.message,
         }
     )
+
+
+@studio_bp.get("/api/studio/status")
+def api_studio_status():
+    """Return git working-tree status for the selected domain (badges + branch)."""
+    domain_id = request.args.get("domain_id", "")
+    try:
+        status = workspace_status(domain_id)
+    except KeyError:
+        return jsonify({"branch": "", "clean": True, "files": []})
+    return jsonify(
+        {
+            "branch": status.branch,
+            "clean": status.clean,
+            "files": [
+                {"path": f.path, "code": f.code, "index": f.index, "worktree": f.worktree}
+                for f in status.files
+            ],
+        }
+    )
+
+
+@studio_bp.get("/api/studio/diff")
+def api_studio_diff():
+    """Return the unified diff for one workspace file."""
+    domain_id = request.args.get("domain_id", "")
+    path = request.args.get("path", "")
+    try:
+        return jsonify({"path": path, "diff": workspace_diff(domain_id, path)})
+    except (KeyError, GitError) as exc:
+        return jsonify({"path": path, "diff": "", "error": str(exc)})
+
+
+@studio_bp.post("/api/studio/validate")
+def api_studio_validate():
+    """Validate the selected domain workspace and return a flat problems list."""
+    payload = request.get_json(silent=True) or {}
+    domain_id = payload.get("domain_id", "")
+    try:
+        syntax, report = validate_workspace(domain_id)
+    except KeyError as exc:
+        return jsonify({"error": f"unknown domain: {exc}"}), 404
+    problems = _problems_from_validation(syntax, report)
+    errors = sum(1 for p in problems if p["severity"] == "error")
+    warnings = sum(1 for p in problems if p["severity"] == "warning")
+    return jsonify(
+        {"ok": not errors, "errors": errors, "warnings": warnings, "problems": problems}
+    )
+
+
+@studio_bp.post("/api/studio/query")
+def api_studio_query():
+    """Run a SPARQL SELECT against the domain workspace and return tabular rows."""
+    payload = request.get_json(silent=True) or {}
+    domain_id = payload.get("domain_id", "")
+    query_text = payload.get("query", "")
+    try:
+        rows = query_workspace(domain_id, query_text)
+    except KeyError as exc:
+        return jsonify({"error": f"unknown domain: {exc}"}), 404
+    except Exception as exc:  # noqa: BLE001 - surface any SPARQL parse/eval error inline
+        return jsonify({"columns": [], "rows": [], "error": str(exc)})
+    columns: list[str] = []
+    for row in rows:
+        for key in row:
+            if key not in columns:
+                columns.append(key)
+    return jsonify({"columns": columns, "rows": rows})
+
+
+@studio_bp.post("/api/studio/analytics")
+def api_studio_analytics():
+    """Return graph statistics and analytics for the domain workspace."""
+    payload = request.get_json(silent=True) or {}
+    domain_id = payload.get("domain_id", "")
+    try:
+        return jsonify(workspace_analytics(domain_id))
+    except KeyError as exc:
+        return jsonify({"error": f"unknown domain: {exc}"}), 404
+
+
+@studio_bp.post("/api/studio/search")
+def api_studio_search():
+    """Run a semantic search over the domain workspace graph."""
+    payload = request.get_json(silent=True) or {}
+    domain_id = payload.get("domain_id", "")
+    try:
+        return jsonify({"results": search_workspace(domain_id, payload.get("query", ""))})
+    except KeyError as exc:
+        return jsonify({"error": f"unknown domain: {exc}"}), 404
+
+
+def _workspace_relpath(path: Path) -> str:
+    """Render a syntax-result path as a workspace-relative path (for opening files)."""
+    parts = path.parts
+    if "rdf" in parts:
+        return "/".join(parts[parts.index("rdf"):])
+    return path.name
+
+
+def _problems_from_validation(
+    syntax: list[SyntaxValidationResult], report: ShaclValidationReport
+) -> list[dict]:
+    """Flatten syntax errors and SHACL violations into clickable problem rows."""
+    problems: list[dict] = []
+    for result in syntax:
+        if not result.valid:
+            problems.append(
+                {
+                    "severity": "error",
+                    "file": _workspace_relpath(result.path),
+                    "message": result.message or "RDF syntax error",
+                    "kind": "syntax",
+                }
+            )
+    if not report.conforms:
+        violations = list(report.report_graph.subjects(RDF.type, _SH.ValidationResult))
+        for node in violations:
+            message = report.report_graph.value(node, _SH.resultMessage)
+            severity = report.report_graph.value(node, _SH.resultSeverity)
+            focus = report.report_graph.value(node, _SH.focusNode)
+            problems.append(
+                {
+                    "severity": _SEVERITY.get(str(severity), "error"),
+                    "file": str(focus) if focus is not None else "",
+                    "message": str(message) if message is not None else "SHACL violation",
+                    "kind": "shacl",
+                }
+            )
+        if not violations:
+            problems.append(
+                {
+                    "severity": "error",
+                    "file": "",
+                    "message": report.report_text.strip() or "SHACL validation failed",
+                    "kind": "shacl",
+                }
+            )
+    return problems
