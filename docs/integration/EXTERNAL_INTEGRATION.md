@@ -16,13 +16,22 @@ mappings, the materialized RDF, or the provenance.
 
 | | Self-contained (default) | External |
 |---|---|---|
-| Relational source | in-memory SQLite from `mappings/sql/*.sql` | warehouse via `SOURCE_DATABASE_URL` |
-| Serving layer | optional / local Fuseki | external Apache Jena via `FUSEKI_*` |
+| Relational source | in-memory SQLite from `mappings/sql/*.sql` | per-role warehouse via `SOURCE_<ROLE>_DATABASE_URL` (or shared `SOURCE_DATABASE_URL`) |
+| Serving layer | optional / local Fuseki | external Apache Jena via `FUSEKI_<ROLE>_*` (or shared `FUSEKI_*`) |
 | Extra dependencies | none | DB driver (e.g. `snowflake-sqlalchemy`) |
 | Network required | no | yes |
 
 The mapping files, the materialization engine, and the output are identical in both
 modes — only where the rows come from and where the graphs are served change.
+
+Storage is split into three independently placeable roles (ADR-0017): **system** (the
+platform's own model — always local), **agents** (registry/memory + lineage), and
+**business** (domain/reference/instance data). A mapping's `map:targetGraph` selects its
+role, which selects **both** the warehouse it reads from and the Fuseki dataset it is
+served to — so you can, e.g., keep system local while reading and serving business from a
+remote warehouse + Jena. Each role's settings fall back to the shared
+`SOURCE_DATABASE_URL` / `FUSEKI_*`, so a single value still configures every role at once
+(backward compatible).
 
 ---
 
@@ -32,43 +41,52 @@ The relevant variables live in `.env.example` under **External integration
 (OPTIONAL)**. Keep them commented for self-contained; uncomment to go external.
 
 ```bash
+# Place ONLY the business role remotely (system + agents stay local):
 # External data warehouse (Snowflake example) — requires: pip install "snowflake-sqlalchemy"
-SOURCE_DATABASE_URL=snowflake://USER:PASSWORD@ACCOUNT/DATABASE/SCHEMA?warehouse=WAREHOUSE&role=ROLE
+SOURCE_BUSINESS_DATABASE_URL=snowflake://USER:PASSWORD@ACCOUNT/DATABASE/SCHEMA?warehouse=WAREHOUSE&role=ROLE
 
-# External Apache Jena / Fuseki
-FUSEKI_BASE_URL=https://jena.example.org:3030
-FUSEKI_DATASET=semantic-platform
-FUSEKI_USERNAME=...
-FUSEKI_PASSWORD=...
+# External Apache Jena / Fuseki for the business dataset
+FUSEKI_BUSINESS_BASE_URL=https://jena.example.org:3030
+FUSEKI_BUSINESS_DATASET=semantic-platform-business
+FUSEKI_BUSINESS_USERNAME=...
+FUSEKI_BUSINESS_PASSWORD=...
+
+# …or move EVERY role at once with the shared variables:
+# SOURCE_DATABASE_URL=…    FUSEKI_BASE_URL=…    FUSEKI_DATASET=…
 ```
 
-- **`SOURCE_DATABASE_URL`** — any SQLAlchemy URL. When unset, the self-contained
-  SQLite source is used. When set to a non-SQLite URL, the platform connects through
-  SQLAlchemy, so the matching driver must be installed.
-- **`FUSEKI_*`** — point these at the remote Jena. They already exist for the local
-  docker-compose Fuseki; external mode just repoints them.
+- **`SOURCE_<ROLE>_DATABASE_URL`** (`business`/`agents`) — any SQLAlchemy URL; falls back
+  to the shared `SOURCE_DATABASE_URL`. When unset, the self-contained SQLite source is
+  used. A non-SQLite URL connects through SQLAlchemy, so the matching driver must be
+  installed. `system` has no source (it is authored from `rdf/` files).
+- **`FUSEKI_<ROLE>_*`** — point a role's dataset at a remote Jena; falls back to the shared
+  `FUSEKI_*`. They already exist for the local docker-compose Fuseki; external mode just
+  repoints the role(s) you want remote.
 
 ---
 
 ## 3. How it works
 
 ### Source resolution
-`semantic_platform.materialize.resolve_row_source` picks the source from settings:
+`semantic_platform.materialize.resolve_row_source(settings, role)` picks the source for a
+role's bundle (`settings.source(role)`):
 
-- no `SOURCE_DATABASE_URL` → in-memory SQLite from `mappings/sql/*.sql`
+- no role URL (nor shared `SOURCE_DATABASE_URL`) → in-memory SQLite from `mappings/sql/*.sql`
 - `sqlite:///path` → that SQLite file
 - anything else (e.g. `snowflake://…`, `postgresql://…`) → a SQLAlchemy engine
   (lazy import; raises a clear error if SQLAlchemy/driver is missing)
 
-Each mapping's `rr:logicalTable` (`rr:sqlQuery` or `rr:tableName`) is executed
-against that source, so the **same R2RML mapping works unchanged** against the
-warehouse.
+`materialize_mappings` reads each mapping's `map:targetGraph`, resolves the role via
+`named_graphs.dataset_for_graph`, and fetches from that role's source (resolved once per
+role). Each mapping's `rr:logicalTable` (`rr:sqlQuery` or `rr:tableName`) is executed
+against that source, so the **same R2RML mapping works unchanged** against the warehouse.
 
 ### Serving
-`semantic_platform.fuseki.FusekiClient` uses the Graph Store Protocol (HTTP `PUT`)
-to upload each materialized graph into its `map:targetGraph`, and SPARQL `POST` to
-read counts back. `push_to_fuseki` is best-effort: if the server is unreachable it
-skips rather than fails.
+`semantic_platform.fuseki.FusekiClient.for_graph(uri)` binds to the dataset for a graph's
+role and uses the Graph Store Protocol (HTTP `PUT`) to upload each materialized graph into
+its `map:targetGraph`, and SPARQL `POST` to read counts back. `push_to_fuseki` routes each
+graph to its role's dataset and is best-effort per dataset: if a server is unreachable its
+graphs are skipped rather than failed.
 
 ---
 

@@ -29,6 +29,7 @@ from semantic_platform.domain_models import (
     list_domain_models,
 )
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
+from semantic_platform.named_graphs import dataset_for_graph
 from semantic_platform.graph import GraphStats, graph_stats, load_graph
 from semantic_platform.materialize import (
     FusekiLoadResult,
@@ -96,9 +97,8 @@ def fuseki_health(settings: Settings | None = None) -> FusekiStatus:
 
 
 def upload_default_graphs(settings: Settings | None = None) -> None:
-    """Upload ontology, vocabulary and data assets to named graphs."""
+    """Upload ontology, vocabulary and data assets to their per-role named graphs."""
     settings = settings or load_settings()
-    client = FusekiClient(settings=settings)
     graph_map = {
         settings.ontology_dir / "core.ttl": "urn:semantic-platform:graph:ontology",
         settings.vocabularies_dir / "example-skos.ttl": "urn:semantic-platform:graph:reference",
@@ -106,7 +106,7 @@ def upload_default_graphs(settings: Settings | None = None) -> None:
     }
     for path, graph_uri in graph_map.items():
         if path.exists():
-            client.upload_graph(path, graph_uri)
+            FusekiClient.for_graph(graph_uri, settings=settings).upload_graph(path, graph_uri)
 
 
 def materialize_sources(settings: Settings | None = None) -> list[MaterializationResult]:
@@ -283,17 +283,34 @@ def fuseki_graph_triple_counts(
 ) -> dict[str, int]:
     """Return live triple counts for named graphs served by Fuseki.
 
-    Used to confirm that materialized data is actually queryable from an
-    available Apache Jena instance. Returns an empty mapping when Fuseki is
-    unreachable so callers can degrade gracefully.
+    Each graph is queried against the dataset for its role, so counts are correct even
+    when graphs live on different (local or remote) datasets. Used to confirm that
+    materialized data is actually queryable from an available Apache Jena instance.
+    Returns an empty mapping when Fuseki is unreachable so callers can degrade gracefully.
+    Pass ``client`` to force every graph onto one dataset (used in tests).
     """
     settings = settings or load_settings()
-    client = client or FusekiClient(settings=settings)
-    if not client.health_check().ok:
-        return {}
+    clients: dict[str, FusekiClient] = {}
+
+    def client_for(graph_uri: str) -> FusekiClient:
+        if client is not None:
+            return client
+        role = dataset_for_graph(graph_uri)
+        if role not in clients:
+            clients[role] = FusekiClient(settings=settings, dataset=role)
+        return clients[role]
+
+    health: dict[int, bool] = {}
     counts: dict[str, int] = {}
     for graph_uri in graphs:
-        response = client.execute_query(
+        target_client = client_for(graph_uri)
+        ok = health.get(id(target_client))
+        if ok is None:
+            ok = target_client.health_check().ok
+            health[id(target_client)] = ok
+        if not ok:
+            continue
+        response = target_client.execute_query(
             f"SELECT (COUNT(*) AS ?count) WHERE {{ GRAPH <{graph_uri}> {{ ?s ?p ?o }} }}"
         )
         bindings = response.get("results", {}).get("bindings", [])

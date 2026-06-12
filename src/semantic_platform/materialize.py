@@ -28,10 +28,12 @@ from pathlib import Path
 import sqlite3
 from typing import Any, Protocol, runtime_checkable
 
+from rdflib import Graph
 from rdflib.namespace import RDF
 
-from semantic_platform.config import Settings, load_settings
+from semantic_platform.config import Settings, SourceDatabase, load_settings
 from semantic_platform.fuseki import FusekiClient
+from semantic_platform.named_graphs import dataset_for_graph
 from semantic_platform.r2rdf import (
     MAP,
     RR,
@@ -86,29 +88,32 @@ class SqliteRowSource:
         self._connection.close()
 
 
-def _sql_files(settings: Settings) -> list[Path]:
-    """Return the SQL files used to build the self-contained source."""
-    if settings.source_sql_files:
-        return [path for path in settings.source_sql_files if path.exists()]
-    if not settings.sql_dir.exists():
+def _sql_files(source: SourceDatabase) -> list[Path]:
+    """Return the SQL files used to build a role's self-contained source."""
+    if source.sql_files:
+        return [path for path in source.sql_files if path.exists()]
+    if not source.sql_dir.exists():
         return []
-    return sorted(settings.sql_dir.glob("*.sql"))
+    return sorted(source.sql_dir.glob("*.sql"))
 
 
-def resolve_row_source(settings: Settings | None = None) -> RowSource:
-    """Resolve the configured relational source.
+def resolve_row_source(settings: Settings | None = None, role: str = "business") -> RowSource:
+    """Resolve the relational source for a storage ``role``.
 
-    Uses ``SOURCE_DATABASE_URL`` when set (live data platform); otherwise builds
-    a self-contained in-memory SQLite database from ``mappings/sql/*.sql``.
+    Each role (``business``/``agents``) has its own source bundle, so the warehouse a
+    mapping reads from is chosen the same way as the dataset it is served to. Uses the
+    role's ``SOURCE_{ROLE}_DATABASE_URL`` when set (live data platform); otherwise builds
+    a self-contained in-memory SQLite database from the role's ``*.sql`` files.
     """
     settings = settings or load_settings()
-    url = settings.source_database_url
+    source = settings.source(role)
+    url = source.database_url
     if not url:
-        return SqliteRowSource.from_sql_files(_sql_files(settings))
+        return SqliteRowSource.from_sql_files(_sql_files(source))
     if url.startswith("sqlite:///"):
         return SqliteRowSource.from_database_file(url.removeprefix("sqlite:///"))
     if url.startswith("sqlite://"):  # in-memory sqlite:// URL
-        return SqliteRowSource.from_sql_files(_sql_files(settings))
+        return SqliteRowSource.from_sql_files(_sql_files(source))
     return _sqlalchemy_source(url)
 
 
@@ -153,11 +158,17 @@ def materialize_mapping(
     mapping_path: Path | str,
     source: RowSource,
     settings: Settings | None = None,
+    *,
+    mapping_graph: Graph | None = None,
 ) -> MaterializationResult:
-    """Materialize one mapping file into a Turtle graph written to ``output/``."""
+    """Materialize one mapping file into a Turtle graph written to ``output/``.
+
+    ``mapping_graph`` may be supplied when the caller has already parsed the mapping
+    (e.g. to read its target graph for source routing) to avoid re-parsing.
+    """
     settings = settings or load_settings()
     mapping_path = Path(mapping_path)
-    mapping_graph = load_r2rml_mapping(mapping_path)
+    mapping_graph = mapping_graph if mapping_graph is not None else load_r2rml_mapping(mapping_path)
     validation = validate_mapping(mapping_graph)
     if not validation.valid:
         raise ValueError(f"{mapping_path.name}: {'; '.join(validation.errors)}")
@@ -182,13 +193,35 @@ def materialize_mapping(
 
 
 def materialize_mappings(settings: Settings | None = None) -> list[MaterializationResult]:
-    """Materialize every discovered mapping file against the configured source."""
+    """Materialize every discovered mapping against the source for its target role.
+
+    Each mapping's ``map:targetGraph`` selects the storage role (via
+    :func:`dataset_for_graph`), which selects both the warehouse it reads from and the
+    Fuseki dataset it is ultimately served to. Sources are resolved once per role and
+    reused across mappings.
+    """
     settings = settings or load_settings()
-    source = resolve_row_source(settings)
+    sources: dict[str, RowSource] = {}
+
+    def source_for(role: str) -> RowSource:
+        if role not in sources:
+            sources[role] = resolve_row_source(settings, role)
+        return sources[role]
+
     try:
-        return [materialize_mapping(path, source, settings) for path in mapping_files(settings)]
+        results: list[MaterializationResult] = []
+        for path in mapping_files(settings):
+            mapping_graph = load_r2rml_mapping(path)
+            triples_map = next(mapping_graph.subjects(RDF.type, RR.TriplesMap))
+            target_graph = str(next(mapping_graph.objects(triples_map, MAP.targetGraph)))
+            role = dataset_for_graph(target_graph)
+            results.append(
+                materialize_mapping(path, source_for(role), settings, mapping_graph=mapping_graph)
+            )
+        return results
     finally:
-        source.close()
+        for source in sources.values():
+            source.close()
 
 
 @dataclass(frozen=True)
@@ -208,19 +241,38 @@ def push_to_fuseki(
 ) -> list[FusekiLoadResult]:
     """Upload materialized graphs into their ``map:targetGraph`` named graphs.
 
-    Best-effort: when Fuseki is unreachable the load is skipped (not failed) so
-    local materialization and CI remain green without a running server.
+    Each graph is routed to the Fuseki dataset for its role (the same rule that selected
+    its source warehouse), so a single run can serve different graphs to different — local
+    or remote — datasets. Pass ``client`` to force every graph onto one dataset (used in
+    tests). Best-effort: when a dataset is unreachable its graphs are skipped (not failed)
+    so local materialization and CI remain green without a running server.
     """
     settings = settings or load_settings()
-    client = client or FusekiClient(settings=settings)
-    status = client.health_check()
-    if not status.ok:
-        return [
-            FusekiLoadResult(item.target_graph, item.output_path, False, f"Fuseki unavailable: {status.message}")
-            for item in results
-        ]
+    clients: dict[str, FusekiClient] = {}
+
+    def client_for(graph_uri: str) -> FusekiClient:
+        if client is not None:
+            return client
+        role = dataset_for_graph(graph_uri)
+        if role not in clients:
+            clients[role] = FusekiClient(settings=settings, dataset=role)
+        return clients[role]
+
+    statuses: dict[int, Any] = {}
     loads: list[FusekiLoadResult] = []
     for item in results:
-        client.upload_graph(item.output_path, item.target_graph)
+        target_client = client_for(item.target_graph)
+        status = statuses.get(id(target_client))
+        if status is None:
+            status = target_client.health_check()
+            statuses[id(target_client)] = status
+        if not status.ok:
+            loads.append(
+                FusekiLoadResult(
+                    item.target_graph, item.output_path, False, f"Fuseki unavailable: {status.message}"
+                )
+            )
+            continue
+        target_client.upload_graph(item.output_path, item.target_graph)
         loads.append(FusekiLoadResult(item.target_graph, item.output_path, True, "loaded"))
     return loads

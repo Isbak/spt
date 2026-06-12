@@ -7,10 +7,52 @@ from dataclasses import dataclass
 from rdflib import Graph, Namespace, URIRef
 from rdflib.namespace import DCTERMS, RDF, RDFS
 
-from semantic_platform.config import Settings, load_settings
+from semantic_platform.config import DATASET_ROLES, Settings, load_settings
 from semantic_platform.graph import load_graph
 
 GOV = Namespace("https://example.org/semantic-platform/governance#")
+
+#: Maps a named graph (by local name) to its storage role (ADR-0017). This is the single
+#: source of truth used to route both the relational source a mapping reads from and the
+#: Fuseki dataset its output is served to. Graphs not listed default to ``"business"``
+#: (domain/instance data is the open-ended category).
+GRAPH_DATASET_ROUTING: dict[str, str] = {
+    # system: graphs the platform authors or generates itself (never warehouse-sourced).
+    "ontology": "system",
+    "governance": "system",
+    "reasoning": "system",
+    "inferred": "system",
+    "validation": "system",
+    # agents+lineage: agent registry/memory/observations + PROV-O provenance.
+    "provenance": "agents",
+    "agents": "agents",
+    # business: domain/reference/instance data (any graph an R2RML mapping can target).
+    "reference": "business",
+    "masterdata": "business",
+    "transactional": "business",
+    "integration": "business",
+    "sandbox": "business",
+    # Legacy graph name used by api.upload_default_graphs for instance data.
+    "data": "business",
+}
+
+
+def _graph_local_name(graph_uri: str) -> str:
+    """Return the trailing token of a graph URI (handles ``urn:graph:<x>`` and variants)."""
+    text = str(graph_uri)
+    for separator in ("#", "/", ":"):
+        if separator in text:
+            text = text.rsplit(separator, 1)[-1]
+    return text
+
+
+def dataset_for_graph(graph_uri: str) -> str:
+    """Return the storage role (``system``/``agents``/``business``) for a named graph.
+
+    Unknown graphs route to ``"business"`` so domain/instance graphs work without being
+    enumerated. Used symmetrically for source selection and served-graph upload.
+    """
+    return GRAPH_DATASET_ROUTING.get(_graph_local_name(graph_uri), "business")
 
 
 @dataclass(frozen=True)
@@ -26,6 +68,7 @@ class NamedGraphRecord:
     lifecycle_status: str | None
     intended_use: str | None
     allowed_write_pattern: str | None
+    stored_in_dataset: str | None
 
 
 def _label(graph: Graph, node: URIRef | None) -> str | None:
@@ -57,6 +100,7 @@ def list_named_graphs(graph: Graph | None = None, settings: Settings | None = No
                 lifecycle_status=_label(graph, graph.value(graph_ref, GOV.hasLifecycleStatus)),
                 intended_use=str(graph.value(graph_ref, GOV.intendedUse) or "") or None,
                 allowed_write_pattern=_label(graph, graph.value(graph_ref, GOV.hasAllowedWritePattern)),
+                stored_in_dataset=str(graph.value(graph_ref, GOV.storedInDataset) or "") or None,
             )
         )
     return records
@@ -75,10 +119,15 @@ def validate_named_graph_metadata(graph: Graph | None = None, settings: Settings
             "lifecycle status": record.lifecycle_status,
             "intended use": record.intended_use,
             "allowed write pattern": record.allowed_write_pattern,
+            "stored-in dataset": record.stored_in_dataset,
         }
         for name, value in required.items():
             if not value:
                 errors.append(f"{record.graph} is missing {name}")
+        if record.stored_in_dataset and record.stored_in_dataset not in DATASET_ROLES:
+            errors.append(
+                f"{record.graph} has unknown storedInDataset {record.stored_in_dataset!r}"
+            )
     return errors
 
 

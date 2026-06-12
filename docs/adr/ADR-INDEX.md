@@ -18,3 +18,4 @@
 | ADR-0014 | Generic governed advisory / optimization capability |
 | ADR-0015 | Domain models |
 | ADR-0016 | Governed conversational authoring (modelling studio) |
+| ADR-0017 | Multi-dataset storage topology (system / agents+lineage / business) |

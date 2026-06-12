@@ -8,7 +8,12 @@ services:
     container_name: semantic-platform-fuseki
     environment:
       ADMIN_PASSWORD: ${FUSEKI_ADMIN_PASSWORD:-admin}
-      FUSEKI_DATASET_1: ${FUSEKI_DATASET:-semantic-platform}
+      # Three per-role datasets (ADR-0017): system / agents+lineage / business. All run
+      # locally in this container by default; point a role's FUSEKI_<ROLE>_BASE_URL at an
+      # external Jena to place that role remotely instead.
+      FUSEKI_DATASET_1: ${FUSEKI_SYSTEM_DATASET:-${FUSEKI_DATASET:-semantic-platform}}
+      FUSEKI_DATASET_2: ${FUSEKI_AGENTS_DATASET:-semantic-platform-agents}
+      FUSEKI_DATASET_3: ${FUSEKI_BUSINESS_DATASET:-semantic-platform-business}
     ports:
       - "${FUSEKI_PORT:-3030}:3030"
     volumes:
@@ -24,10 +29,19 @@ services:
     container_name: semantic-platform-flask
     environment:
       SEMANTIC_PLATFORM_ROOT: /app
+      # Shared default for any role whose own FUSEKI_<ROLE>_BASE_URL is unset.
       FUSEKI_BASE_URL: http://fuseki:3030
-      FUSEKI_DATASET: ${FUSEKI_DATASET:-semantic-platform}
       FUSEKI_USERNAME: ${FUSEKI_USERNAME:-}
       FUSEKI_PASSWORD: ${FUSEKI_PASSWORD:-}
+      # Per-role datasets/placement (ADR-0017). Set FUSEKI_<ROLE>_BASE_URL to point a role
+      # at an external Jena, and SOURCE_<ROLE>_DATABASE_URL at an external warehouse.
+      FUSEKI_SYSTEM_DATASET: ${FUSEKI_SYSTEM_DATASET:-${FUSEKI_DATASET:-semantic-platform}}
+      FUSEKI_AGENTS_DATASET: ${FUSEKI_AGENTS_DATASET:-semantic-platform-agents}
+      FUSEKI_BUSINESS_DATASET: ${FUSEKI_BUSINESS_DATASET:-semantic-platform-business}
+      FUSEKI_AGENTS_BASE_URL: ${FUSEKI_AGENTS_BASE_URL:-}
+      FUSEKI_BUSINESS_BASE_URL: ${FUSEKI_BUSINESS_BASE_URL:-}
+      SOURCE_BUSINESS_DATABASE_URL: ${SOURCE_BUSINESS_DATABASE_URL:-${SOURCE_DATABASE_URL:-}}
+      SOURCE_AGENTS_DATABASE_URL: ${SOURCE_AGENTS_DATABASE_URL:-}
       FLASK_HOST: 0.0.0.0
       ORCHESTRATION_ENABLED: "true"
       EXECUTION_ENABLED: "true"
