@@ -6,7 +6,7 @@ from rdflib import URIRef
 from rdflib.namespace import RDF, RDFS
 
 from semantic_platform.analytics import provenance_metrics
-from semantic_platform.config import load_settings
+from semantic_platform.config import Settings, load_settings
 from semantic_platform.graph import load_graph
 from semantic_platform.provenance import PROV
 
@@ -15,9 +15,9 @@ def _label(graph, node):
     return str(graph.value(node, RDFS.label) or node)
 
 
-def provenance_view_data() -> dict[str, object]:
-    """Return PROV-O lineage nodes and edges."""
-    settings = load_settings()
+def provenance_view_data(settings: Settings | None = None) -> dict[str, object]:
+    """Return PROV-O lineage nodes and edges for the given context."""
+    settings = settings or load_settings()
     graph = load_graph([settings.vocabularies_dir, settings.data_dir], settings=settings)
     activities = [
         {
