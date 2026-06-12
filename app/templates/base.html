@@ -14,6 +14,9 @@
       })();
     </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <meta name="chat-context"
+          data-scope="{{ page_context.scope if page_context else 'reference' }}"
+          data-label="{{ page_context.label if page_context else 'Platform' }}">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -23,6 +26,7 @@
     {%- set nav_top = [
       ('index', 'Home'),
       ('health.health_view', 'Health'),
+      ('studio.studio_view', 'Studio'),
     ] -%}
     {%- set nav_groups = [
       ('Knowledge Graph', [
@@ -104,6 +108,10 @@
         ('fabric.federation_view', 'Federation'),
         ('fabric.interoperability_view', 'Interoperability'),
       ]),
+      ('Settings', [
+        ('setup.model_setup_view', 'Model Setup'),
+        ('setup.domain_setup_view', 'Domain Repos'),
+      ]),
     ] -%}
 
     {%- macro nav_link(endpoint, label) -%}
@@ -148,6 +156,31 @@
     </div>
     <div class="sidebar-backdrop" hidden></div>
 
+    {#- Global, context-aware chat drawer (rendered on every page). -#}
+    <button class="chat-fab" type="button" id="chat-fab" aria-controls="chat-panel" aria-expanded="false" title="Open chat">💬</button>
+    <aside class="chat-panel" id="chat-panel" aria-label="Assistant chat" hidden>
+      <header class="chat-panel__head">
+        <strong>Assistant</strong>
+        <span class="chat-panel__scope" id="chat-scope"></span>
+        <button class="icon-btn" type="button" id="chat-close" aria-label="Close chat">×</button>
+      </header>
+      <div class="chat-panel__modes" role="tablist">
+        <button class="chat-mode is-active" type="button" data-mode="ask" role="tab">Ask this view</button>
+        <button class="chat-mode" type="button" data-mode="model" role="tab">Model a domain</button>
+      </div>
+      <div class="chat-panel__domain" id="chat-domain-row" hidden>
+        <label for="chat-domain">Domain</label>
+        <select id="chat-domain"></select>
+        <a href="{{ url_for('setup.domain_setup_view') }}">manage</a>
+      </div>
+      <div class="chat-panel__log" id="chat-log" aria-live="polite"></div>
+      <form class="chat-panel__form" id="chat-form">
+        <textarea id="chat-input" rows="2" placeholder="Ask about what you're looking at…" aria-label="Message"></textarea>
+        <button type="submit">Send</button>
+      </form>
+    </aside>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chat-panel.js') }}"></script>
   </body>
 </html>

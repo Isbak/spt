@@ -16,3 +16,5 @@
 | ADR-0012 | Drop-in source materialization |
 | ADR-0013 | Governed read-only LLM assist for agents |
 | ADR-0014 | Generic governed advisory / optimization capability |
+| ADR-0015 | Domain models |
+| ADR-0016 | Governed conversational authoring (modelling studio) |

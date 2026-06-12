@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header %}
+{% block title %}Modelling Studio{% endblock %}
+{% block content %}
+{{ page_header("Knowledge Modelling Studio",
+   subtitle="Scaffold and edit a domain model, validate it, and open a Pull Request for review. Use the chat (💬, 'Model a domain') to talk through requirements.") }}
+
+{% if not domains %}
+<p class="empty">No domains configured. Add one under
+  <a href="{{ url_for('setup.domain_setup_view') }}">Settings → Domain Repos</a> to begin.</p>
+{% else %}
+<div class="studio">
+  <div class="studio__bar">
+    <label for="studio-domain">Domain</label>
+    <select id="studio-domain">
+      {% for d in domains %}<option value="{{ d.domain_id }}">{{ d.label }}</option>{% endfor %}
+    </select>
+    <button type="button" id="pr-btn">Open Pull Request</button>
+    <span class="metadata" id="pr-result"></span>
+  </div>
+
+  <details class="studio__scaffold">
+    <summary>Quick scaffold</summary>
+    <div class="stack">
+      <label>Domain label <input id="sc-label" value="My Domain"></label>
+      <label>Prefix <input id="sc-prefix" value="ex"></label>
+      <label>Base namespace <input id="sc-ns" value="https://example.org/domain#"></label>
+      <label>Classes (comma-separated) <input id="sc-classes" placeholder="Technician, WorkOrder"></label>
+      <button type="button" id="scaffold-btn">Generate</button>
+    </div>
+  </details>
+
+  <div class="studio__main">
+    <aside class="studio__tree">
+      <h3>Files</h3>
+      <ul id="file-tree"></ul>
+    </aside>
+    <section class="studio__editor">
+      <div class="studio__editor-bar">
+        <span id="current-file" class="metadata">No file open</span>
+        <button type="button" id="save-btn" disabled>Save</button>
+      </div>
+      <textarea id="editor" spellcheck="false" placeholder="Select a file to edit…"></textarea>
+      <p class="metadata" id="validation"></p>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  var domainSel = document.getElementById("studio-domain");
+  var tree = document.getElementById("file-tree");
+  var editor = document.getElementById("editor");
+  var current = document.getElementById("current-file");
+  var saveBtn = document.getElementById("save-btn");
+  var validation = document.getElementById("validation");
+  var openPath = null;
+
+  function domain() { return domainSel.value; }
+  function jpost(url, body) {
+    return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
+  }
+
+  function loadTree() {
+    fetch("/api/studio/tree?domain_id=" + encodeURIComponent(domain()))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        tree.innerHTML = "";
+        (d.files || []).forEach(function (path) {
+          var li = document.createElement("li");
+          var a = document.createElement("a");
+          a.href = "#"; a.textContent = path;
+          a.addEventListener("click", function (e) { e.preventDefault(); openFile(path); });
+          li.appendChild(a); tree.appendChild(li);
+        });
+        if (!(d.files || []).length) tree.innerHTML = "<li class='empty'>No files yet — scaffold or chat to begin.</li>";
+      });
+  }
+
+  function openFile(path) {
+    fetch("/api/studio/file?domain_id=" + encodeURIComponent(domain()) + "&path=" + encodeURIComponent(path))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d.error) { validation.textContent = d.error; return; }
+        openPath = path; current.textContent = path; editor.value = d.content; saveBtn.disabled = false;
+      });
+  }
+
+  saveBtn.addEventListener("click", function () {
+    if (!openPath) return;
+    jpost("/api/studio/file", { domain_id: domain(), path: openPath, content: editor.value })
+      .then(function (res) { validation.textContent = res.ok ? "Saved " + openPath : (res.data.error || "Save failed"); });
+  });
+
+  document.getElementById("scaffold-btn").addEventListener("click", function () {
+    var classes = document.getElementById("sc-classes").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    jpost("/api/studio/chat", {
+      domain_id: domain(),
+      answers: {
+        domain_label: document.getElementById("sc-label").value,
+        prefix: document.getElementById("sc-prefix").value,
+        base_namespace: document.getElementById("sc-ns").value,
+        classes: classes,
+        properties: []
+      }
+    }).then(function (res) {
+      validation.textContent = res.data.reply || "";
+      loadTree();
+    });
+  });
+
+  document.getElementById("pr-btn").addEventListener("click", function () {
+    var out = document.getElementById("pr-result");
+    out.textContent = "Working…";
+    jpost("/api/studio/pr", { domain_id: domain() }).then(function (res) {
+      var d = res.data;
+      if (d.pull_request_url) out.innerHTML = 'PR: <a href="' + d.pull_request_url + '">' + d.pull_request_url + "</a>";
+      else if (d.compare_url) out.innerHTML = '<a href="' + d.compare_url + '">' + d.message + "</a>";
+      else out.textContent = d.message || "Done.";
+    });
+  });
+
+  domainSel.addEventListener("change", function () { editor.value = ""; openPath = null; current.textContent = "No file open"; saveBtn.disabled = true; loadTree(); });
+  loadTree();
+})();
+</script>
+{% endif %}
+{% endblock %}

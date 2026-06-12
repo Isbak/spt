@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
+from app.page_context import resolve_page_context
 from app.routes.advisory import advisory_bp
 from app.routes.agents import agents_bp
+from app.routes.chat import chat_bp
 from app.routes.graph import graph_bp
 from app.routes.health import health_bp
 from app.routes.governance import governance_bp
@@ -20,6 +22,8 @@ from app.routes.provenance import provenance_bp
 from app.routes.ontology import ontology_bp
 from app.routes.query import query_bp
 from app.routes.reasoning import reasoning_bp
+from app.routes.setup import setup_bp
+from app.routes.studio import studio_bp
 from app.routes.visualization import visualization_bp
 from app.routes.materialization import materialization_bp
 from app.routes.mappings import integration_bp, mapping_lineage_bp, mappings_bp, source_catalog_bp
@@ -51,6 +55,14 @@ def create_app() -> Flask:
     app.register_blueprint(execution_bp)
     app.register_blueprint(multi_agent_bp)
     app.register_blueprint(fabric_bp)
+    app.register_blueprint(chat_bp)
+    app.register_blueprint(setup_bp)
+    app.register_blueprint(studio_bp)
+
+    @app.context_processor
+    def inject_page_context():
+        """Expose the current view's chat scope to every template."""
+        return {"page_context": resolve_page_context(request.endpoint)}
 
     @app.get("/")
     def index():

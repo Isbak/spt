@@ -161,6 +161,20 @@ service planner and dispatcher); core code carries no domain assumptions.
 Carrying out an approved recommendation stays the job of the approval-gated
 `execution/executor.py:GovernedExecutor`, invoked by a human.
 
+### Governed conversational authoring / modelling studio (ADR-0016)
+
+`src/semantic_platform/authoring/` is the **writing** counterpart to the read-only assist:
+a guided conversation that scaffolds and edits a domain's RDF/mapping/data files. It does
+**not** relax the platform's guarantees by writing to the authoritative graph — instead it
+writes **only** into a sandboxed clone of a *separate, user-configured domain content repo*
+(`workspace_config.py` maps domain → git ref under `WORKSPACE_ROOT`), on a feature branch,
+validated (`validate_rdf_syntax`) and surfaced as a **Pull Request a human merges**
+(`gitrepo.py`, `scaffold.py`, `assistant.py`). Surfaced via `api.py`, a **global context-aware
+chat panel** (`app/routes/chat.py`, drawer in `base.html`, scope from `app/page_context.py`)
+with **ask** (read-only Q&A over the current view) and **model** modes, plus the **studio**
+(`/studio`) and **setup** (`/setup/models`, `/setup/domains`) pages. The `auto` LLM provider
+makes Anthropic + Ollama first-class while keeping `local` the offline/CI default.
+
 ## Conventions & workflow
 
 - Python **3.12+**, ruff line length **100**, `from __future__ import annotations` everywhere,
