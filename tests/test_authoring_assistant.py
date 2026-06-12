@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import subprocess
 
 import pytest
 
@@ -97,3 +98,20 @@ def test_open_pr_without_remote_is_local_only(settings):
 
     with pytest.raises(KeyError):
         open_pr("missing", settings=settings)
+
+
+def test_open_pr_reports_successful_push_to_non_github_remote(settings, tmp_path):
+    origin = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    wc.add_domain("Field Service", origin.as_uri(), settings=settings)
+    author_model("field-service", InterviewAnswers(domain_label="FS", classes=("A",)), settings=settings)
+
+    ref = open_pr("field-service", settings=settings)
+    # Push genuinely succeeded to the file:// remote, so it must not be reported local-only.
+    assert ref.pushed is True
+    assert "pushed" in ref.message.lower()
+    refs = subprocess.run(
+        ["git", "ls-remote", str(origin), "refs/heads/authoring/field-service"],
+        capture_output=True, text=True,
+    ).stdout
+    assert "authoring/field-service" in refs
