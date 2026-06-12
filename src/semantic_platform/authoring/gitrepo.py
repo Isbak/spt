@@ -139,10 +139,10 @@ class GitRepo:
         _run(["commit", "-q", "-m", message], cwd=self.path)
         return _run(["rev-parse", "HEAD"], cwd=self.path).strip()
 
-    def push(self, branch: str, token_env: str | None = None, remote: str = "origin") -> bool:  # pragma: no cover - network
+    def push(self, branch: str, token_env: str | None = None, remote: str = "origin") -> bool:
         """Push ``branch`` to ``remote``, injecting a token from ``token_env`` if set."""
         token = os.getenv(token_env) if token_env else None
-        if token:
+        if token:  # pragma: no cover - requires an authenticated network remote
             url = _run(["remote", "get-url", remote], cwd=self.path).strip()
             authed = re.sub(r"https://", f"https://x-access-token:{token}@", url, count=1)
             _run(["push", authed, f"{branch}:{branch}"], cwd=self.path)

@@ -504,3 +504,6 @@ button:active, .btn:active { transform: translateY(1px); }
 .stack { display: flex; flex-direction: column; gap: .5rem; max-width: 560px; }
 .stack .actions, .actions { display: flex; gap: .5rem; margin-top: .5rem; }
 @media (max-width: 720px) { .studio__main { grid-template-columns: 1fr; } }
+
+/* CodeMirror editor in the studio (loaded via CDN; falls back to textarea offline) */
+.studio__editor .CodeMirror { height: auto; min-height: 360px; border: 1px solid var(--border, #d0d7de); border-radius: 6px; font-size: .85rem; }

@@ -46,6 +46,18 @@ def test_clone_or_open_from_file_remote(tmp_path):
     assert cloned.exists
 
 
+def test_push_to_file_remote(tmp_path):
+    origin = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    repo = GitRepo.clone_or_open(tmp_path / "work", origin.as_uri())
+    repo.checkout_branch("authoring/x")
+    repo.write_file("rdf/a.ttl", "# a\n")
+    repo.commit("add a")
+    assert repo.push("authoring/x") is True
+    refs = subprocess.run(["git", "ls-remote", str(origin), "refs/heads/authoring/x"], capture_output=True, text=True).stdout
+    assert "authoring/x" in refs
+
+
 def test_write_outside_repo_is_refused(tmp_path):
     repo = GitRepo(tmp_path / "repo").init()
     with pytest.raises(GitError):

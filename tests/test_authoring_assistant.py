@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import dataclasses
+import subprocess
 
 import pytest
 
@@ -18,10 +19,12 @@ from semantic_platform.authoring.assistant import (
     STATUS_DRAFTED,
     STATUS_NEEDS_DOMAIN,
     STATUS_QUESTION,
+    _validate_repo,
     author_model,
     chat_turn,
     open_pr,
 )
+from semantic_platform.authoring.gitrepo import GitRepo
 from semantic_platform.authoring.scaffold import InterviewAnswers
 from semantic_platform.config import load_settings
 
@@ -88,6 +91,32 @@ def test_author_model_writes_validates_and_commits(settings):
     assert result.provenance is not None and len(result.provenance) > 0
 
 
+def test_author_model_runs_shacl_validation(settings):
+    wc.add_domain("Field Service", "", settings=settings)
+    result = author_model(
+        "field-service",
+        InterviewAnswers(domain_label="FS", prefix="fs", base_namespace="https://ex.org/fs#", classes=("Technician",)),
+        settings=settings,
+    )
+    assert result.validation_ok is True
+    assert "SHACL: conforms" in result.validation_report
+
+
+def test_validate_repo_flags_shacl_violations(settings, tmp_path):
+    repo = GitRepo(tmp_path / "repo").init()
+    repo.write_file("rdf/ontology/o.ttl", "@prefix ex: <https://ex.org/#> . ex:Person a <http://www.w3.org/2002/07/owl#Class> .")
+    repo.write_file("rdf/data/d.ttl", "@prefix ex: <https://ex.org/#> . ex:p a ex:Person .")
+    repo.write_file(
+        "rdf/shapes/s.ttl",
+        "@prefix sh: <http://www.w3.org/ns/shacl#> . @prefix ex: <https://ex.org/#> ."
+        " ex:PersonShape a sh:NodeShape ; sh:targetClass ex:Person ;"
+        " sh:property [ sh:path ex:name ; sh:minCount 1 ] .",
+    )
+    syntax, report = _validate_repo(repo, settings)
+    assert all(r.valid for r in syntax)
+    assert report is not None and report.conforms is False
+
+
 def test_open_pr_without_remote_is_local_only(settings):
     wc.add_domain("Field Service", "", settings=settings)
     author_model("field-service", InterviewAnswers(domain_label="FS", classes=("A",)), settings=settings)
@@ -97,3 +126,20 @@ def test_open_pr_without_remote_is_local_only(settings):
 
     with pytest.raises(KeyError):
         open_pr("missing", settings=settings)
+
+
+def test_open_pr_reports_successful_push_to_non_github_remote(settings, tmp_path):
+    origin = tmp_path / "origin.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(origin)], check=True)
+    wc.add_domain("Field Service", origin.as_uri(), settings=settings)
+    author_model("field-service", InterviewAnswers(domain_label="FS", classes=("A",)), settings=settings)
+
+    ref = open_pr("field-service", settings=settings)
+    # Push genuinely succeeded to the file:// remote, so it must not be reported local-only.
+    assert ref.pushed is True
+    assert "pushed" in ref.message.lower()
+    refs = subprocess.run(
+        ["git", "ls-remote", str(origin), "refs/heads/authoring/field-service"],
+        capture_output=True, text=True,
+    ).stdout
+    assert "authoring/field-service" in refs
