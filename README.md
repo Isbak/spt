@@ -144,6 +144,12 @@ LLM_PROVIDER=anthropic ANTHROPIC_API_KEY=... LLM_MODEL=claude-opus-4-8 make app 
 The agent only ever explains data it is **already permitted to read**; the call returns 403 for a
 scope the agent may not access.
 
+## Community
+
+Please review [CONTRIBUTING.md](CONTRIBUTING.md) before opening changes. All
+participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md), and
+security-sensitive reports should follow [SECURITY.md](SECURITY.md).
+
 ## Purpose
 
 Build a reusable semantic platform based on:
