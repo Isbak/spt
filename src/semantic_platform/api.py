@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
 
 from semantic_platform.advisory import (
@@ -11,6 +12,15 @@ from semantic_platform.advisory import (
     recommend,
 )
 from semantic_platform.agents.assist import ExplanationResult, generate_explanation
+from semantic_platform.agents.llm import (
+    anthropic_configured,
+    ollama_reachable,
+    resolve_language_model,
+)
+from semantic_platform.authoring import workspace_config as wc
+from semantic_platform.authoring.assistant import AuthoringResult, author_model, chat_turn, open_pr
+from semantic_platform.authoring.gitrepo import GitRepo, PullRequestRef
+from semantic_platform.authoring.scaffold import InterviewAnswers
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.domain_models import (
     DomainModel,
@@ -115,6 +125,139 @@ def explain_with_agent(
 ) -> ExplanationResult:
     """Governed read-only LLM assist: have an agent explain data it may read."""
     return generate_explanation(agent_id, scope, question, settings=settings or load_settings())
+
+
+# --- LLM model configuration -------------------------------------------------
+
+
+def get_model_config(settings: Settings | None = None) -> wc.ModelConfig:
+    """Return the persisted LLM provider/model selection."""
+    return wc.get_model_config(settings or load_settings())
+
+
+def set_model_config(
+    provider: str,
+    model: str | None = None,
+    ollama_base_url: str | None = None,
+    settings: Settings | None = None,
+) -> wc.ModelConfig:
+    """Persist the LLM provider/model selection (raises ``ValueError`` if unsupported)."""
+    return wc.set_model_config(provider, model, ollama_base_url, settings or load_settings())
+
+
+def provider_status(settings: Settings | None = None) -> dict[str, dict[str, Any]]:
+    """Report, per provider, whether it is currently usable and which is active."""
+    settings = settings or load_settings()
+    active = get_model_config(settings).provider
+    return {
+        "active": active,
+        "providers": {
+            "auto": {"available": True, "note": "Anthropic if configured, else Ollama, else local."},
+            "local": {"available": True, "note": "Offline deterministic model. Always available."},
+            "anthropic": {"available": anthropic_configured(), "note": "Requires ANTHROPIC_API_KEY."},
+            "ollama": {"available": ollama_reachable(), "note": "Requires a running local Ollama server."},
+            "openai": {"available": bool(os.getenv("OPENAI_API_KEY")), "note": "Requires OPENAI_API_KEY."},
+        },
+    }
+
+
+def test_model_connection(settings: Settings | None = None) -> dict[str, Any]:
+    """Run a tiny completion against the active model to verify connectivity."""
+    settings = settings or load_settings()
+    model = resolve_language_model(settings)
+    try:
+        completion = model.complete("Reply with a short confirmation that you are reachable.")
+    except Exception as exc:  # pragma: no cover - provider/network specific
+        return {"ok": False, "provider": model.provider, "model": model.model_id, "error": str(exc)}
+    return {"ok": True, "provider": completion.provider, "model": completion.model_id, "text": completion.text[:200]}
+
+
+# --- domain repositories -----------------------------------------------------
+
+
+def list_domains(settings: Settings | None = None) -> list[wc.DomainRef]:
+    """Return the configured domain↔git references."""
+    return wc.list_domains(settings or load_settings())
+
+
+def add_domain(
+    label: str,
+    remote_url: str,
+    branch: str = "main",
+    token_env: str | None = None,
+    settings: Settings | None = None,
+) -> wc.DomainRef:
+    """Associate a domain of interest with the git repository its model lives in."""
+    return wc.add_domain(label, remote_url, branch, token_env, settings=settings or load_settings())
+
+
+def remove_domain(domain_id: str, settings: Settings | None = None) -> bool:
+    """Remove a domain reference."""
+    return wc.remove_domain(domain_id, settings or load_settings())
+
+
+# --- governed authoring ------------------------------------------------------
+
+
+def authoring_chat(
+    domain_id: str | None,
+    message: str,
+    history: list[dict] | None = None,
+    settings: Settings | None = None,
+) -> AuthoringResult:
+    """Hold a clarifying modelling conversation for a domain (or prompt for setup)."""
+    return chat_turn(domain_id, message, history, settings=settings or load_settings())
+
+
+def authoring_generate(
+    domain_id: str,
+    answers: InterviewAnswers,
+    settings: Settings | None = None,
+) -> AuthoringResult:
+    """Scaffold, write and validate a domain model into its sandbox branch."""
+    return author_model(domain_id, answers, settings=settings or load_settings())
+
+
+def workspace_tree(domain_id: str, settings: Settings | None = None) -> list[str]:
+    """Return the file tree of a domain's content repository (empty if uninitialised)."""
+    settings = settings or load_settings()
+    domain = wc.get_domain(domain_id, settings)
+    if domain is None:
+        return []
+    repo = GitRepo(domain.local_path)
+    return repo.tree() if repo.exists else []
+
+
+def read_workspace_file(domain_id: str, relative_path: str, settings: Settings | None = None) -> str:
+    """Return the content of a file in a domain's content repository."""
+    settings = settings or load_settings()
+    domain = wc.get_domain(domain_id, settings)
+    if domain is None:
+        raise KeyError(domain_id)
+    return GitRepo(domain.local_path).read_file(relative_path)
+
+
+def write_workspace_file(
+    domain_id: str, relative_path: str, content: str, settings: Settings | None = None
+) -> str:
+    """Write a file in a domain's content repository and return its path."""
+    settings = settings or load_settings()
+    domain = wc.get_domain(domain_id, settings)
+    if domain is None:
+        raise KeyError(domain_id)
+    repo = GitRepo.clone_or_open(domain.local_path, domain.remote_url)
+    repo.checkout_branch(f"authoring/{domain_id}")
+    return str(repo.write_file(relative_path, content))
+
+
+def commit_and_open_pr(
+    domain_id: str,
+    title: str | None = None,
+    body: str | None = None,
+    settings: Settings | None = None,
+) -> PullRequestRef:
+    """Commit the domain's authoring branch and open (or link) a Pull Request."""
+    return open_pr(domain_id, title=title, body=body, settings=settings or load_settings())
 
 
 def advise(

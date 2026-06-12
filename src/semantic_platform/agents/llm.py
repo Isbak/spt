@@ -30,6 +30,9 @@ DEFAULT_ANTHROPIC_MODEL = "claude-opus-4-8"
 DEFAULT_OPENAI_MODEL = "gpt-4o-mini"
 DEFAULT_OLLAMA_MODEL = "llama3.2"
 
+#: Providers presented as first-class in the UI and tried, in order, by ``auto``.
+AUTO_PROVIDER_ORDER = ("anthropic", "ollama", "local")
+
 
 @dataclass(frozen=True)
 class LLMCompletion:
@@ -142,14 +145,39 @@ class OllamaModel:
         return LLMCompletion(text=text, provider=self.provider, model_id=self.model_id)
 
 
+def anthropic_configured() -> bool:
+    """Return ``True`` when an Anthropic API key is available in the environment."""
+    return bool(os.getenv("ANTHROPIC_API_KEY"))
+
+
+def ollama_reachable(base_url: str | None = None, *, timeout: float = 1.0) -> bool:
+    """Return ``True`` when a local Ollama server answers on its base URL."""
+    url = (base_url or os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")).rstrip("/")
+    try:  # pragma: no cover - network probe
+        import requests
+
+        return requests.get(url, timeout=timeout).ok
+    except Exception:  # pragma: no cover - server absent / requests missing
+        return False
+
+
 def resolve_language_model(settings: Settings | None = None) -> LanguageModel:
     """Resolve the configured language model (default: free offline ``local``).
 
     Provider classes import their SDK lazily, so selecting an external provider
     here does not require its dependency until ``complete`` is actually called.
+    The ``auto`` provider makes Anthropic and Ollama first-class: it uses
+    Anthropic when an API key is set, else a reachable local Ollama, else the
+    offline ``local`` model — so the platform always resolves to *something*.
     """
     settings = settings or load_settings()
     provider = settings.llm_provider
+    if provider == "auto":
+        if anthropic_configured():
+            return AnthropicModel(settings.llm_model)
+        if ollama_reachable():
+            return OllamaModel(model_id=settings.llm_model)
+        return LocalDeterministicModel()
     if provider in ("", "local", "none"):
         return LocalDeterministicModel()
     if provider == "anthropic":
@@ -158,4 +186,6 @@ def resolve_language_model(settings: Settings | None = None) -> LanguageModel:
         return OpenAIModel(settings.llm_model)
     if provider == "ollama":
         return OllamaModel(model_id=settings.llm_model)
-    raise ValueError(f"Unknown LLM_PROVIDER: {provider!r} (expected local, anthropic, openai, or ollama)")
+    raise ValueError(
+        f"Unknown LLM_PROVIDER: {provider!r} (expected auto, local, anthropic, openai, or ollama)"
+    )

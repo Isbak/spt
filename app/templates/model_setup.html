@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% from "_components.html" import page_header, badge %}
+{% block title %}Model Setup{% endblock %}
+{% block content %}
+{{ page_header("Model Setup",
+   subtitle="Choose the language model the assistant uses. Anthropic and Ollama are first-class; 'auto' prefers Anthropic, then a local Ollama, then the offline model.") }}
+
+<form method="post" action="{{ url_for('setup.api_set_model') }}" class="stack">
+  <label for="provider">Provider</label>
+  <select id="provider" name="provider">
+    {% for p in providers %}
+    <option value="{{ p }}"{% if p == config.provider %} selected{% endif %}>{{ p }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="model">Model (optional)</label>
+  <input id="model" name="model" value="{{ config.model or '' }}" placeholder="e.g. claude-opus-4-8, llama3.2">
+
+  <label for="ollama_base_url">Ollama base URL</label>
+  <input id="ollama_base_url" name="ollama_base_url" value="{{ config.ollama_base_url }}">
+
+  <div class="actions">
+    <button type="submit">Save</button>
+    <button type="button" id="test-btn">Test connection</button>
+  </div>
+</form>
+<p id="test-result" class="metadata"></p>
+
+<h3>Provider status</h3>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Provider</th><th>Available</th><th>Notes</th></tr></thead>
+    <tbody>
+      {% for name, info in status.providers.items() %}
+      <tr>
+        <td>{{ name }}{% if name == status.active %} {{ badge("active", "info") }}{% endif %}</td>
+        <td>{% if info.available %}{{ badge("yes", "success") }}{% else %}{{ badge("no", "warning") }}{% endif %}</td>
+        <td>{{ info.note }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p class="metadata">External keys (<code>ANTHROPIC_API_KEY</code>, <code>OPENAI_API_KEY</code>) and a running
+Ollama server (<code>docker compose --profile llm up</code>) are read from the environment — they are never stored here.</p>
+
+<script>
+  document.getElementById("test-btn").addEventListener("click", function () {
+    var out = document.getElementById("test-result");
+    out.textContent = "Testing…";
+    fetch("{{ url_for('setup.api_test_model') }}", { method: "POST" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        out.textContent = d.ok
+          ? "OK — " + d.provider + " · " + d.model + ": " + (d.text || "")
+          : "Failed — " + (d.error || "unreachable");
+      })
+      .catch(function () { out.textContent = "Network error."; });
+  });
+</script>
+{% endblock %}

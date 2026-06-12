@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+import json
+import logging
 import os
+
+LOGGER = logging.getLogger(__name__)
+
+#: File under ``workspace_root`` holding UI-persisted settings (e.g. model choice).
+PLATFORM_CONFIG_FILENAME = "platform_config.json"
 
 
 @dataclass(frozen=True)
@@ -22,6 +29,7 @@ class Settings:
     r2rml_dir: Path
     sql_dir: Path
     output_dir: Path
+    workspace_root: Path
     source_database_url: str | None
     source_sql_files: tuple[Path, ...]
     llm_provider: str
@@ -62,9 +70,32 @@ def _root_from_env() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def _persisted_settings(workspace_root: Path) -> dict[str, str]:
+    """Return UI-persisted settings from the workspace config file (empty if absent).
+
+    These act as a layer **below** environment variables, so a choice made in the
+    setup UI survives a restart without editing ``.env`` while env still wins.
+    """
+    config_file = workspace_root / PLATFORM_CONFIG_FILENAME
+    if not config_file.is_file():
+        return {}
+    try:
+        data = json.loads(config_file.read_text(encoding="utf-8"))
+    except (OSError, ValueError):  # pragma: no cover - corrupt/unreadable file
+        LOGGER.warning("Ignoring unreadable workspace config: %s", config_file)
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
 def load_settings() -> Settings:
     """Load settings from environment variables with repository-local defaults."""
     root = _root_from_env()
+    workspace_root = Path(os.getenv("WORKSPACE_ROOT", root / "workspace")).expanduser().resolve()
+    persisted = _persisted_settings(workspace_root)
+    llm_provider = (
+        os.getenv("LLM_PROVIDER") or persisted.get("llm_provider") or "local"
+    ).strip().lower()
+    llm_model = os.getenv("LLM_MODEL") or persisted.get("llm_model") or None
     rdf_root = Path(os.getenv("RDF_ROOT", root / "rdf")).expanduser().resolve()
     queries_dir = Path(os.getenv("RDF_QUERIES_DIR", rdf_root / "queries")).expanduser().resolve()
     default_query = Path(
@@ -98,10 +129,11 @@ def load_settings() -> Settings:
         r2rml_dir=Path(os.getenv("MAPPINGS_R2RML_DIR", root / "mappings" / "r2rml")).expanduser().resolve(),
         sql_dir=sql_dir,
         output_dir=Path(os.getenv("OUTPUT_DIR", root / "output")).expanduser().resolve(),
+        workspace_root=workspace_root,
         source_database_url=os.getenv("SOURCE_DATABASE_URL") or None,
         source_sql_files=source_sql_files,
-        llm_provider=(os.getenv("LLM_PROVIDER") or "local").strip().lower(),
-        llm_model=os.getenv("LLM_MODEL") or None,
+        llm_provider=llm_provider,
+        llm_model=llm_model,
         fuseki_base_url=os.getenv("FUSEKI_BASE_URL", "http://localhost:3030"),
         fuseki_dataset=os.getenv("FUSEKI_DATASET", "semantic-platform"),
         fuseki_username=fuseki_username,
