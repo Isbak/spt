@@ -20,7 +20,13 @@ from semantic_platform.authoring import workspace_config as wc
 from semantic_platform.authoring.gitrepo import GitRepo, PullRequestRef, open_pull_request
 from semantic_platform.authoring.scaffold import FilePlan, InterviewAnswers, scaffold_model
 from semantic_platform.config import Settings, load_settings
-from semantic_platform.validate import validate_rdf_syntax
+from semantic_platform.graph import load_graph
+from semantic_platform.validate import (
+    ShaclValidationReport,
+    SyntaxValidationResult,
+    validate_rdf_syntax,
+    validate_shacl,
+)
 
 AUTHORING = Namespace("https://example.org/semantic-platform/authoring#")
 
@@ -47,6 +53,25 @@ class AuthoringResult:
 
 def _branch_for(domain_id: str) -> str:
     return f"authoring/{domain_id}"
+
+
+def _validate_repo(
+    repo: GitRepo, settings: Settings
+) -> tuple[list[SyntaxValidationResult], ShaclValidationReport | None]:
+    """Validate a domain repo's RDF: syntax always, SHACL when shapes are present.
+
+    SHACL is run against the repo's *own* shapes (not the platform's), so the
+    authored model is checked as a self-contained unit.
+    """
+    rdf_root = repo.path / "rdf"
+    syntax = validate_rdf_syntax(paths=[rdf_root], settings=settings)
+    shapes_dir = rdf_root / "shapes"
+    if not all(r.valid for r in syntax) or not shapes_dir.is_dir():
+        return syntax, None
+    data_graph = load_graph([rdf_root / "ontology", rdf_root / "data"], settings=settings)
+    shapes_graph = load_graph([shapes_dir], settings=settings)
+    report = validate_shacl(data_graph=data_graph, shapes_graph=shapes_graph, settings=settings)
+    return syntax, report
 
 
 def _record_provenance(domain_id: str, files: tuple[str, ...], provider: str, model_id: str) -> Graph:
@@ -100,9 +125,15 @@ def author_model(
     for relative_path, content in plan.files.items():
         repo.write_file(relative_path, content)
 
-    syntax = validate_rdf_syntax(paths=[repo.path / "rdf"], settings=settings)
-    ok = all(result.valid for result in syntax)
-    report = "\n".join(f"{'OK ' if r.valid else 'ERR'} {r.path.name} {r.message}".rstrip() for r in syntax)
+    syntax, shacl = _validate_repo(repo, settings)
+    syntax_ok = all(result.valid for result in syntax)
+    ok = syntax_ok and (shacl is None or shacl.conforms)
+    lines = [f"{'OK ' if r.valid else 'ERR'} {r.path.name} {r.message}".rstrip() for r in syntax]
+    if shacl is not None:
+        lines.append(f"SHACL: {'conforms' if shacl.conforms else 'violations'}")
+        if not shacl.conforms:
+            lines.append(shacl.report_text.strip())
+    report = "\n".join(lines)
     repo.commit(f"Scaffold {answers.domain_label} model ({len(plan.files)} file(s))")
 
     files = tuple(plan.files)

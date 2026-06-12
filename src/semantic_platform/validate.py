@@ -50,11 +50,22 @@ def validate_rdf_syntax(paths: list[Path] | None = None, settings: Settings | No
     return results
 
 
-def validate_shacl(data_graph: Graph | None = None, settings: Settings | None = None) -> ShaclValidationReport:
-    """Validate configured RDF assets against configured SHACL shapes."""
+def validate_shacl(
+    data_graph: Graph | None = None,
+    settings: Settings | None = None,
+    shapes_graph: Graph | None = None,
+) -> ShaclValidationReport:
+    """Validate RDF assets against SHACL shapes.
+
+    By default both the data and the shapes come from the configured asset
+    directories; callers may pass an explicit ``data_graph`` and/or
+    ``shapes_graph`` to validate content outside the platform's own tree (e.g.
+    a domain content repo authored in the studio).
+    """
     settings = settings or load_settings()
-    data_graph = data_graph or load_graph(settings=settings)
-    shapes_graph = load_graph([settings.shapes_dir], settings=settings)
+    data_graph = data_graph if data_graph is not None else load_graph(settings=settings)
+    if shapes_graph is None:
+        shapes_graph = load_graph([settings.shapes_dir], settings=settings)
     conforms, report_graph, report_text = pyshacl_validate(
         data_graph=data_graph,
         shacl_graph=shapes_graph,
