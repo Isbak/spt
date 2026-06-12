@@ -1,14 +1,11 @@
-"""Tests for domain model grouping and drop-in domain import."""
+"""Tests for domain model grouping by namespace."""
 
 from __future__ import annotations
 
 import dataclasses
 
 from semantic_platform.config import Settings, load_settings
-from semantic_platform.domain_models import (
-    import_domain_files,
-    list_domain_models,
-)
+from semantic_platform.domain_models import list_domain_models
 
 ONTOLOGY_TTL = """
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -119,70 +116,3 @@ x:ThingShape a sh:NodeShape ; sh:targetClass x:Thing .
     models = list_domain_models(settings)
     shared = next(m for m in models if m.is_shared)
     assert any(s.iri == "https://other.example/thing#ThingShape" for s in shared.shapes)
-
-
-def test_import_writes_valid_bundle(tmp_path):
-    settings = _settings(tmp_path)
-    result = import_domain_files(
-        ontology=("widget.ttl", ONTOLOGY_TTL),
-        shape=("widget_shapes.ttl", SHAPE_TTL),
-        mapping=("widget.ttl", MAPPING_TTL),
-        settings=settings,
-    )
-    assert result.ok, result.errors
-    assert {f.kind for f in result.files} == {"ontology", "shape", "mapping"}
-    assert (settings.ontology_dir / "widget.ttl").exists()
-    assert (settings.shapes_dir / "widget_shapes.ttl").exists()
-    assert (settings.r2rml_dir / "widget.ttl").exists()
-
-
-def test_import_no_files(tmp_path):
-    result = import_domain_files(settings=_settings(tmp_path))
-    assert not result.ok
-    assert "No files provided." in result.errors
-
-
-def test_import_rejects_bad_syntax_without_writing(tmp_path):
-    settings = _settings(tmp_path)
-    result = import_domain_files(
-        ontology=("broken.ttl", "this is not turtle @@"),
-        settings=settings,
-    )
-    assert not result.ok
-    assert any("invalid Turtle syntax" in e for e in result.errors)
-    assert list(settings.ontology_dir.iterdir()) == []
-
-
-def test_import_rejects_mapping_missing_governance(tmp_path):
-    settings = _settings(tmp_path)
-    incomplete = """
-@prefix rr: <http://www.w3.org/ns/r2rml#> .
-@prefix map: <https://example.org/semantic-platform/mappings#> .
-@prefix d: <https://example.org/widget#> .
-<https://example.org/mapping/widget> a rr:TriplesMap ;
-    rr:subjectMap [ rr:template "https://example.org/widget/{id}" ; rr:class d:Widget ] ;
-    rr:predicateObjectMap [ rr:predicate d:weight ; rr:objectMap [ rr:column "weight" ] ] .
-"""
-    result = import_domain_files(mapping=("widget.ttl", incomplete), settings=settings)
-    assert not result.ok
-    assert any("missing" in e for e in result.errors)
-    assert list(settings.r2rml_dir.iterdir()) == []
-
-
-def test_import_rejects_wrong_extension(tmp_path):
-    settings = _settings(tmp_path)
-    result = import_domain_files(ontology=("widget.txt", ONTOLOGY_TTL), settings=settings)
-    assert not result.ok
-    assert any("expected .ttl" in e for e in result.errors)
-
-
-def test_import_sanitizes_path_traversal_filename(tmp_path):
-    settings = _settings(tmp_path)
-    result = import_domain_files(
-        ontology=("../../evil.ttl", ONTOLOGY_TTL),
-        settings=settings,
-    )
-    assert result.ok, result.errors
-    written = settings.ontology_dir / "evil.ttl"
-    assert written.exists()
-    assert not (tmp_path.parent / "evil.ttl").exists()

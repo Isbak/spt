@@ -24,8 +24,6 @@ from semantic_platform.authoring.scaffold import InterviewAnswers
 from semantic_platform.config import Settings, load_settings
 from semantic_platform.domain_models import (
     DomainModel,
-    ImportResult,
-    import_domain_files,
     list_domain_models,
 )
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
@@ -64,19 +62,6 @@ def get_domain_models(settings: Settings | None = None) -> list[DomainModel]:
 def list_shape_records(settings: Settings | None = None) -> list[ShapeRecord]:
     """Return discovered SHACL shapes for the Shapes UI page."""
     return list_shapes(settings=settings or load_settings())
-
-
-def import_domain(
-    *,
-    ontology: tuple[str, bytes | str] | None = None,
-    shape: tuple[str, bytes | str] | None = None,
-    mapping: tuple[str, bytes | str] | None = None,
-    settings: Settings | None = None,
-) -> ImportResult:
-    """Validate and write a dropped-in domain bundle (ontology, shape, mapping)."""
-    return import_domain_files(
-        ontology=ontology, shape=shape, mapping=mapping, settings=settings or load_settings()
-    )
 
 
 def run_local_query(query_text: str | None = None, settings: Settings | None = None) -> list[dict[str, Any]]:
