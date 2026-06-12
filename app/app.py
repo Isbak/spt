@@ -2,8 +2,12 @@
 
 from __future__ import annotations
 
-from flask import Flask, render_template, request
+import os
 
+from flask import Flask, abort, g, render_template, request
+
+from app.context_scope import ContextScope, system_scope
+from app.contexts.knowledge_model import knowledge_model_blueprints
 from app.page_context import resolve_page_context
 from app.routes.advisory import advisory_bp
 from app.routes.agents import agents_bp
@@ -27,11 +31,19 @@ from app.routes.studio import studio_bp
 from app.routes.visualization import visualization_bp
 from app.routes.materialization import materialization_bp
 from app.routes.mappings import integration_bp, mapping_lineage_bp, mappings_bp, source_catalog_bp
+from semantic_platform.api import list_domains
+from semantic_platform.authoring.workspace_config import get_domain
+from semantic_platform.config import load_settings
+from semantic_platform.context import domain_settings
 
 
 def create_app() -> Flask:
-    """Create the Flask app and register Phase 1 route blueprints."""
+    """Create the Flask app and register the System and Knowledge Model trees."""
     app = Flask(__name__)
+    # Required for session-backed context UI; carries only a non-sensitive context id.
+    app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret")
+
+    # System tree: the platform self-model, served at today's URLs.
     app.register_blueprint(health_bp)
     app.register_blueprint(graph_bp)
     app.register_blueprint(ontology_bp)
@@ -59,10 +71,35 @@ def create_app() -> Flask:
     app.register_blueprint(setup_bp)
     app.register_blueprint(studio_bp)
 
+    # Knowledge Model tree: the same views under /model/<domain_id>/.
+    for blueprint in knowledge_model_blueprints():
+        app.register_blueprint(blueprint)
+
+    @app.before_request
+    def _bind_scope():
+        """Resolve the active data context (System or a domain) onto ``g.scope``."""
+        domain_id = (request.view_args or {}).get("domain_id")
+        if domain_id:
+            domain = get_domain(domain_id)
+            if domain is None:
+                abort(404)
+            g.scope = ContextScope(
+                domain_id, domain.label, domain_settings(domain_id), is_system=False
+            )
+        else:
+            g.scope = system_scope(load_settings())
+
     @app.context_processor
     def inject_page_context():
-        """Expose the current view's chat scope to every template."""
-        return {"page_context": resolve_page_context(request.endpoint)}
+        """Expose the active context, scope, and configured domains to every template."""
+        scope = g.get("scope")
+        active_context = scope.context_id if scope else "system"
+        return {
+            "page_context": resolve_page_context(request.endpoint, active_context),
+            "scope": scope,
+            "active_context": active_context,
+            "domains": list_domains(),
+        }
 
     @app.get("/")
     def index():

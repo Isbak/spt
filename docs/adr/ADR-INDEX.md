@@ -19,3 +19,4 @@
 | ADR-0015 | Domain models |
 | ADR-0016 | Governed conversational authoring (modelling studio) |
 | ADR-0017 | Multi-dataset storage topology (system / agents+lineage / business) |
+| ADR-0018 | System vs Knowledge Model data-context trees |

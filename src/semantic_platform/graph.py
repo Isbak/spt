@@ -31,7 +31,7 @@ def rdf_files(paths: Iterable[Path]) -> list[Path]:
     for path in paths:
         if path.is_dir():
             files.extend(p for p in path.rglob("*") if p.suffix.lower() in RDF_EXTENSIONS)
-        elif path.suffix.lower() in RDF_EXTENSIONS:
+        elif path.is_file() and path.suffix.lower() in RDF_EXTENSIONS:
             files.append(path)
     return sorted(set(files))
 

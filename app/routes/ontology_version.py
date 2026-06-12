@@ -1,10 +1,10 @@
-"""Ontology version UI route."""
+"""Ontology version UI route (System tree)."""
 
 from __future__ import annotations
 
-from flask import Blueprint, render_template
+from flask import Blueprint
 
-from semantic_platform.ontology_version import ontology_version_summary
+from app.views import ontology_version as ontology_version_view
 
 ontology_version_bp = Blueprint("ontology_version", __name__, url_prefix="/ontology-version")
 
@@ -12,4 +12,4 @@ ontology_version_bp = Blueprint("ontology_version", __name__, url_prefix="/ontol
 @ontology_version_bp.get("")
 def index():
     """Render ontology version metadata summary."""
-    return render_template("ontology_version.html", summary=ontology_version_summary())
+    return ontology_version_view.index()

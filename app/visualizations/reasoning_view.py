@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from rdflib.namespace import RDF, RDFS
 
+from semantic_platform.config import Settings
 from semantic_platform.reasoning import REASON, PROV, reasoning_summary, run_reasoning
 
 
-def reasoning_dashboard_data() -> dict[str, object]:
-    """Return rule, inference, consistency, and coverage metrics."""
-    summary = reasoning_summary()
+def reasoning_dashboard_data(settings: Settings | None = None) -> dict[str, object]:
+    """Return rule, inference, consistency, and coverage metrics for the given context."""
+    summary = reasoning_summary(settings=settings)
     summary["rule_execution_count"] = len(summary["rules_used"])
     summary["inference_volume"] = summary["inferred_count"]
     summary["explanation_coverage"] = (
@@ -20,9 +21,9 @@ def reasoning_dashboard_data() -> dict[str, object]:
     return summary
 
 
-def explanations_data() -> list[dict[str, object]]:
+def explanations_data(settings: Settings | None = None) -> list[dict[str, object]]:
     """Return explainable inference assertions with rule, facts, confidence, and timestamp."""
-    run = run_reasoning()
+    run = run_reasoning(settings=settings)
     rows = []
     for inference in sorted(run.reasoning_graph.subjects(RDF.type, REASON.Inference), key=str):
         assertion = run.reasoning_graph.value(inference, REASON.generatedAssertion)

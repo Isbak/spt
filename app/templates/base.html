@@ -16,19 +16,25 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <meta name="chat-context"
           data-scope="{{ page_context.scope if page_context else 'reference' }}"
-          data-label="{{ page_context.label if page_context else 'Platform' }}">
+          data-label="{{ page_context.label if page_context else 'Platform' }}"
+          data-context="{{ active_context if active_context is defined else 'system' }}">
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
     {#- Navigation model: grouped by task domain, derived from user journeys. -#}
     {%- set ep = request.endpoint -%}
+    {#- The active "logical" endpoint: KM views carry a model_ prefix; strip it so a
+        single nav vocabulary highlights and links correctly in either context tree. -#}
+    {%- set current_logical = ep[6:] if ep and ep.startswith('model_') else ep -%}
     {%- set nav_top = [
       ('index', 'Home'),
       ('health.health_view', 'Health'),
       ('studio.studio_view', 'Studio'),
     ] -%}
-    {%- set nav_groups = [
+    {#- Contextual groups are dual-mounted (System + Knowledge Model); their links follow
+        the active tree via scope.url_for. -#}
+    {%- set contextual_groups = [
       ('Knowledge Graph', [
         ('visualization.graph_explorer', 'Graph Explorer'),
         ('graph.index', 'Graph Stats'),
@@ -49,13 +55,6 @@
         ('provenance.index', 'Provenance'),
         ('visualization.provenance_explorer', 'Provenance Explorer'),
       ]),
-      ('Data Integration', [
-        ('mappings.index', 'Mappings'),
-        ('source_catalog.source_catalog_index', 'Source Catalog'),
-        ('integration.integration_index', 'Integration'),
-        ('materialization.materialization_index', 'Materialization'),
-        ('mapping_lineage.mapping_lineage_index', 'Mapping Lineage'),
-      ]),
       ('Reasoning', [
         ('reasoning.reasoning_index', 'Reasoning'),
         ('visualization.reasoning_dashboard', 'Reasoning Dashboard'),
@@ -64,6 +63,16 @@
         ('reasoning.consistency_index', 'Consistency'),
         ('reasoning.rules_index', 'Rules'),
         ('visualization.analytics', 'Analytics'),
+      ]),
+    ] -%}
+    {#- System-only groups are not domain-scoped; they always link to the System tree. -#}
+    {%- set system_groups = [
+      ('Data Integration', [
+        ('mappings.index', 'Mappings'),
+        ('source_catalog.source_catalog_index', 'Source Catalog'),
+        ('integration.integration_index', 'Integration'),
+        ('materialization.materialization_index', 'Materialization'),
+        ('mapping_lineage.mapping_lineage_index', 'Mapping Lineage'),
       ]),
       ('Agents', [
         ('agents.agents_home', 'Agents'),
@@ -114,8 +123,12 @@
       ]),
     ] -%}
 
+    {#- System links resolve to the System tree; contextual links follow the active tree. -#}
     {%- macro nav_link(endpoint, label) -%}
       <a class="nav-link" href="{{ url_for(endpoint) }}"{% if ep == endpoint %} aria-current="page"{% endif %}>{{ label }}</a>
+    {%- endmacro -%}
+    {%- macro nav_link_ctx(endpoint, label) -%}
+      <a class="nav-link" href="{{ scope.url_for(endpoint) if scope else url_for(endpoint) }}"{% if current_logical == endpoint %} aria-current="page"{% endif %}>{{ label }}</a>
     {%- endmacro -%}
 
     {% block shell %}
@@ -126,7 +139,16 @@
         </div>
         <nav aria-label="Sections">
           {% for endpoint, label in nav_top %}{{ nav_link(endpoint, label) }}{% endfor %}
-          {% for group_label, links in nav_groups %}
+          {% for group_label, links in contextual_groups %}
+            {%- set group_endpoints = links | map(attribute=0) | list -%}
+            <details class="nav-group"{% if current_logical in group_endpoints %} open{% endif %}>
+              <summary>{{ group_label }}</summary>
+              <div class="nav-group__items">
+                {% for endpoint, label in links %}{{ nav_link_ctx(endpoint, label) }}{% endfor %}
+              </div>
+            </details>
+          {% endfor %}
+          {% for group_label, links in system_groups %}
             {%- set group_endpoints = links | map(attribute=0) | list -%}
             <details class="nav-group"{% if ep in group_endpoints %} open{% endif %}>
               <summary>{{ group_label }}</summary>
@@ -142,6 +164,20 @@
         <button class="icon-btn nav-toggle" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="app-sidebar">☰</button>
         <nav class="breadcrumb" aria-label="Breadcrumb">{% block breadcrumb %}{% endblock %}</nav>
         <div class="topbar__actions">
+          {#- Data-context switcher: only on dual-mounted views, swaps the active tree. -#}
+          {% if page_context and page_context.context_aware %}
+            {%- set parts = current_logical.split('.') -%}
+            <div class="context-switcher" title="Data context">
+              <span class="context-switcher__icon" aria-hidden="true">◈</span>
+              <select class="context-switcher__select" aria-label="Switch data context"
+                      onchange="if (this.value) window.location.href = this.value;">
+                <option value="{{ url_for(current_logical) }}"{% if active_context == 'system' %} selected{% endif %}>System</option>
+                {% for d in domains %}
+                  <option value="{{ url_for('model_' ~ parts[0] ~ '.' ~ parts[1], domain_id=d.domain_id) }}"{% if active_context == d.domain_id %} selected{% endif %}>{{ d.label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          {% endif %}
           <form class="topbar__search" role="search" method="get" action="{{ url_for('visualization.search') }}">
             <input type="search" name="q" placeholder="Search the platform" aria-label="Search">
           </form>
@@ -153,6 +189,14 @@
       </header>
 
       <main id="main" class="main">
+        {#- Knowledge Model context bar: shown only when inspecting a domain, linking
+            back to the Studio (the modelling/edit surface for the same domain). -#}
+        {% if scope and not scope.is_system %}
+        <div class="context-bar">
+          <span class="context-bar__label"><span aria-hidden="true">◈</span> Knowledge Model: <strong>{{ scope.label }}</strong></span>
+          <a class="context-bar__action" href="{{ url_for('studio.studio_view') }}">Edit in Studio</a>
+        </div>
+        {% endif %}
         <div class="container">{% block content %}{% endblock %}</div>
       </main>
     </div>

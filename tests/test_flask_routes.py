@@ -45,7 +45,7 @@ def test_flask_routes(monkeypatch):
 
 def test_query_route_executes_post(monkeypatch):
     monkeypatch.setattr(
-        "app.routes.query.run_local_query",
+        "app.views.query.run_local_query",
         lambda query_text, settings: [{"metric": "entities", "value": "1"}],
     )
     app = create_app()
