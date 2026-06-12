@@ -18,7 +18,10 @@ Source Systems / Azure DevOps / Workflow Engines
 |---|---|
 | Flask UI | Visualization and exploration |
 | Python Service Layer | Graph, validation, query and Fuseki services |
-| Fuseki | RDF storage and SPARQL endpoint |
+| Fuseki (system dataset) | The platform's own model — ontology/governance/reasoning graphs (local) |
+| Fuseki (agents dataset) | Agent registry/memory/observations + PROV-O lineage (local or remote) |
+| Fuseki (business dataset) | Domain/reference/instance data (local or remote) |
+| Relational sources | Per-role warehouses (business, agents) — in-memory SQLite or external (ADR-0017) |
 | RDF Assets | Ontology, vocabularies, data, shapes and queries |
 | R2RDF Layer | Mapping source systems into RDF |
 | Automation | Makefile and Bash scripts |

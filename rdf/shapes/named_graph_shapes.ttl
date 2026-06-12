@@ -2,6 +2,7 @@
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 
  gov:NamedGraphManifestShape
     a sh:NodeShape ;
@@ -10,4 +11,11 @@
     sh:property [ sh:path dcterms:description ; sh:minCount 1 ; ] ;
     sh:property [ sh:path gov:hasLifecycleStatus ; sh:minCount 1 ; ] ;
     sh:property [ sh:path gov:intendedUse ; sh:minCount 1 ; ] ;
-    sh:property [ sh:path gov:hasAllowedWritePattern ; sh:minCount 1 ; ] .
+    sh:property [ sh:path gov:hasAllowedWritePattern ; sh:minCount 1 ; ] ;
+    sh:property [
+        sh:path gov:storedInDataset ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:datatype xsd:string ;
+        sh:in ( "system" "agents" "business" ) ;
+    ] .

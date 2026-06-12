@@ -134,13 +134,15 @@ def test_e2e_drop_in_mapping_materializes(tmp_path):
         "INSERT INTO widget VALUES ('W-2', 'Second');",
         encoding="utf-8",
     )
+    base = load_settings()
     settings = dataclasses.replace(
-        load_settings(),
+        base,
         r2rml_dir=r2rml_dir,
-        sql_dir=sql_dir,
         output_dir=tmp_path / "out",
-        source_database_url=None,
-        source_sql_files=(),
+        # The e2e mapping targets an unknown graph, which routes to the business role.
+        source_business=dataclasses.replace(
+            base.source_business, database_url=None, sql_files=(), sql_dir=sql_dir
+        ),
     )
     results = materialize_mappings(settings)
     assert len(results) == 1

@@ -43,6 +43,7 @@ gov:appliesToDataset a owl:ObjectProperty ; rdfs:label "applies to dataset" ; rd
 gov:hasLifecycleStatus a owl:ObjectProperty ; rdfs:label "has lifecycle status" ; rdfs:range gov:LifecycleStatus .
 gov:hasAllowedWritePattern a owl:ObjectProperty ; rdfs:label "has allowed write pattern" ; rdfs:range gov:WritePattern .
 gov:intendedUse a owl:DatatypeProperty ; rdfs:label "intended use" ; rdfs:range xsd:string .
+gov:storedInDataset a owl:DatatypeProperty ; rdfs:label "stored in dataset" ; rdfs:comment "Storage role/dataset (system, agents, business) that serves this graph; see ADR-0017." ; rdfs:domain gov:GraphAsset ; rdfs:range xsd:string .
 
 gov:platformOwner a gov:DataOwner ; rdfs:label "Platform data owner" .
 gov:platformSteward a gov:DataSteward ; rdfs:label "Platform data steward" .

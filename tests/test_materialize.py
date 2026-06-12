@@ -128,7 +128,11 @@ def test_resolve_row_source_sqlite_file(tmp_path):
     connection.commit()
     connection.close()
 
-    settings = dataclasses.replace(load_settings(), source_database_url=f"sqlite:///{db_path}")
+    base = load_settings()
+    settings = dataclasses.replace(
+        base,
+        source_business=dataclasses.replace(base.source_business, database_url=f"sqlite:///{db_path}"),
+    )
     source = resolve_row_source(settings)
     try:
         assert source.fetch("SELECT id FROM item") == [{"id": "x"}]
@@ -249,3 +253,94 @@ def test_materialization_route(tmp_path, monkeypatch):
     response = client.get("/materialization")
     assert response.status_code == 200
     assert b"Source Materialization" in response.data
+
+
+# --- Symmetric per-role routing (ADR-0017) -----------------------------------------
+
+def _mapping_ttl(name: str, target_graph: str) -> str:
+    return f"""
+    @prefix rr: <http://www.w3.org/ns/r2rml#> .
+    @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+    @prefix sp: <https://example.org/semantic-platform/core#> .
+    @prefix map: <https://example.org/semantic-platform/mappings#> .
+    @prefix gov: <https://example.org/semantic-platform/governance#> .
+
+    <https://example.org/mapping/{name}>
+        a rr:TriplesMap, map:Mapping ;
+        rr:logicalTable [ rr:sqlQuery "SELECT id FROM t" ] ;
+        rr:subjectMap [ rr:template "https://example.org/resource/{name}/{{id}}" ; rr:class sp:Resource ;
+                        rr:graph <{target_graph}> ] ;
+        rr:predicateObjectMap [ rr:predicate sp:identifier ;
+                                rr:objectMap [ rr:column "id" ; rr:datatype xsd:string ] ] ;
+        map:sourcedFrom <https://example.org/source/{name}> ;
+        map:targetGraph <{target_graph}> ;
+        map:version "1.0.0" ;
+        gov:hasOwner gov:platformOwner ;
+        gov:hasSteward gov:platformSteward .
+    """
+
+
+class _RoleRecordingSource:
+    def __init__(self, role: str) -> None:
+        self.role = role
+
+    def fetch(self, sql: str):
+        return [{"id": self.role}]
+
+    def close(self) -> None:
+        pass
+
+
+def test_materialize_mappings_reads_each_mapping_from_its_role_source(tmp_path, monkeypatch):
+    r2rml = tmp_path / "r2rml"
+    r2rml.mkdir()
+    (r2rml / "biz.ttl").write_text(_mapping_ttl("biz", "urn:graph:integration"), encoding="utf-8")
+    (r2rml / "agt.ttl").write_text(_mapping_ttl("agt", "urn:graph:agents"), encoding="utf-8")
+    settings = dataclasses.replace(load_settings(), r2rml_dir=r2rml, output_dir=tmp_path / "out")
+
+    requested: list[str] = []
+
+    def fake_resolve(settings_arg, role="business"):
+        requested.append(role)
+        return _RoleRecordingSource(role)
+
+    monkeypatch.setattr("semantic_platform.materialize.resolve_row_source", fake_resolve)
+    results = materialize_mappings(settings)
+
+    by_graph = {r.target_graph: r for r in results}
+    # Each mapping was fed from the source for its target graph's role.
+    assert set(requested) == {"business", "agents"}
+    assert by_graph["urn:graph:integration"].record_count == 1
+    assert by_graph["urn:graph:agents"].record_count == 1
+
+
+def test_push_to_fuseki_routes_each_graph_to_its_role_dataset(tmp_path, monkeypatch):
+    from semantic_platform.materialize import FusekiLoadResult, MaterializationResult  # noqa: F401
+
+    results = [
+        MaterializationResult(tmp_path / "biz.ttl", "urn:m:biz", "urn:graph:integration", 1, 1, tmp_path / "biz.ttl"),
+        MaterializationResult(tmp_path / "agt.ttl", "urn:m:agt", "urn:graph:agents", 1, 1, tmp_path / "agt.ttl"),
+    ]
+    for item in results:
+        item.output_path.write_text("", encoding="utf-8")
+
+    constructed: list[str] = []
+
+    class _RoleClient:
+        def __init__(self, settings=None, dataset="system", **kwargs):
+            self.dataset = dataset
+            constructed.append(dataset)
+            self.uploads: list[str] = []
+
+        def health_check(self):
+            return FusekiStatus(True, 200, "ok")
+
+        def upload_graph(self, file_path, graph_uri):
+            self.uploads.append(graph_uri)
+
+    monkeypatch.setattr("semantic_platform.materialize.FusekiClient", _RoleClient)
+    loads = push_to_fuseki(results, settings=load_settings())
+
+    assert all(load.loaded for load in loads)
+    # Distinct datasets were used for the two roles.
+    assert set(constructed) == {"business", "agents"}
