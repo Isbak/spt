@@ -41,6 +41,14 @@ def test_flask_routes(monkeypatch):
     assert client.get("/rules").status_code == 200
     assert client.get("/domain-models").status_code == 200
     assert client.get("/shapes").status_code == 200
+    assert client.get("/graph").status_code == 200
+    # Per the "every GET returns 200" contract, a missing uri degrades to an error note.
+    missing_uri = client.get("/graph/node")
+    assert missing_uri.status_code == 200
+    assert "error" in missing_uri.get_json()
+    node = client.get("/graph/node?uri=https://example.org/missing")
+    assert node.status_code == 200
+    assert node.get_json()["id"] == "https://example.org/missing"
 
 
 def test_query_route_executes_post(monkeypatch):

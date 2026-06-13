@@ -81,6 +81,7 @@ reasoning_bp.add_url_rule("/rules", "rules_index", lambda domain_id: reasoning_v
 # --- Visualization (multi-endpoint, mirrors the System ``visualization`` bp) -
 visualization_bp = _bp("visualization", "")
 visualization_bp.add_url_rule("/graph", "graph_explorer", lambda domain_id: graph_view.explorer())
+visualization_bp.add_url_rule("/graph/node", "graph_node", lambda domain_id: graph_view.node())
 visualization_bp.add_url_rule("/ontology-browser", "ontology_browser", lambda domain_id: ontology_view.browser())
 visualization_bp.add_url_rule(
     "/governance-dashboard", "governance_dashboard", lambda domain_id: governance_view.dashboard()

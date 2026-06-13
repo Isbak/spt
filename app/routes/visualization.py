@@ -24,6 +24,12 @@ def graph_explorer():
     return graph_view.explorer()
 
 
+@visualization_bp.get("/graph/node")
+def graph_node():
+    """Return JSON detail for one graph node (right-hand inspector sidebar)."""
+    return graph_view.node()
+
+
 @visualization_bp.get("/ontology-browser")
 def ontology_browser():
     """Render ontology hierarchy, property, and instance browser."""
