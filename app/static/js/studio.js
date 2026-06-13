@@ -73,14 +73,24 @@
     var tabsBar = document.getElementById("editor-tabs");
     var breadcrumb = document.getElementById("breadcrumb");
     var saveBtn = document.getElementById("save-btn");
+    var graphBox = document.getElementById("studio-graph");
     if (!ta) return null;
 
     var cm = window.CodeMirror ? window.CodeMirror.fromTextArea(ta, {
       lineNumbers: true, mode: "text/turtle", viewportMargin: Infinity,
     }) : null;
 
-    var tabs = []; // [{ path, content, mode, dirty }]
+    var GRAPH_TAB = "‹graph›"; // ‹graph› — a non-file editor surface
+    var tabs = []; // [{ path, content, mode, dirty } | { path, graph: true }]
     var active = null;
+
+    function isGraphPath(path) { return path === GRAPH_TAB; }
+    function showSurface(graphActive) {
+      if (graphBox) graphBox.hidden = !graphActive;
+      var wrap = cm ? cm.getWrapperElement() : ta;
+      if (wrap) wrap.style.display = graphActive ? "none" : "";
+      if (!graphActive && cm) setTimeout(function () { cm.refresh(); }, 0);
+    }
 
     function modeFor(path) {
       if (path.endsWith(".ttl")) return "text/turtle";
@@ -95,7 +105,7 @@
     }
     function liveContent() { return cm ? cm.getValue() : ta.value; }
     function tabFor(path) { for (var i = 0; i < tabs.length; i++) if (tabs[i].path === path) return tabs[i]; return null; }
-    function stashActive() { var t = tabFor(active); if (t) t.content = liveContent(); }
+    function stashActive() { var t = tabFor(active); if (t && !t.graph) t.content = liveContent(); }
 
     function renderTabs() {
       tabsBar.innerHTML = "";
@@ -115,18 +125,31 @@
       if (explorer) explorer.syncTree(active);
     }
     function setMeta(path) {
-      if (breadcrumb) breadcrumb.textContent = path || "No file open";
-      if (saveBtn) saveBtn.disabled = !path;
-      statusbar.setFile(path);
+      var graphActive = isGraphPath(path);
+      if (breadcrumb) breadcrumb.textContent = graphActive ? "Knowledge graph" : (path || "No file open");
+      if (saveBtn) saveBtn.disabled = graphActive || !path;
+      statusbar.setFile(graphActive ? "Knowledge graph" : path);
     }
     function activate(path) {
       if (active === path) return;
       stashActive();
       active = path;
       var t = tabFor(path);
+      if (t && t.graph) { showSurface(true); setMeta(path); renderTabs(); if (graphView) graphView.render(); return; }
+      showSurface(false);
       render(t.content, t.mode);
       setMeta(path);
       renderTabs();
+    }
+    function openGraph() {
+      if (tabFor(GRAPH_TAB)) { activate(GRAPH_TAB); return; }
+      stashActive();
+      tabs.push({ path: GRAPH_TAB, graph: true });
+      active = GRAPH_TAB;
+      showSurface(true);
+      setMeta(GRAPH_TAB);
+      renderTabs();
+      if (graphView) graphView.render();
     }
     function open(path) {
       if (tabFor(path)) { activate(path); return; }
@@ -135,6 +158,7 @@
         stashActive();
         tabs.push({ path: path, content: res.data.content, mode: modeFor(path), dirty: false });
         active = path;
+        showSurface(false);
         render(res.data.content, modeFor(path));
         setMeta(path);
         renderTabs();
@@ -145,7 +169,7 @@
       tabs = tabs.filter(function (t, i) { if (t.path === path) { idx = i; return false; } return true; });
       if (active === path) {
         if (tabs.length) { active = null; activate(tabs[Math.max(0, idx - 1)].path); }
-        else { active = null; render("", "text/plain"); setMeta(null); renderTabs(); }
+        else { active = null; showSurface(false); render("", "text/plain"); setMeta(null); renderTabs(); }
       } else { renderTabs(); }
     }
     function markDirty() { var t = tabFor(active); if (t && !t.dirty) { t.dirty = true; renderTabs(); } }
@@ -160,7 +184,7 @@
         } else { panel.log("Save failed: " + (res.data.error || "")); }
       });
     }
-    function reset() { tabs = []; active = null; render("", "text/plain"); setMeta(null); renderTabs(); }
+    function reset() { tabs = []; active = null; showSurface(false); render("", "text/plain"); setMeta(null); renderTabs(); }
 
     if (cm) {
       cm.on("change", markDirty);
@@ -176,7 +200,7 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); save(); }
     });
 
-    return { open: open, reset: reset, refresh: renderTabs };
+    return { open: open, openGraph: openGraph, reset: reset, refresh: renderTabs };
   })();
 
   /* --- explorer: file tree (with git badges) + quick scaffold ------------- */
@@ -606,6 +630,40 @@
     });
   })();
 
+  /* --- graph view: interactive knowledge graph in the main editor area ---- */
+  var graphView = (function () {
+    var box = document.getElementById("studio-graph");
+    if (!box || !window.GraphExplorer) return null;
+    var canvas = box.querySelector("[data-graph-canvas]");
+    var stats = box.querySelector("[data-graph-stats]");
+    var instance = null;
+    var loaded = null; // domain the current render reflects
+
+    function load() {
+      if (instance) { instance.destroy(); instance = null; }
+      jpost("/api/studio/graph", { domain_id: domain() }).then(function (res) {
+        var d = res.data || {};
+        canvas.dataset.nodes = JSON.stringify(d.nodes || []);
+        canvas.dataset.edges = JSON.stringify(d.edges || []);
+        if (stats) stats.textContent = (d.node_count || 0) + " nodes · " + (d.edge_count || 0) + " links";
+        instance = window.GraphExplorer.init(box, {
+          fetchDetail: function (uri) {
+            return jpost("/api/studio/graph/node", { domain_id: domain(), uri: uri }).then(function (r) { return r.data; });
+          },
+        });
+        loaded = domain();
+      });
+    }
+    function render() { if (!instance || loaded !== domain()) load(); }
+    function invalidate() { if (instance) { instance.destroy(); instance = null; } loaded = null; }
+    return { render: render, invalidate: invalidate };
+  })();
+
+  var graphAct = document.getElementById("act-graph");
+  if (graphAct && editor) {
+    graphAct.addEventListener("click", function () { editor.openGraph(); });
+  }
+
   /* --- boot + domain switching -------------------------------------------- */
   function loadAll() {
     if (explorer) explorer.load();
@@ -613,6 +671,7 @@
   }
   if (domainSel) {
     domainSel.addEventListener("change", function () {
+      if (graphView) graphView.invalidate();
       if (editor) editor.reset();
       loadAll();
     });

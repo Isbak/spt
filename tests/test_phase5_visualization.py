@@ -2,6 +2,7 @@ from rdflib import Graph, Literal, Namespace
 from rdflib.namespace import DCTERMS, OWL, RDF, RDFS
 
 from app.visualizations.graph_explorer import graph_explorer_data
+from semantic_platform.graph_view import build_graph_view, node_detail
 from app.visualizations.ontology_browser import ontology_browser_data
 from app.visualizations.provenance_view import provenance_view_data
 from app.visualizations.reasoning_view import explanations_data, reasoning_dashboard_data
@@ -28,6 +29,61 @@ def test_graph_explorer_loads_filters_and_expands():
     assert all(
         "label" in node and "type" in node and "provenance" in node for node in data["nodes"]
     )
+
+
+def test_build_graph_view_enriches_nodes_and_edges():
+    graph = Graph()
+    graph.add((EX.alice, RDF.type, EX.Person))
+    graph.add((EX.alice, RDFS.label, Literal("Alice")))
+    graph.add((EX.bob, RDF.type, EX.Person))
+    graph.add((EX.alice, EX.knows, EX.bob))
+
+    view = build_graph_view(graph)
+
+    # alice, bob, and the Person class are all URIRef terms → nodes; the three
+    # URIRef↔URIRef triples (two rdf:type, one knows) become edges.
+    assert view["node_count"] == 3
+    assert view["edge_count"] == 3
+    alice = next(n for n in view["nodes"] if n["id"] == str(EX.alice))
+    # Preserved contract keys plus the new enrichment fields.
+    assert {"id", "label", "type", "group", "provenance", "degree", "title"} <= set(alice)
+    assert alice["group"] == "Person"
+    assert alice["degree"] == 2
+    edge = view["edges"][0]
+    assert {"id", "from", "to", "label", "predicate", "title"} <= set(edge)
+
+
+def test_build_graph_view_filters_by_query_and_focus():
+    graph = Graph()
+    graph.add((EX.alice, EX.knows, EX.bob))
+    graph.add((EX.carol, EX.knows, EX.dave))
+
+    focused = build_graph_view(graph, node=str(EX.alice))
+    assert {n["id"] for n in focused["nodes"]} == {str(EX.alice), str(EX.bob)}
+
+    filtered = build_graph_view(graph, query="carol")
+    assert {n["id"] for n in filtered["nodes"]} == {str(EX.carol), str(EX.dave)}
+
+
+def test_node_detail_splits_properties_and_relationships():
+    graph = Graph()
+    graph.add((EX.alice, RDF.type, EX.Person))
+    graph.add((EX.alice, RDFS.label, Literal("Alice")))
+    graph.add((EX.alice, RDFS.comment, Literal("An example person.")))
+    graph.add((EX.alice, EX.knows, EX.bob))
+    graph.add((EX.org, EX.employs, EX.alice))
+
+    detail = node_detail(graph, str(EX.alice))
+
+    assert detail["label"] == "Alice"
+    assert str(EX.Person) in detail["types"]
+    assert detail["comment"] == "An example person."
+    assert detail["outgoing_count"] == 1
+    assert detail["incoming_count"] == 1
+    assert detail["outgoing"][0]["target"] == str(EX.bob)
+    assert detail["incoming"][0]["source"] == str(EX.org)
+    # rdfs:label is surfaced as a literal property, not as a relationship.
+    assert any(p["value"] == "Alice" for p in detail["properties"])
 
 
 def test_ontology_browser_renders_hierarchy_properties_instances():

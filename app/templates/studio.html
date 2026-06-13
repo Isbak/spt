@@ -44,6 +44,8 @@
     </button>
     <button class="wb-act" type="button" data-view="advisory"
             aria-label="Advisory" title="Advisory" aria-pressed="false">💡</button>
+    <button class="wb-act" type="button" id="act-graph"
+            aria-label="Graph view" title="Knowledge graph" aria-pressed="false">🕸</button>
 
     <span class="wb-activitybar__spacer"></span>
 
@@ -135,6 +137,34 @@
     </div>
     <div class="wb-editor__body">
       <textarea id="editor" spellcheck="false" placeholder="Select a file to edit…"></textarea>
+      {#- Knowledge-graph view: shown in place of the editor when the Graph tab is active. -#}
+      <div id="studio-graph" class="studio-graph" data-graph-root hidden>
+        <div class="graph-main">
+          <div class="graph-toolbar" role="toolbar" aria-label="Graph controls">
+            <div class="graph-toolbar__group">
+              <label class="visually-hidden" for="studio-graph-search">Highlight nodes</label>
+              <input id="studio-graph-search" type="search" data-graph-search placeholder="Highlight…" aria-label="Highlight matching nodes">
+            </div>
+            <div class="graph-toolbar__group">
+              <select data-graph-layout class="btn--sm" aria-label="Layout">
+                <option value="force">Force</option>
+                <option value="hierarchical">Hierarchical</option>
+              </select>
+              <button type="button" class="icon-btn" data-graph-fit title="Zoom to fit" aria-label="Zoom to fit">⊡</button>
+              <button type="button" class="icon-btn" data-graph-physics aria-pressed="true" title="Toggle physics" aria-label="Toggle physics">✦</button>
+              <button type="button" class="icon-btn" data-graph-reset title="Reset view" aria-label="Reset view">↺</button>
+              <button type="button" class="icon-btn" data-graph-export title="Export PNG" aria-label="Export as PNG">⤓</button>
+            </div>
+          </div>
+          <div class="graph-canvas">
+            <div data-graph-canvas data-nodes="[]" data-edges="[]"></div>
+            <div class="graph-legend" data-graph-legend aria-label="Node types"></div>
+            <canvas class="graph-minimap" data-graph-minimap width="160" height="110" aria-hidden="true"></canvas>
+          </div>
+          <p class="graph-stats" data-graph-stats></p>
+        </div>
+        <aside class="graph-detail" data-graph-detail aria-label="Selected node details"></aside>
+      </div>
     </div>
   </section>
 
@@ -205,5 +235,7 @@
 <div class="sidebar-backdrop" hidden></div>
 {% include "_chat_panel.html" %}
 
+<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script src="{{ url_for('static', filename='js/graph-explorer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/studio.js') }}" defer></script>
 {% endblock %}

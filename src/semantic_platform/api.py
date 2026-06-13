@@ -33,6 +33,7 @@ from semantic_platform.domain_models import (
 from semantic_platform.fuseki import FusekiClient, FusekiStatus
 from semantic_platform.named_graphs import dataset_for_graph
 from semantic_platform.graph import GraphStats, graph_stats, load_graph
+from semantic_platform.graph_view import build_graph_view, node_detail
 from semantic_platform.materialize import (
     FusekiLoadResult,
     MaterializationResult,
@@ -365,6 +366,28 @@ def search_workspace(
     settings = settings or load_settings()
     graph = _workspace_graph(domain_id, settings)
     return [result.__dict__ for result in search_graph(query, graph=graph, settings=settings)]
+
+
+def workspace_graph_explorer_data(
+    domain_id: str,
+    node: str | None = None,
+    query: str | None = None,
+    limit: int = 75,
+    settings: Settings | None = None,
+) -> dict[str, Any]:
+    """Return vis-network nodes/edges for a domain workspace graph."""
+    settings = settings or load_settings()
+    graph = _workspace_graph(domain_id, settings)
+    return build_graph_view(graph, node=node, query=query, limit=limit)
+
+
+def workspace_node_detail(
+    domain_id: str, uri: str, settings: Settings | None = None
+) -> dict[str, Any]:
+    """Return the full inspectable detail for one resource in a workspace graph."""
+    settings = settings or load_settings()
+    graph = _workspace_graph(domain_id, settings)
+    return node_detail(graph, uri)
 
 
 def advise(

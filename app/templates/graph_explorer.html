@@ -3,32 +3,74 @@
 {% block title %}Graph Explorer{% endblock %}
 {% block content %}
 {{ page_header("Knowledge Graph Explorer",
+   subtitle="Explore entities and relationships. Select any node to inspect its type, properties, and connections.",
    meta="Owner: Platform data owner · Steward: Platform data steward · Version: 0.5.0 · Status: Approved") }}
-<form class="form-row" method="get" role="search">
-  <div class="field">
-    <label for="q">Filter</label>
-    <input id="q" type="search" name="q" value="{{ query }}" placeholder="label, URI, relationship">
+
+<div class="graph-explorer" data-graph-root>
+  <div class="graph-main">
+    <div class="graph-toolbar" role="toolbar" aria-label="Graph controls">
+      <form class="graph-toolbar__filter" method="get" role="search">
+        <label class="visually-hidden" for="q">Filter graph</label>
+        <input id="q" type="search" name="q" value="{{ query }}" placeholder="Filter on the server (label, URI, relationship)…">
+        <button type="submit" class="btn--sm">Apply</button>
+      </form>
+      <div class="graph-toolbar__group">
+        <label class="visually-hidden" for="graph-search">Highlight nodes</label>
+        <input id="graph-search" type="search" data-graph-search placeholder="Highlight…" aria-label="Highlight matching nodes">
+        <select data-graph-layout class="btn--sm" aria-label="Layout">
+          <option value="force">Force layout</option>
+          <option value="hierarchical">Hierarchical</option>
+        </select>
+        <button type="button" class="icon-btn" data-graph-fit title="Zoom to fit" aria-label="Zoom to fit">⊡</button>
+        <button type="button" class="icon-btn" data-graph-physics aria-pressed="true" title="Toggle physics" aria-label="Toggle physics">✦</button>
+        <button type="button" class="icon-btn" data-graph-reset title="Reset view" aria-label="Reset view">↺</button>
+        <button type="button" class="icon-btn" data-graph-export title="Export PNG" aria-label="Export as PNG">⤓</button>
+      </div>
+    </div>
+
+    <div class="graph-canvas">
+      <div id="graph-network" data-graph-canvas
+           data-nodes='{{ graph.nodes|tojson }}' data-edges='{{ graph.edges|tojson }}'></div>
+      <div class="graph-legend" data-graph-legend aria-label="Node types"></div>
+      <canvas class="graph-minimap" data-graph-minimap width="180" height="120" aria-hidden="true"></canvas>
+      {% if graph.node_count == 0 %}
+      <div class="graph-canvas__empty">No nodes match this filter. <a href="{{ scope.url_for('visualization.graph_explorer') if scope else url_for('visualization.graph_explorer') }}">Clear filter</a>.</div>
+      {% endif %}
+    </div>
+    <p class="graph-stats" data-graph-stats>Nodes: {{ graph.node_count }} · Relationships: {{ graph.edge_count }}</p>
+
+    <details class="graph-list">
+      <summary>List view ({{ graph.node_count }} nodes)</summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Node</th><th>Type</th><th>Graph membership</th><th>Provenance</th></tr></thead>
+          <tbody>
+            {% for node in graph.nodes %}
+            <tr><td>{{ node.label }}<br><small>{{ node.id }}</small></td><td>{{ node.type }}</td><td>{{ node.group }}</td><td>{{ node.provenance }}</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </details>
   </div>
-  <button type="submit">Apply</button>
-</form>
-<div id="graph-network" class="visualization-panel" data-nodes='{{ graph.nodes|tojson }}' data-edges='{{ graph.edges|tojson }}'>
-  <p>Nodes: {{ graph.node_count }} · Relationships: {{ graph.edge_count }}</p>
+
+  <aside class="graph-detail" data-graph-detail aria-label="Selected node or relationship details"></aside>
 </div>
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Node</th><th>Type</th><th>Graph membership</th><th>Provenance</th></tr></thead>
-    <tbody>
-      {% for node in graph.nodes %}
-      <tr><td>{{ node.label }}<br><small>{{ node.id }}</small></td><td>{{ node.type }}</td><td>{{ node.group }}</td><td>{{ node.provenance }}</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
+
 <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+<script src="{{ url_for('static', filename='js/graph-explorer.js') }}"></script>
 <script>
-const panel = document.getElementById('graph-network');
-const nodes = new vis.DataSet(JSON.parse(panel.dataset.nodes));
-const edges = new vis.DataSet(JSON.parse(panel.dataset.edges));
-new vis.Network(panel, {nodes, edges}, {interaction: {hover: true, navigationButtons: true, zoomView: true, dragView: true}, edges: {arrows: 'to', smooth: true}});
+(function () {
+  var root = document.querySelector('[data-graph-root]');
+  if (!root || !window.GraphExplorer) return;
+  var nodeUrl = {{ (scope.url_for('visualization.graph_node') if scope else url_for('visualization.graph_node'))|tojson }};
+  var focusBase = {{ (scope.url_for('visualization.graph_explorer') if scope else url_for('visualization.graph_explorer'))|tojson }};
+  window.GraphExplorer.init(root, {
+    fetchDetail: function (uri) {
+      return fetch(nodeUrl + '?uri=' + encodeURIComponent(uri)).then(function (r) { return r.json(); });
+    },
+    focusUrl: function (uri) { return focusBase + '?node=' + encodeURIComponent(uri); },
+  });
+})();
 </script>
 {% endblock %}

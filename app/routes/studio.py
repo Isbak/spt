@@ -19,6 +19,8 @@ from semantic_platform.api import (
     validate_workspace,
     workspace_analytics,
     workspace_diff,
+    workspace_graph_explorer_data,
+    workspace_node_detail,
     workspace_status,
     workspace_tree,
     write_workspace_file,
@@ -222,6 +224,37 @@ def api_studio_search():
     domain_id = payload.get("domain_id", "")
     try:
         return jsonify({"results": search_workspace(domain_id, payload.get("query", ""))})
+    except KeyError as exc:
+        return jsonify({"error": f"unknown domain: {exc}"}), 404
+
+
+@studio_bp.post("/api/studio/graph")
+def api_studio_graph():
+    """Return vis-network nodes/edges for the domain workspace graph."""
+    payload = request.get_json(silent=True) or {}
+    domain_id = payload.get("domain_id", "")
+    try:
+        return jsonify(
+            workspace_graph_explorer_data(
+                domain_id,
+                node=payload.get("node"),
+                query=payload.get("query"),
+            )
+        )
+    except KeyError as exc:
+        return jsonify({"error": f"unknown domain: {exc}"}), 404
+
+
+@studio_bp.post("/api/studio/graph/node")
+def api_studio_graph_node():
+    """Return the full detail for one resource in the domain workspace graph."""
+    payload = request.get_json(silent=True) or {}
+    domain_id = payload.get("domain_id", "")
+    uri = payload.get("uri", "")
+    if not uri:
+        return jsonify({"error": "uri is required."}), 400
+    try:
+        return jsonify(workspace_node_detail(domain_id, uri))
     except KeyError as exc:
         return jsonify({"error": f"unknown domain: {exc}"}), 404
 

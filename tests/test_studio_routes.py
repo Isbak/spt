@@ -137,6 +137,46 @@ def test_studio_search_workspace(client_with_domain):
     assert isinstance(body["results"], list)
 
 
+def test_studio_graph_workspace(client_with_domain):
+    _scaffold(client_with_domain)
+    body = client_with_domain.post(
+        "/api/studio/graph", json={"domain_id": "field-service"}
+    ).get_json()
+    assert "nodes" in body and "edges" in body
+    assert body["node_count"] >= 1
+    assert all("group" in n and "degree" in n for n in body["nodes"])
+
+
+def test_studio_graph_node_detail(client_with_domain):
+    _scaffold(client_with_domain)
+    graph = client_with_domain.post(
+        "/api/studio/graph", json={"domain_id": "field-service"}
+    ).get_json()
+    uri = graph["nodes"][0]["id"]
+    detail = client_with_domain.post(
+        "/api/studio/graph/node", json={"domain_id": "field-service", "uri": uri}
+    ).get_json()
+    assert detail["id"] == uri
+    assert "outgoing" in detail and "incoming" in detail
+
+
+def test_studio_graph_node_requires_uri(client_with_domain):
+    assert (
+        client_with_domain.post(
+            "/api/studio/graph/node", json={"domain_id": "field-service"}
+        ).status_code
+        == 400
+    )
+
+
+def test_studio_graph_unknown_domain(client):
+    assert client.post("/api/studio/graph", json={"domain_id": "x"}).status_code == 404
+    assert (
+        client.post("/api/studio/graph/node", json={"domain_id": "x", "uri": "a"}).status_code
+        == 404
+    )
+
+
 def test_studio_analytics_unknown_domain(client):
     assert client.post("/api/studio/analytics", json={"domain_id": "x"}).status_code == 404
 
