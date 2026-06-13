@@ -51,11 +51,18 @@ external services.
 ### Optional: serving + external services (Docker)
 
 ```bash
-make docker-up                              # Fuseki triple store + Flask UI
-make load-fuseki-docker                     # load the RDF assets / materialized graphs into Fuseki
-make docker-up-llm                          # + a free local Ollama LLM (compose profile: llm)
-docker compose --profile integration up -d  # + Postgres (an external relational-source demo)
+make docker-up              # one container per role: fuseki-{system,agents,business}
+                            # + per-role postgres-{business,agents} warehouses + Flask UI
+make load-fuseki-docker     # load the RDF assets / materialized graphs into Fuseki (routed per role)
+make docker-up-llm          # + a free local Ollama LLM (compose profile: llm)
 ```
+
+The bundled stack realizes the three storage roles (ADR-0017) as **separate containers**
+(ADR-0019): a Jena container per role — `fuseki-system` (3030), `fuseki-agents` (3031),
+`fuseki-business` (3032) — and a Postgres warehouse per warehouse-having role —
+`postgres-business` (5432, seeded) and `postgres-agents` (5433, empty). `system` is
+authored from `rdf/` and has no warehouse. Point any role at an external store instead
+with `FUSEKI_<ROLE>_BASE_URL` / `SOURCE_<ROLE>_DATABASE_URL`.
 
 `make docker-up` auto-detects Docker Compose **v2** (`docker compose`) or **v1**
 (`docker-compose`) — override with `make docker-up DOCKER_COMPOSE='docker compose'`.
@@ -122,9 +129,9 @@ Fuseki troubleshooting:
 - **`make load-fuseki` fails with HTTP 401** → you're hitting an authenticated Fuseki
   without credentials. Use `make load-fuseki-docker`, or set `FUSEKI_USERNAME` /
   `FUSEKI_PASSWORD`.
-- **`Failed to resolve 'fuseki'`** → you're running host-side tooling with
-  `FUSEKI_BASE_URL=http://fuseki:3030`. Use `localhost:3030` on the host, or
-  `make load-fuseki-docker`.
+- **`Failed to resolve 'fuseki-system'`** (or `-agents`/`-business`) → you're running
+  host-side tooling with the in-container `FUSEKI_<ROLE>_BASE_URL=http://fuseki-<role>:3030`.
+  Use `localhost:3030`/`3031`/`3032` on the host, or `make load-fuseki-docker`.
 
 **3. LLM — governed, read-only agent assist** (an agent explains data it may read)
 

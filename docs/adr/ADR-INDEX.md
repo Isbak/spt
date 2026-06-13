@@ -20,3 +20,4 @@
 | ADR-0016 | Governed conversational authoring (modelling studio) |
 | ADR-0017 | Multi-dataset storage topology (system / agents+lineage / business) |
 | ADR-0018 | System vs Knowledge Model data-context trees |
+| ADR-0019 | Per-role container topology (Jena + warehouse per storage role) |

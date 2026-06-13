@@ -25,6 +25,13 @@ dev = [
   "pytest-cov>=5.0",
   "ruff>=0.5",
 ]
+# Live relational warehouse driver for the per-role sources (ADR-0017/0019). The core
+# is SQLite-only by default; install this extra to read a role from Postgres (the
+# bundled postgres-business/postgres-agents containers) or any SQLAlchemy-supported store.
+postgres = [
+  "SQLAlchemy>=2.0",
+  "psycopg[binary]>=3.1",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,47 +1,88 @@
+# Per-role container topology (ADR-0019). Each storage role from ADR-0017 runs in its
+# own container so it can be scaled, backed up, secured, and replaced independently:
+#
+#   role      Jena container       relational warehouse        served graphs
+#   ───────────────────────────────────────────────────────────────────────────────
+#   system    fuseki-system        (none — authored from rdf/) ontology/governance/reasoning
+#   agents    fuseki-agents        postgres-agents             agents + provenance/lineage
+#   business  fuseki-business      postgres-business           reference/masterdata/…
+#
+# `system` has no warehouse by design (ADR-0017): it is authored/generated from the
+# rdf/ files, so there is no postgres-system. Point a role at an external store instead
+# of its bundled container by setting FUSEKI_<ROLE>_BASE_URL / SOURCE_<ROLE>_DATABASE_URL.
+
+# Shared definition for the three per-role Jena containers. Each one is the same
+# dev-bundle Fuseki image (docker/fuseki/shiro.ini opens the admin endpoints so the UI's
+# dataset list and Graph Store writes work through the published port — see ADR-0010);
+# they differ only in the single dataset they serve and the port/volume they bind.
+x-fuseki: &fuseki
+  build: ./docker/fuseki
+  environment: &fuseki-env
+    ADMIN_PASSWORD: ${FUSEKI_ADMIN_PASSWORD:-admin}
+  healthcheck:
+    test: ["CMD", "wget", "--spider", "-q", "http://localhost:3030/"]
+    interval: 10s
+    timeout: 5s
+    retries: 10
+
 services:
-  fuseki:
-    # Thin wrapper over stain/jena-fuseki that swaps in a dev-bundle Shiro config
-    # so the admin UI (dataset list) and Graph Store writes work through the
-    # published port instead of being restricted to localhost. See
-    # docker/fuseki/shiro.ini and ADR-0010.
-    build: ./docker/fuseki
-    container_name: semantic-platform-fuseki
+  fuseki-system:
+    <<: *fuseki
+    container_name: semantic-platform-fuseki-system
     environment:
-      ADMIN_PASSWORD: ${FUSEKI_ADMIN_PASSWORD:-admin}
-      # Three per-role datasets (ADR-0017): system / agents+lineage / business. All run
-      # locally in this container by default; point a role's FUSEKI_<ROLE>_BASE_URL at an
-      # external Jena to place that role remotely instead.
+      <<: *fuseki-env
+      # One dataset per role container (ADR-0019). The image creates FUSEKI_DATASET_1.
       FUSEKI_DATASET_1: ${FUSEKI_SYSTEM_DATASET:-${FUSEKI_DATASET:-semantic-platform}}
-      FUSEKI_DATASET_2: ${FUSEKI_AGENTS_DATASET:-semantic-platform-agents}
-      FUSEKI_DATASET_3: ${FUSEKI_BUSINESS_DATASET:-semantic-platform-business}
     ports:
       - "${FUSEKI_PORT:-3030}:3030"
     volumes:
-      - fuseki-data:/fuseki
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3030/"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - fuseki-system-data:/fuseki
+
+  fuseki-agents:
+    <<: *fuseki
+    container_name: semantic-platform-fuseki-agents
+    environment:
+      <<: *fuseki-env
+      FUSEKI_DATASET_1: ${FUSEKI_AGENTS_DATASET:-semantic-platform-agents}
+    ports:
+      - "${FUSEKI_AGENTS_PORT:-3031}:3030"
+    volumes:
+      - fuseki-agents-data:/fuseki
+
+  fuseki-business:
+    <<: *fuseki
+    container_name: semantic-platform-fuseki-business
+    environment:
+      <<: *fuseki-env
+      FUSEKI_DATASET_1: ${FUSEKI_BUSINESS_DATASET:-semantic-platform-business}
+    ports:
+      - "${FUSEKI_BUSINESS_PORT:-3032}:3030"
+    volumes:
+      - fuseki-business-data:/fuseki
 
   flask:
     build: .
     container_name: semantic-platform-flask
     environment:
       SEMANTIC_PLATFORM_ROOT: /app
-      # Shared default for any role whose own FUSEKI_<ROLE>_BASE_URL is unset.
-      FUSEKI_BASE_URL: http://fuseki:3030
+      # Shared default base URL for any role whose own FUSEKI_<ROLE>_BASE_URL is unset.
+      # Each role below is wired to its dedicated container by default; override a role's
+      # FUSEKI_<ROLE>_BASE_URL to place that role on an external Jena instead.
+      FUSEKI_BASE_URL: http://fuseki-system:3030
       FUSEKI_USERNAME: ${FUSEKI_USERNAME:-}
       FUSEKI_PASSWORD: ${FUSEKI_PASSWORD:-}
-      # Per-role datasets/placement (ADR-0017). Set FUSEKI_<ROLE>_BASE_URL to point a role
-      # at an external Jena, and SOURCE_<ROLE>_DATABASE_URL at an external warehouse.
+      # Per-role Jena placement (ADR-0017/0019): each role points at its own container.
+      FUSEKI_SYSTEM_BASE_URL: ${FUSEKI_SYSTEM_BASE_URL:-http://fuseki-system:3030}
+      FUSEKI_AGENTS_BASE_URL: ${FUSEKI_AGENTS_BASE_URL:-http://fuseki-agents:3030}
+      FUSEKI_BUSINESS_BASE_URL: ${FUSEKI_BUSINESS_BASE_URL:-http://fuseki-business:3030}
       FUSEKI_SYSTEM_DATASET: ${FUSEKI_SYSTEM_DATASET:-${FUSEKI_DATASET:-semantic-platform}}
       FUSEKI_AGENTS_DATASET: ${FUSEKI_AGENTS_DATASET:-semantic-platform-agents}
       FUSEKI_BUSINESS_DATASET: ${FUSEKI_BUSINESS_DATASET:-semantic-platform-business}
-      FUSEKI_AGENTS_BASE_URL: ${FUSEKI_AGENTS_BASE_URL:-}
-      FUSEKI_BUSINESS_BASE_URL: ${FUSEKI_BUSINESS_BASE_URL:-}
-      SOURCE_BUSINESS_DATABASE_URL: ${SOURCE_BUSINESS_DATABASE_URL:-${SOURCE_DATABASE_URL:-}}
-      SOURCE_AGENTS_DATABASE_URL: ${SOURCE_AGENTS_DATABASE_URL:-}
+      # Per-role warehouses (ADR-0017/0019): business and agents each get a dedicated
+      # Postgres container by default. Precedence: explicit SOURCE_<ROLE>_DATABASE_URL →
+      # shared SOURCE_DATABASE_URL → the bundled per-role container. system has none.
+      SOURCE_BUSINESS_DATABASE_URL: ${SOURCE_BUSINESS_DATABASE_URL:-${SOURCE_DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER:-semantic}:${POSTGRES_PASSWORD:-semantic}@postgres-business:5432/${POSTGRES_BUSINESS_DB:-semantic_platform_business}}}
+      SOURCE_AGENTS_DATABASE_URL: ${SOURCE_AGENTS_DATABASE_URL:-${SOURCE_DATABASE_URL:-postgresql+psycopg://${POSTGRES_USER:-semantic}:${POSTGRES_PASSWORD:-semantic}@postgres-agents:5432/${POSTGRES_AGENTS_DB:-semantic_platform_agents}}}
       FLASK_HOST: 0.0.0.0
       ORCHESTRATION_ENABLED: "true"
       EXECUTION_ENABLED: "true"
@@ -63,7 +104,15 @@ services:
     ports:
       - "${FLASK_PORT:-5000}:5000"
     depends_on:
-      fuseki:
+      fuseki-system:
+        condition: service_healthy
+      fuseki-agents:
+        condition: service_healthy
+      fuseki-business:
+        condition: service_healthy
+      postgres-business:
+        condition: service_healthy
+      postgres-agents:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
@@ -71,22 +120,45 @@ services:
       timeout: 5s
       retries: 10
 
-  postgres:
+  # Business-role warehouse: seeded with the example schema + sample data so the
+  # R2RML materialization path (reference/masterdata/integration graphs) works out of
+  # the box against a live relational source.
+  postgres-business:
     image: postgres:16-alpine
-    container_name: semantic-platform-postgres
-    profiles: ["integration"]
+    container_name: semantic-platform-postgres-business
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-semantic_platform}
+      POSTGRES_DB: ${POSTGRES_BUSINESS_DB:-semantic_platform_business}
       POSTGRES_USER: ${POSTGRES_USER:-semantic}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-semantic}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-business-data:/var/lib/postgresql/data
       - ./mappings/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
       - ./mappings/sql/sample_data.sql:/docker-entrypoint-initdb.d/02-sample-data.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-semantic} -d $${POSTGRES_DB:-semantic_platform}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-semantic} -d $${POSTGRES_BUSINESS_DB:-semantic_platform_business}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Agents-role warehouse: an empty, independently-placeable database ready for agent
+  # registry/memory/lineage source data. The repo ships no agents R2RML mappings yet
+  # (all examples are business-role), so this starts empty — it exists so the agents
+  # role has its own store from day one (ADR-0017/0019).
+  postgres-agents:
+    image: postgres:16-alpine
+    container_name: semantic-platform-postgres-agents
+    environment:
+      POSTGRES_DB: ${POSTGRES_AGENTS_DB:-semantic_platform_agents}
+      POSTGRES_USER: ${POSTGRES_USER:-semantic}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-semantic}
+    ports:
+      - "${POSTGRES_AGENTS_PORT:-5433}:5432"
+    volumes:
+      - postgres-agents-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-semantic} -d $${POSTGRES_AGENTS_DB:-semantic_platform_agents}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -111,6 +183,9 @@ services:
       retries: 10
 
 volumes:
-  fuseki-data:
-  postgres-data:
+  fuseki-system-data:
+  fuseki-agents-data:
+  fuseki-business-data:
+  postgres-business-data:
+  postgres-agents-data:
   ollama-data:

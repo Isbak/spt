@@ -8,9 +8,10 @@ the Jena test.
 
 Bring services up and select them, then run normally — no extra flag:
 
-    # External warehouse backing the example mappings (seeded postgres):
-    make docker-up   # then start postgres: docker compose --profile integration up -d
-    SOURCE_DATABASE_URL=postgresql+psycopg://semantic:semantic@localhost:5432/semantic_platform \
+    # External warehouse backing the example mappings (the bundled per-role
+    # postgres-business, ADR-0019, starts with `make docker-up`):
+    make docker-up
+    SOURCE_DATABASE_URL=postgresql+psycopg://semantic:semantic@localhost:5432/semantic_platform_business \
         python -m pytest tests/test_external_integration_live.py
 
     # Real Jena (the bundled Fuseki counts) — just have it running:
