@@ -26,7 +26,7 @@ make test         # pytest with coverage; FAILS if coverage < 90% (--cov-fail-un
 make lint         # ruff check src app tests
 make app          # run the Flask UI locally (FLASK_APP=app.app:create_app)
 make verify       # the full gate — runs ~25 validation targets + test + query
-make docker-up    # docker compose up -d (Fuseki + Flask; postgres via integration profile)
+make docker-up    # docker compose up -d — one container per role: fuseki-{system,agents,business} + postgres-{business,agents} + Flask (ADR-0019)
 make clean        # remove caches, coverage, build artifacts
 ```
 

@@ -204,6 +204,9 @@ verify: ci-validate test query
 lint:
 	$(PYTHON) -m ruff check src app tests
 
+# Bring up one container per storage role (ADR-0019): fuseki-{system,agents,business}
+# Jena containers + postgres-{business,agents} warehouses + Flask. Place any role on an
+# external store instead via FUSEKI_<ROLE>_BASE_URL / SOURCE_<ROLE>_DATABASE_URL.
 docker-up:
 	$(DOCKER_COMPOSE) up -d
 

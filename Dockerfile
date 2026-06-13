@@ -11,7 +11,9 @@ COPY app ./app
 COPY rdf ./rdf
 COPY scripts ./scripts
 
-RUN python -m pip install --no-cache-dir -e .
+# Install the postgres extra so the bundled per-role warehouses (postgres-business /
+# postgres-agents, ADR-0019) work out of the box; core stays SQLite-only otherwise.
+RUN python -m pip install --no-cache-dir -e ".[postgres]"
 
 EXPOSE 5000
 CMD ["python", "-m", "flask", "--app", "app.app:create_app", "run", "--host", "0.0.0.0", "--port", "5000"]

@@ -143,9 +143,9 @@ tested against the genuine service. Examples:
 make docker-up && make load-fuseki
 python -m pytest tests/test_external_integration_live.py
 
-# External warehouse (seeded postgres) → the warehouse test runs:
-docker compose --profile integration up -d
-SOURCE_DATABASE_URL=postgresql+psycopg://semantic:semantic@localhost:5432/semantic_platform \
+# External warehouse (the bundled per-role postgres-business, ADR-0019) → warehouse test runs:
+make docker-up
+SOURCE_DATABASE_URL=postgresql+psycopg://semantic:semantic@localhost:5432/semantic_platform_business \
     python -m pytest tests/test_external_integration_live.py
 ```
 
