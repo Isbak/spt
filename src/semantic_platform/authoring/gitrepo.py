@@ -33,6 +33,40 @@ class PullRequestRef:
     message: str
 
 
+@dataclass(frozen=True)
+class FileStatus:
+    """Git status for one file: the raw porcelain codes plus a display badge."""
+
+    path: str
+    index: str  # staged-change code (porcelain column X), e.g. "A", "M", " "
+    worktree: str  # worktree-change code (porcelain column Y), e.g. "M", "?", " "
+    code: str  # single-letter display badge: "A"/"M"/"D"/"R"/"U"
+
+
+@dataclass(frozen=True)
+class WorkspaceStatus:
+    """Working-tree status for a domain repository (branch + changed files)."""
+
+    branch: str
+    files: tuple[FileStatus, ...]
+    clean: bool
+
+
+def _run_allow_fail(args: list[str], cwd: Path | None = None) -> str:
+    """Run a git command and return stdout regardless of exit code.
+
+    Used for commands like ``git diff --no-index`` that intentionally exit
+    non-zero when files differ — :func:`_run` would raise on that.
+    """
+    result = subprocess.run(  # noqa: S603 - args are constructed internally
+        ["git", *args],
+        cwd=str(cwd) if cwd else None,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout
+
+
 def _run(args: list[str], cwd: Path | None = None) -> str:
     """Run a git command and return stdout, raising :class:`GitError` on failure."""
     result = subprocess.run(  # noqa: S603 - args are constructed internally
@@ -129,6 +163,55 @@ class GitRepo:
             if entry.is_file() and ".git" not in entry.relative_to(self.path).parts:
                 paths.append(str(entry.relative_to(self.path)).replace(os.sep, "/"))
         return paths
+
+    def status(self) -> WorkspaceStatus:
+        """Return the working-tree status (branch + changed files) via porcelain."""
+        out = _run(["status", "--porcelain=v1", "--branch", "--untracked-files=all"], cwd=self.path)
+        branch = ""
+        files: list[FileStatus] = []
+        for line in out.splitlines():
+            if line.startswith("## "):
+                branch = self._parse_branch(line[3:])
+                continue
+            if len(line) < 4:
+                continue
+            index, worktree, rest = line[0], line[1], line[3:]
+            # Rename lines read "old -> new"; keep the new path.
+            path = rest.split(" -> ", 1)[-1].strip()
+            files.append(FileStatus(path=path, index=index, worktree=worktree,
+                                    code=self._badge(index, worktree)))
+        return WorkspaceStatus(branch=branch, files=tuple(files), clean=not files)
+
+    @staticmethod
+    def _parse_branch(header: str) -> str:
+        """Extract the branch name from a porcelain ``## ...`` header line."""
+        header = header.strip()
+        if header.startswith("No commits yet on "):
+            header = header[len("No commits yet on "):]
+        return header.split("...", 1)[0].strip()
+
+    @staticmethod
+    def _badge(index: str, worktree: str) -> str:
+        """Collapse the two porcelain status columns into one display badge."""
+        if index == "?" or worktree == "?":
+            return "U"
+        change = worktree if worktree != " " else index
+        return change if change != " " else "M"
+
+    def diff(self, relative_path: str) -> str:
+        """Return the unified diff for one file (``""`` when clean/unavailable)."""
+        target = self.path / relative_path
+        if not target.resolve().is_relative_to(self.path.resolve()):
+            raise GitError(f"Refusing to diff outside the repository: {relative_path}")
+        # Tracked files: a clean file yields an empty diff, a modified file a real one.
+        if _run(["ls-files", "--", relative_path], cwd=self.path).strip():
+            return _run(["diff", "--", relative_path], cwd=self.path)
+        # Untracked files have no tracked diff; show them against /dev/null.
+        # ``--no-index`` intentionally exits non-zero when files differ.
+        if target.is_file():
+            return _run_allow_fail(["diff", "--no-index", "--", os.devnull, relative_path],
+                                   cwd=self.path)
+        return ""
 
     def commit(self, message: str) -> str | None:
         """Stage all changes and commit; return the commit SHA or ``None`` if clean."""

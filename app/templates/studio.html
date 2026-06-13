@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Modelling Studio{% endblock %}
 
-{#- Full-screen VSCode-style takeover: override the whole app shell. The global
-   agent rail (_chat_panel.html) is included here too and defaults open. -#}
+{#- Full-screen VSCode-style workbench: override the whole app shell. Activity bar →
+   swappable side bar · tabbed editor · bottom tool console · status bar, with the
+   global agent rail (_chat_panel.html) docked right and open by default. -#}
 {% block shell %}
 <script>document.body.classList.add("is-studio");</script>
 
@@ -24,222 +25,185 @@
   </div>
 </div>
 {% else %}
-<div class="studio-shell">
-  <nav class="studio-activity" aria-label="Studio actions">
-    <a href="{{ url_for('index') }}" title="Back to platform" aria-label="Back to platform">⌂</a>
-    <span class="spacer"></span>
-    <button class="theme-toggle" type="button" aria-label="Toggle color theme" aria-pressed="false" title="Toggle light / dark">
+<div class="studio-shell" id="studio-shell"
+     data-provider="{{ model.provider }}" data-model="{{ model.model or '' }}">
+
+  {#- Activity bar: switches the side-bar view; bottom group is global chrome. -#}
+  <nav class="wb-activitybar" aria-label="Studio activities">
+    <button class="wb-act is-active" type="button" data-view="explorer"
+            aria-label="Explorer" title="Explorer" aria-pressed="true">🗂</button>
+    <button class="wb-act" type="button" data-view="scm"
+            aria-label="Source Control" title="Source Control" aria-pressed="false">
+      ⑂<span class="wb-act__badge" id="scm-badge" hidden>0</span>
+    </button>
+    <button class="wb-act" type="button" data-view="search"
+            aria-label="Search" title="Search" aria-pressed="false">🔍</button>
+    <button class="wb-act" type="button" data-view="validation"
+            aria-label="Validation" title="Validation" aria-pressed="false">
+      ✓<span class="wb-act__badge wb-act__badge--danger" id="val-badge" hidden>0</span>
+    </button>
+    <button class="wb-act" type="button" data-view="advisory"
+            aria-label="Advisory" title="Advisory" aria-pressed="false">💡</button>
+
+    <span class="wb-activitybar__spacer"></span>
+
+    <a href="{{ url_for('setup.domain_setup_view') }}" class="wb-act"
+       aria-label="Settings" title="Domain &amp; model settings">⚙</a>
+    <button class="wb-act theme-toggle" type="button" aria-label="Toggle color theme"
+            aria-pressed="false" title="Toggle light / dark">
       <span class="theme-toggle__icon" aria-hidden="true">◐</span>
     </button>
-    <button type="button" data-chat-toggle aria-controls="chat-panel" aria-expanded="false" title="Toggle assistant">💬</button>
+    <button class="wb-act" type="button" data-chat-toggle aria-controls="chat-panel"
+            aria-expanded="false" title="Toggle assistant" aria-label="Toggle assistant">💬</button>
+    <a href="{{ url_for('index') }}" class="wb-act" title="Back to platform"
+       aria-label="Back to platform">⌂</a>
   </nav>
 
-  <aside class="studio-explorer" aria-label="Explorer">
-    <h2>Domain</h2>
-    <select id="studio-domain" aria-label="Domain">
-      {% for d in domains %}<option value="{{ d.domain_id }}">{{ d.label }}</option>{% endfor %}
-    </select>
-    <h2>Files</h2>
-    <ul id="file-tree"></ul>
+  {#- Side bar: one .wb-view per activity; only one visible at a time. -#}
+  <aside class="wb-sidebar" id="wb-sidebar" aria-label="Side bar">
+    <div class="wb-sidebar__domain">
+      <label class="wb-sidebar__label" for="studio-domain">Domain</label>
+      <select id="studio-domain" aria-label="Domain">
+        {% for d in domains %}<option value="{{ d.domain_id }}">{{ d.label }}</option>{% endfor %}
+      </select>
+    </div>
 
-    <details class="studio-scaffold">
-      <summary>＋ Quick scaffold</summary>
-      <label>Domain label <input id="sc-label" value="My Domain"></label>
-      <label>Prefix <input id="sc-prefix" value="ex"></label>
-      <label>Base namespace <input id="sc-ns" value="https://example.org/domain#"></label>
-      <label>Classes (comma-separated) <input id="sc-classes" placeholder="Technician, WorkOrder"></label>
-      <button type="button" id="scaffold-btn">Generate</button>
-    </details>
+    <section class="wb-view" data-view="explorer">
+      <h2 class="wb-view__title">Explorer</h2>
+      <ul id="file-tree" class="wb-tree"></ul>
+      <details class="wb-scaffold">
+        <summary>＋ Quick scaffold</summary>
+        <label>Domain label <input id="sc-label" value="My Domain"></label>
+        <label>Prefix <input id="sc-prefix" value="ex"></label>
+        <label>Base namespace <input id="sc-ns" value="https://example.org/domain#"></label>
+        <label>Classes (comma-separated) <input id="sc-classes" placeholder="Technician, WorkOrder"></label>
+        <button type="button" class="btn btn--sm" id="scaffold-btn">Generate</button>
+      </details>
+    </section>
+
+    <section class="wb-view" data-view="scm" hidden>
+      <h2 class="wb-view__title">Source Control
+        <span class="wb-view__branch" id="scm-branch"></span></h2>
+      <div class="wb-scm__commit">
+        <textarea id="scm-message" rows="2" placeholder="Commit message"
+                  aria-label="Commit message"></textarea>
+        <button type="button" class="btn btn--sm" id="scm-pr-btn">Commit &amp; Open PR</button>
+        <p class="metadata" id="scm-pr-result"></p>
+      </div>
+      <h3 class="wb-view__subtitle">Changes</h3>
+      <ul id="scm-changes" class="wb-changes"></ul>
+      <pre class="wb-diff" id="scm-diff" hidden></pre>
+    </section>
+
+    <section class="wb-view" data-view="search" hidden>
+      <h2 class="wb-view__title">Search</h2>
+      <form id="search-form" class="wb-search">
+        <input id="search-input" type="search" placeholder="Search labels, types, URIs…"
+               aria-label="Search the model">
+      </form>
+      <ul id="search-results" class="wb-results"></ul>
+    </section>
+
+    <section class="wb-view" data-view="validation" hidden>
+      <h2 class="wb-view__title">Validation</h2>
+      <button type="button" class="btn btn--sm" id="validate-btn">Run validation</button>
+      <ul id="problems-side" class="wb-problems"></ul>
+    </section>
+
+    <section class="wb-view" data-view="advisory" hidden>
+      <h2 class="wb-view__title">Advisory</h2>
+      <form id="advisory-form" class="wb-advisory">
+        <label>Objective <input id="adv-objective" placeholder="Pick the best candidate"></label>
+        <label>Candidate type <input id="adv-type" placeholder="e.g. owl:Class"></label>
+        <button type="button" class="btn btn--sm" id="advisory-btn">Recommend</button>
+      </form>
+      <div id="advisory-results" class="wb-results"></div>
+    </section>
   </aside>
 
-  <div class="studio-toolbar">
-    <strong>Knowledge Modelling Studio</strong>
-    <span class="spacer"></span>
-    <button type="button" id="save-btn" disabled>Save</button>
-    <button type="button" id="pr-btn">Open Pull Request</button>
-    <span class="metadata" id="pr-result"></span>
-  </div>
+  <div class="wb-resizer wb-resizer--sidebar" id="resizer-sidebar"
+       role="separator" aria-orientation="vertical" aria-label="Resize side bar"
+       tabindex="0"></div>
 
-  <section class="studio-editor">
-    <div class="studio-tabs" id="editor-tabs" role="tablist"></div>
-    <div class="studio-editor__body">
+  {#- Editor group: tabs · breadcrumb (path + save) · editor. -#}
+  <section class="wb-editorgroup">
+    <div class="wb-tabs" id="editor-tabs" role="tablist" aria-label="Open files"></div>
+    <div class="wb-breadcrumb">
+      <span id="breadcrumb" class="wb-breadcrumb__path">No file open</span>
+      <span class="wb-breadcrumb__spacer"></span>
+      <button type="button" class="btn btn--sm btn--secondary" id="save-btn" disabled>Save</button>
+    </div>
+    <div class="wb-editor__body">
       <textarea id="editor" spellcheck="false" placeholder="Select a file to edit…"></textarea>
     </div>
-    <div class="studio-status"><span id="current-file">No file open</span><span class="spacer"></span><span id="validation"></span></div>
   </section>
+
+  <div class="wb-resizer wb-resizer--panel" id="resizer-panel"
+       role="separator" aria-orientation="horizontal" aria-label="Resize panel"
+       tabindex="0"></div>
+
+  {#- Bottom tool console: governed operations, not a raw shell. -#}
+  <section class="wb-panel" id="wb-panel" aria-label="Tool console">
+    <div class="wb-panel__tabs" role="tablist" aria-label="Panel">
+      <button class="wb-panel__tab is-active" type="button" data-pane="problems" role="tab">
+        Problems <span class="wb-panel__count" id="problems-count" hidden>0</span></button>
+      <button class="wb-panel__tab" type="button" data-pane="query" role="tab">Query</button>
+      <button class="wb-panel__tab" type="button" data-pane="output" role="tab">Output</button>
+      <button class="wb-panel__tab" type="button" data-pane="analytics" role="tab">Analytics</button>
+      <span class="wb-panel__spacer"></span>
+      <button class="wb-panel__icon" type="button" id="panel-maximize"
+              title="Maximize panel" aria-label="Maximize panel">▢</button>
+      <button class="wb-panel__icon" type="button" id="panel-collapse"
+              title="Toggle panel (Ctrl+`)" aria-label="Toggle panel">⌄</button>
+    </div>
+    <div class="wb-panel__body">
+      <div class="wb-pane" data-pane="problems">
+        <ul id="problems-list" class="wb-problems"></ul>
+      </div>
+      <div class="wb-pane" data-pane="query" hidden>
+        <div class="wb-query">
+          <textarea id="query-input" spellcheck="false"
+                    placeholder="SELECT * WHERE { ?s ?p ?o } LIMIT 25"></textarea>
+          <div class="wb-query__actions">
+            <button type="button" class="btn btn--sm" id="query-run">Run query</button>
+            <span class="metadata" id="query-status"></span>
+          </div>
+          <div class="wb-query__results" id="query-results"></div>
+        </div>
+      </div>
+      <div class="wb-pane" data-pane="output" hidden>
+        <div class="wb-output__bar">
+          <select id="output-command" aria-label="Tool">
+            <option value="validate">Validate workspace</option>
+            <option value="analytics">Compute analytics</option>
+            <option value="status">Git status</option>
+          </select>
+          <button type="button" class="btn btn--sm" id="output-run">Run</button>
+          <button type="button" class="btn btn--sm btn--ghost" id="output-clear">Clear</button>
+        </div>
+        <pre id="output-log" class="wb-output__log" aria-live="polite"></pre>
+      </div>
+      <div class="wb-pane" data-pane="analytics" hidden>
+        <div id="analytics-cards" class="wb-metrics"></div>
+      </div>
+    </div>
+  </section>
+
+  {#- Status bar: live workbench state. -#}
+  <footer class="wb-statusbar" id="wb-statusbar">
+    <span class="wb-status__item" id="status-branch" title="Branch">⑂ —</span>
+    <span class="wb-status__item" id="status-changes" title="Pending changes">0 changes</span>
+    <span class="wb-status__item" id="status-problems" title="Problems">✓ no problems</span>
+    <span class="wb-statusbar__spacer"></span>
+    <span class="wb-status__item" id="status-cursor">Ln 1, Col 1</span>
+    <span class="wb-status__item" id="status-file">No file open</span>
+    <span class="wb-status__item" id="status-model"></span>
+  </footer>
 </div>
 {% endif %}
 
 <div class="sidebar-backdrop" hidden></div>
 {% include "_chat_panel.html" %}
 
-<script>
-(function () {
-  var domainSel = document.getElementById("studio-domain");
-  if (!domainSel) return;  // empty state: nothing to wire up
-  var tree = document.getElementById("file-tree");
-  var tabsBar = document.getElementById("editor-tabs");
-  var editor = document.getElementById("editor");
-  var current = document.getElementById("current-file");
-  var saveBtn = document.getElementById("save-btn");
-  var validation = document.getElementById("validation");
-
-  // Upgrade the textarea to a syntax-highlighting editor when CodeMirror loaded
-  // (CDN). Offline, `cm` stays null and we fall back to the plain textarea.
-  var cm = window.CodeMirror ? window.CodeMirror.fromTextArea(editor, {
-    lineNumbers: true, mode: "text/turtle", viewportMargin: Infinity
-  }) : null;
-
-  // Open editor tabs: [{ path, content, mode, dirty }]; `active` is the open path.
-  var tabs = [];
-  var active = null;
-
-  function modeFor(path) {
-    if (path.endsWith(".ttl")) return "text/turtle";
-    if (path.endsWith(".rq")) return "application/sparql-query";
-    if (path.endsWith(".sql")) return "text/x-sql";
-    if (path.endsWith(".json")) return { name: "javascript", json: true };
-    return "text/plain";
-  }
-  function render(content, mode) {
-    if (cm) { cm.setOption("mode", mode); cm.setValue(content); }
-    else { editor.value = content; }
-  }
-  function liveContent() { return cm ? cm.getValue() : editor.value; }
-  function tabFor(path) { for (var i = 0; i < tabs.length; i++) if (tabs[i].path === path) return tabs[i]; return null; }
-
-  function syncTree() {
-    tree.querySelectorAll("a").forEach(function (a) {
-      a.classList.toggle("is-open", a.getAttribute("data-path") === active);
-    });
-  }
-  function renderTabs() {
-    tabsBar.innerHTML = "";
-    tabs.forEach(function (t) {
-      var tab = document.createElement("button");
-      tab.className = "studio-tab" + (t.path === active ? " is-active" : "") + (t.dirty ? " is-dirty" : "");
-      tab.setAttribute("role", "tab");
-      var dot = document.createElement("span"); dot.className = "studio-tab__dot";
-      var name = document.createElement("span"); name.textContent = t.path.split("/").pop();
-      var close = document.createElement("span"); close.className = "studio-tab__close"; close.textContent = "×";
-      tab.appendChild(dot); tab.appendChild(name); tab.appendChild(close);
-      tab.addEventListener("click", function (e) {
-        if (e.target === close) { closeTab(t.path); return; }
-        activate(t.path);
-      });
-      tabsBar.appendChild(tab);
-    });
-    syncTree();
-  }
-  function stashActive() {
-    var t = tabFor(active);
-    if (t) t.content = liveContent();
-  }
-  function activate(path) {
-    if (active === path) return;
-    stashActive();
-    active = path;
-    var t = tabFor(path);
-    render(t.content, t.mode);
-    current.textContent = path; saveBtn.disabled = false; validation.textContent = "";
-    renderTabs();
-  }
-  function closeTab(path) {
-    var idx = -1;
-    tabs = tabs.filter(function (t, i) { if (t.path === path) { idx = i; return false; } return true; });
-    if (active === path) {
-      if (tabs.length) { active = null; activate(tabs[Math.max(0, idx - 1)].path); }
-      else { active = null; render("", "text/plain"); current.textContent = "No file open"; saveBtn.disabled = true; renderTabs(); }
-    } else { renderTabs(); }
-  }
-
-  function domain() { return domainSel.value; }
-  function jpost(url, body) {
-    return fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
-      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); });
-  }
-
-  function loadTree() {
-    fetch("/api/studio/tree?domain_id=" + encodeURIComponent(domain()))
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        tree.innerHTML = "";
-        (d.files || []).forEach(function (path) {
-          var li = document.createElement("li");
-          var a = document.createElement("a");
-          a.href = "#"; a.textContent = path; a.setAttribute("data-path", path);
-          a.addEventListener("click", function (e) { e.preventDefault(); openFile(path); });
-          li.appendChild(a); tree.appendChild(li);
-        });
-        if (!(d.files || []).length) tree.innerHTML = "<li class='empty'>No files yet — scaffold or chat to begin.</li>";
-        syncTree();
-      });
-  }
-
-  function openFile(path) {
-    if (tabFor(path)) { activate(path); return; }
-    fetch("/api/studio/file?domain_id=" + encodeURIComponent(domain()) + "&path=" + encodeURIComponent(path))
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d.error) { validation.textContent = d.error; return; }
-        stashActive();
-        tabs.push({ path: path, content: d.content, mode: modeFor(path), dirty: false });
-        active = path;
-        render(d.content, modeFor(path));
-        current.textContent = path; saveBtn.disabled = false; validation.textContent = "";
-        renderTabs();
-      });
-  }
-
-  function markDirty() {
-    var t = tabFor(active);
-    if (t && !t.dirty) { t.dirty = true; renderTabs(); }
-  }
-  if (cm) cm.on("change", markDirty); else editor.addEventListener("input", markDirty);
-
-  saveBtn.addEventListener("click", function () {
-    if (!active) return;
-    var path = active;
-    jpost("/api/studio/file", { domain_id: domain(), path: path, content: liveContent() })
-      .then(function (res) {
-        validation.textContent = res.ok ? "Saved " + path : (res.data.error || "Save failed");
-        if (res.ok) { var t = tabFor(path); if (t) { t.dirty = false; t.content = liveContent(); renderTabs(); } }
-      });
-  });
-
-  document.getElementById("scaffold-btn").addEventListener("click", function () {
-    var classes = document.getElementById("sc-classes").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
-    jpost("/api/studio/chat", {
-      domain_id: domain(),
-      answers: {
-        domain_label: document.getElementById("sc-label").value,
-        prefix: document.getElementById("sc-prefix").value,
-        base_namespace: document.getElementById("sc-ns").value,
-        classes: classes,
-        properties: []
-      }
-    }).then(function (res) {
-      validation.textContent = res.data.reply || "";
-      loadTree();
-    });
-  });
-
-  document.getElementById("pr-btn").addEventListener("click", function () {
-    var out = document.getElementById("pr-result");
-    out.textContent = "Working…";
-    jpost("/api/studio/pr", { domain_id: domain() }).then(function (res) {
-      var d = res.data;
-      if (d.pull_request_url) out.innerHTML = 'PR: <a href="' + d.pull_request_url + '">' + d.pull_request_url + "</a>";
-      else if (d.compare_url) out.innerHTML = '<a href="' + d.compare_url + '">' + d.message + "</a>";
-      else out.textContent = d.message || "Done.";
-    });
-  });
-
-  domainSel.addEventListener("change", function () {
-    tabs = []; active = null; render("", "text/plain");
-    current.textContent = "No file open"; saveBtn.disabled = true; renderTabs(); loadTree();
-  });
-  loadTree();
-})();
-</script>
+<script src="{{ url_for('static', filename='js/studio.js') }}" defer></script>
 {% endblock %}

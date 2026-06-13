@@ -71,6 +71,55 @@ def test_run_raises_on_failure(tmp_path):
         GitRepo(tmp_path / "nope").read_file("a")  # no repo -> read fails
 
 
+def test_status_clean_on_fresh_repo(tmp_path):
+    repo = GitRepo(tmp_path / "repo").init()
+    status = repo.status()
+    assert status.clean is True
+    assert status.files == ()
+
+
+def test_status_reports_untracked_then_modified(tmp_path):
+    repo = GitRepo(tmp_path / "repo").init()
+    repo.checkout_branch("authoring/test")
+    repo.write_file("rdf/a.ttl", "# a\n")
+    status = repo.status()
+    assert status.clean is False
+    assert status.branch == "authoring/test"
+    entry = next(f for f in status.files if f.path == "rdf/a.ttl")
+    assert entry.code == "U"  # untracked
+
+    repo.commit("add a")
+    assert repo.status().clean is True
+    repo.write_file("rdf/a.ttl", "# a edited\n")
+    modified = next(f for f in repo.status().files if f.path == "rdf/a.ttl")
+    assert modified.code == "M"
+
+
+def test_diff_tracked_and_untracked(tmp_path):
+    repo = GitRepo(tmp_path / "repo").init()
+    repo.write_file("rdf/a.ttl", "# original\n")
+    # Untracked file: diff comes from the --no-index fallback.
+    assert "# original" in repo.diff("rdf/a.ttl")
+    repo.commit("add a")
+    repo.write_file("rdf/a.ttl", "# changed\n")
+    tracked = repo.diff("rdf/a.ttl")
+    assert "+# changed" in tracked and "-# original" in tracked
+
+
+def test_diff_clean_or_missing_returns_empty(tmp_path):
+    repo = GitRepo(tmp_path / "repo").init()
+    repo.write_file("rdf/a.ttl", "# a\n")
+    repo.commit("add a")
+    assert repo.diff("rdf/a.ttl") == ""  # clean tracked file
+    assert repo.diff("rdf/missing.ttl") == ""  # no such file
+
+
+def test_diff_outside_repo_is_refused(tmp_path):
+    repo = GitRepo(tmp_path / "repo").init()
+    with pytest.raises(GitError):
+        repo.diff("../escape.ttl")
+
+
 def test_compare_url_and_pr_fallback():
     assert github_compare_url("git@github.com:owner/repo.git", "feat", "main") == (
         "https://github.com/owner/repo/compare/main...feat?expand=1"
